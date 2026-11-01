@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-01-c" />
+    <meta name="app-build" content="2026-11-01-d" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -51,7 +51,7 @@
           --shadow-lg:0 4px 12px rgba(0,0,0,.5),0 20px 48px rgba(0,0,0,.55);
         }
       }
-      html,body{height:100%;}
+      html,body{height:100%;overscroll-behavior:none;}
       body{
         margin:0; background:var(--bg); color:var(--ink);
         font-family:var(--font-ui);
@@ -341,12 +341,17 @@
       .add-text-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
       /* Format bar */
       .format-bar{
-        display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 12px;
-        background:var(--surface);border-bottom:1px solid var(--line);z-index:5;
-        transition:opacity .22s ease,transform .22s ease,visibility .22s;
+        position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:30;
+        display:flex;align-items:center;gap:6px;flex-wrap:nowrap;padding:6px 10px;
+        max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:thin;
+        background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);
+        transition:opacity .2s ease,transform .2s ease,visibility .2s;
       }
+      .format-bar > *{flex:none;}
+      /* Hidden = invisible but still laid out (it floats, so showing/hiding never shifts the page) */
+      .format-bar.hidden{display:flex !important;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-50%) translateY(-8px);}
       /* While the user is typing the toolbar fades away; it returns when they pause */
-      .format-bar.typing-hidden{opacity:0;transform:translateY(-6px);pointer-events:none;visibility:hidden;}
+      .format-bar.typing-hidden{opacity:0;transform:translateX(-50%) translateY(-6px);pointer-events:none;visibility:hidden;}
       .fmt-btn.move-btn,.fmt-btn.fav-btn,.fmt-btn.font-src-btn{width:auto;padding:0 10px;gap:6px;font-weight:600;font-size:13px;}
       .fmt-btn.move-btn svg,.fmt-btn.fav-btn svg,.fmt-btn.font-src-btn svg{width:17px;height:17px;flex:none;}
       .fav-btn{color:#9aa1ad;}
@@ -380,7 +385,7 @@
       .color-input-wrap input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
       .color-input-wrap .ci-face{position:absolute;inset:0;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);background:conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);pointer-events:none;}
       /* Pages */
-      .pages-scroll{flex:1;overflow-y:auto;overflow-x:auto;padding:26px 16px 60px;scroll-behavior:auto;}
+      .pages-scroll{flex:1;overflow-y:auto;overflow-x:auto;padding:26px 16px 60px;scroll-behavior:auto;overscroll-behavior:none;}
       /* will-change: zoom animates this column with a GPU transform, then re-renders once */
       .pages-col{display:flex;flex-direction:column;align-items:center;gap:22px;min-width:min-content;}
       .page-wrap{position:relative;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18),0 14px 34px rgba(0,0,0,.16);flex:none;}
@@ -417,10 +422,23 @@
         background:var(--surface);border:2px solid var(--accent);display:none;cursor:nwse-resize;z-index:3;
       }
       .note.sel .note-resize{display:block;}
+      .note .note-grip{position:absolute;left:6px;top:-14px;width:36px;height:13px;border-radius:7px 7px 0 0;background:var(--accent);cursor:grab;display:none;z-index:3;touch-action:none;
+        background-image:radial-gradient(circle,rgba(255,255,255,.85) 1.3px,transparent 1.6px);background-size:8px 8px;background-position:center;}
+      .note.sel .note-grip{display:block;}
+      .gram-btn{width:auto;padding:0 10px;gap:6px;font-weight:600;font-size:13px;}
+      .gram-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+      .gram-count{font-size:11px;font-weight:800;background:#2563eb;color:#fff;border-radius:9px;padding:0 6px;min-width:16px;text-align:center;}
+      .gram-count:empty{display:none;}
+      ::highlight(nt-gram){text-decoration:underline wavy #2563eb;text-decoration-thickness:1.5px;text-underline-offset:3px;}
+      #gramTip{position:fixed;z-index:80;max-width:300px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:10px 12px;font-size:13.5px;line-height:1.4;}
+      #gramTip .gt-msg{color:var(--ink-2);margin-bottom:8px;}
+      #gramTip .gt-actions{display:flex;flex-wrap:wrap;gap:6px;}
+      #gramTip button{border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-weight:700;background:var(--surface-2);}
+      #gramTip button.fix{background:var(--accent);color:#fff;border-color:var(--accent);}
       .note .note-empty-hint{color:#8a919d;font-style:italic;pointer-events:none;}
 
       /* ---------- Page preview sidebar ---------- */
-      .reader-main{display:flex;flex:1;min-height:0;}
+      .reader-main{display:flex;flex:1;min-height:0;position:relative;}
       .reader-main .pages-scroll{min-width:0;}
       .thumb-side{width:148px;flex:none;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;z-index:4;}
       .thumb-side-head{display:flex;align-items:center;justify-content:space-between;padding:7px 8px 7px 12px;border-bottom:1px solid var(--line);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
@@ -719,6 +737,7 @@
           Export Pages
         </button>
       </div>
+      <div class="reader-main">
       <div class="format-bar hidden" id="formatBar">
         <span class="fb-label">Font</span>
         <select class="fmt-select" id="fmtFont">
@@ -754,6 +773,16 @@
         <span class="fb-label">Highlight</span>
         <div class="swatches" id="hlSwatches"></div>
         <div class="bar-sep"></div>
+        <button class="fmt-btn gram-btn" id="gramBtn" aria-pressed="false" title="Grammar check — underlines mistakes as you type (uses the free LanguageTool service)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 13 4 4L20 6"/></svg>
+          <span>Grammar</span><span class="gram-count" id="gramCount"></span>
+        </button>
+        <select class="fmt-select" id="langSel" title="Language for spelling and grammar" style="max-width:118px">
+          <option value="en-US">English (US)</option>
+          <option value="en-GB">English (UK)</option>
+          <option value="auto">Auto-detect</option>
+        </select>
+        <div class="bar-sep"></div>
         <button class="fmt-btn move-btn" id="moveNoteBtn" title="Move — drag the selected text box to reposition it" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18m0-18L9 6m3-3 3 3m-3 15-3-3m3 3 3-3M3 12h18M3 12l3-3m-3 3 3 3m15-3-3-3m3 3-3 3"/></svg>
           <span>Move</span>
@@ -768,7 +797,6 @@
           Delete Note
         </button>
       </div>
-      <div class="reader-main">
         <aside class="thumb-side" id="thumbSide">
           <div class="thumb-side-head"><span>Pages</span>
             <button class="icon-btn" id="thumbHideBtn" title="Hide page list" style="width:30px;height:30px">
@@ -1267,6 +1295,7 @@
       $('#pagesCol').classList.remove('move-mode');
       $('#libraryView').classList.add('hidden');
       $('#readerView').classList.remove('hidden');
+      try { history.pushState({ nt: 'reader' }, ''); } catch (e) {}
       $('#readerTitle').textContent = doc.name;
       $('#addTextBtn').classList.remove('active');
       $('#formatBar').classList.add('hidden');
@@ -1324,7 +1353,8 @@
         toast('Could not open the PDF document.');
       }
     }
-    function closeReader(){
+    function closeReader(fromPop){
+      if (fromPop !== true && history.state && history.state.nt === 'reader'){ history.back(); return; }
       flushLastPage();
       if (pdfDoc){ pdfDoc.destroy(); pdfDoc = null; }
       if (pageObserver){ pageObserver.disconnect(); pageObserver = null; }
@@ -1336,7 +1366,8 @@
       $('#libraryView').classList.remove('hidden');
       renderLibrary();
     }
-    $('#backBtn').addEventListener('click', closeReader);
+    $('#backBtn').addEventListener('click', () => closeReader());
+    window.addEventListener('popstate', () => { if (currentReader) closeReader(true); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) flushLastPage(); });
     window.addEventListener('beforeunload', () => { flushLastPage(); });
 
@@ -1395,7 +1426,9 @@
       try {
         const page = await pdfDoc.getPage(p);
         if (renderStamps[p] !== stamp) return;
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const sz1 = pageSizes[p - 1];
+        if (sz1){ const px = sz1.w * sz1.h * Math.pow(scale * dpr, 2), cap = 25e6; if (px > cap) dpr *= Math.sqrt(cap / px); }
         const vp = page.getViewport({ scale: scale * dpr });
         // Draw into an off-screen canvas, then swap it in: the visible page is never blank while re-rendering
         const buf = document.createElement('canvas');
@@ -1616,7 +1649,7 @@
     function setScale(s, fit){
       cancelSmoothZoom();
       const anchor = captureAnchor();
-      scale = Math.max(0.2, Math.min(4, s)); fitMode = !!fit;
+      scale = Math.max(0.2, Math.min(5, s)); fitMode = !!fit;
       Object.keys(renderStamps).forEach(k => delete renderStamps[k]);
       sizeAllPages();
       lockPageTracking(400);
@@ -1637,7 +1670,7 @@
       clearTimeout(zoomCommitTimer);
     }
     function smoothZoomTo(s, fit){
-      const target = Math.max(0.2, Math.min(4, s));
+      const target = Math.max(0.2, Math.min(5, s));
       if (fit !== undefined) fitMode = !!fit;
       if (zoomReducedMotion || !currentReader){ setScale(target, fitMode); return; }
       if (zoomTargetScale === null){ zoomAnchor = captureAnchor(); }
@@ -1649,7 +1682,7 @@
     function zoomAnimStep(){
       zoomAnimFrame = null;
       if (zoomTargetScale === null) return;
-      let next = scale + (zoomTargetScale - scale) * 0.32;
+      let next = scale + (zoomTargetScale - scale) * 0.42;
       if (Math.abs(zoomTargetScale - next) < 0.003) next = zoomTargetScale;
       scale = next;
       sizeAllPages();
@@ -1664,18 +1697,121 @@
       renderVisiblePages();
     }
     function isInView(el){ const r = el.getBoundingClientRect(); const sr = $('#pagesScroll').getBoundingClientRect(); return r.bottom > sr.top - 500 && r.top < sr.bottom + 500; }
-    $('#zoomIn').addEventListener('click', () => smoothZoomTo((zoomTargetScale || scale) * 1.25, false));
-    $('#zoomOut').addEventListener('click', () => smoothZoomTo((zoomTargetScale || scale) / 1.25, false));
+    $('#zoomIn').addEventListener('click', () => smoothZoomTo((zoomTargetScale || scale) * 1.3, false));
+    $('#zoomOut').addEventListener('click', () => smoothZoomTo((zoomTargetScale || scale) / 1.3, false));
     $('#zoomFit').addEventListener('click', () => { fitScale(); setScale(scale, true); });
     $('#pagesScroll').addEventListener('wheel', e => {
       if (e.ctrlKey || e.metaKey){
         e.preventDefault();
-        const f = Math.max(0.8, Math.min(1.25, Math.exp(-e.deltaY * 0.002)));
+        const f = Math.max(0.7, Math.min(1.45, Math.exp(-e.deltaY * 0.004)));
         smoothZoomTo((zoomTargetScale || scale) * f, false);
       }
     }, { passive: false });
     let resizeTimer = null;
     window.addEventListener('resize', () => { if (!currentReader || !fitMode) return; clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { fitScale(); setScale(scale, true); }, 200); });
+
+    /* ================= Rich text runs =================
+       A note keeps n.text (plain) and, when parts of it are formatted differently
+       from the whole box, n.runs = [{t, s:{c,bg,b,i,u,f}}] (only the overrides). */
+    function sameRun(a, b){ return a.c === b.c && a.bg === b.bg && a.b === b.b && a.i === b.i && a.u === b.u && a.f === b.f; }
+    function mergeRuns(runs){
+      const out = [];
+      runs.forEach(r => { if (!r.t) return; const l = out[out.length - 1]; if (l && sameRun(l.s, r.s)) l.t += r.t; else out.push({ t: r.t, s: r.s }); });
+      return out;
+    }
+    function runStyleOf(el, s){
+      const o = Object.assign({}, s), tag = el.tagName, st = el.style;
+      if (tag === 'B' || tag === 'STRONG') o.b = 1;
+      if (tag === 'I' || tag === 'EM') o.i = 1;
+      if (tag === 'U') o.u = 1;
+      if (tag === 'FONT'){ if (el.getAttribute('color')) o.c = el.getAttribute('color'); if (el.getAttribute('face')) o.f = cleanFontName(el.getAttribute('face')); }
+      if (st){
+        if (st.color) o.c = st.color;
+        if (st.backgroundColor) o.bg = st.backgroundColor;
+        if (st.fontWeight) o.b = (st.fontWeight === 'bold' || +st.fontWeight >= 600) ? 1 : 0;
+        if (st.fontStyle) o.i = st.fontStyle === 'italic' ? 1 : 0;
+        if (/underline/.test(st.textDecorationLine || st.textDecoration || '')) o.u = 1;
+        if (st.fontFamily) o.f = cleanFontName(st.fontFamily.split(',')[0]);
+      }
+      return o;
+    }
+    function pruneRun(s, st){
+      if (s.b !== undefined && !!s.b === !!st.bold) delete s.b;
+      if (s.i !== undefined && !!s.i === !!st.italic) delete s.i;
+      if (s.f && s.f === st.font) delete s.f;
+      if (s.bg === 'transparent' && !st.highlight) delete s.bg;
+      if (s.u && st.underline) delete s.u;
+      Object.keys(s).forEach(k => { if (s[k] === undefined) delete s[k]; });
+    }
+    /* Reads the editable DOM -> {text, runs|null, pieces}. pieces map text offsets to DOM text nodes. */
+    function collectRuns(root, base){
+      let runs = [], pieces = [], len = 0;
+      const push = (t, s) => {
+        if (!t) return;
+        const l = runs[runs.length - 1];
+        if (l && sameRun(l.s, s)) l.t += t; else runs.push({ t, s: Object.assign({}, s) });
+        len += t.length;
+      };
+      const endsNL = () => { const l = runs[runs.length - 1]; return !l || l.t.endsWith('\n'); };
+      const walk = (node, s) => {
+        const kids = node.childNodes;
+        for (let i = 0; i < kids.length; i++){
+          const ch = kids[i];
+          if (ch.nodeType === 3){
+            const v = ch.nodeValue; if (v){ pieces.push({ node: ch, start: len }); push(v, s); }
+          } else if (ch.nodeType === 1){
+            if (ch.tagName === 'BR'){
+              if (!(i === kids.length - 1 && node !== root && node.textContent.length)) push('\n', {});
+              continue;
+            }
+            if ((ch.tagName === 'DIV' || ch.tagName === 'P') && !endsNL()) push('\n', {});
+            walk(ch, runStyleOf(ch, s));
+          }
+        }
+      };
+      walk(root, {});
+      while (runs.length){
+        const l = runs[runs.length - 1], t2 = l.t.replace(/\n+$/, '');
+        if (t2.length === l.t.length) break;
+        if (t2){ l.t = t2; break; }
+        runs.pop();
+      }
+      runs.forEach(r => pruneRun(r.s, base));
+      runs = mergeRuns(runs);
+      const text = runs.map(r => r.t).join('');
+      return { text, runs: runs.some(r => Object.keys(r.s).length) ? runs : null, pieces };
+    }
+    function syncNoteFromDOM(n, t){
+      const c = collectRuns(t, n.style);
+      n.text = c.text;
+      if (c.runs) n.runs = c.runs; else delete n.runs;
+      return c;
+    }
+    function applyRunStyle(st, s){
+      if (s.c) st.color = s.c;
+      if (s.bg) st.backgroundColor = s.bg;
+      if (s.b !== undefined) st.fontWeight = s.b ? '700' : '400';
+      if (s.i !== undefined) st.fontStyle = s.i ? 'italic' : 'normal';
+      if (s.u) st.textDecoration = 'underline';
+      if (s.f) st.fontFamily = '"' + cleanFontName(s.f) + '", sans-serif';
+    }
+    function fillNoteText(t, n){
+      t.textContent = '';
+      if (n.runs && n.runs.length){
+        n.runs.forEach(r => {
+          const s = r.s || {};
+          if (!Object.keys(s).length){ t.appendChild(document.createTextNode(r.t)); return; }
+          const sp = document.createElement('span'); sp.textContent = r.t; applyRunStyle(sp.style, s); t.appendChild(sp);
+        });
+      } else t.textContent = n.text;
+    }
+    function caretRangeAt(x, y){
+      try {
+        if (document.caretPositionFromPoint){ const p = document.caretPositionFromPoint(x, y); if (p){ const r = document.createRange(); r.setStart(p.offsetNode, p.offset); r.collapse(true); return r; } }
+        if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+      } catch (e) {}
+      return null;
+    }
 
     /* ================= Notes rendering ================= */
     function applyNoteStyle(el, n){
@@ -1706,14 +1842,16 @@
         el.className = 'note' + (n.id === selectedNoteId ? ' sel' : '');
         el.dataset.nid = n.id;
         el.innerHTML = '<div class="note-text"></div>' +
+          '<span class="note-grip" data-grip title="Drag to move"></span>' +
           '<button class="note-del" title="Delete Note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
           '<span class="note-resize-e" data-resize="e" title="Drag to change width"></span>' +
           '<span class="note-resize-s" data-resize="s" title="Drag to change minimum height"></span>' +
           '<span class="note-resize-se" data-resize="se" title="Drag to resize"></span>';
         const t = el.querySelector('.note-text');
-        t.textContent = n.text;
+        fillNoteText(t, n);
         if (!n.text && n.id !== editingId) t.innerHTML = '<span class="note-empty-hint">Note…</span>';
-        if (n.id === editingId) t.contentEditable = 'true';
+        t.spellcheck = false;
+        if (n.id === editingId){ t.contentEditable = 'true'; t.spellcheck = true; t.lang = langAttr(); }
         applyNoteStyle(el, n);
         layer.appendChild(el);
       });
@@ -1730,23 +1868,26 @@
       if (id){ const n = findNote(id); if (n){ lastStyle = cloneStyle(n.style); } }
       updateToolbarVisibility();
     }
-    function startEdit(id){
+    function startEdit(id, caret){
       selectNote(id);
       editingId = id;
       const el = noteEl(id); if (!el) return;
       const t = el.querySelector('.note-text');
       if (t.querySelector('.note-empty-hint')) t.textContent = '';
-      t.contentEditable = 'true';
+      t.contentEditable = 'true'; t.spellcheck = true; t.lang = langAttr();
       t.focus();
-      const range = document.createRange(); range.selectNodeContents(t); range.collapse(false);
-      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      const sel = window.getSelection(); sel.removeAllRanges();
+      if (caret && t.contains(caret.startContainer)) sel.addRange(caret);
+      else { const range = document.createRange(); range.selectNodeContents(t); range.collapse(false); sel.addRange(range); }
+      scheduleGrammar(400);
     }
     function finishEdit(){
       if (!editingId) return;
+      clearGrammar();
       const id = editingId; editingId = null;
       const n = findNote(id); if (!n) return;
       const el = noteEl(id);
-      if (el){ const t = el.querySelector('.note-text'); n.text = t.innerText.replace(/\n+$/, ''); t.contentEditable = 'false'; }
+      if (el){ const t = el.querySelector('.note-text'); syncNoteFromDOM(n, t); t.contentEditable = 'false'; t.spellcheck = false; }
       if (!n.text.trim()){
         currentReader.notes = currentReader.notes.filter(x => x.id !== id);
         if (selectedNoteId === id) selectedNoteId = null;
@@ -1759,12 +1900,15 @@
       scheduleSave();
     }
     document.addEventListener('focusout', e => {
+      // Moving focus into the floating toolbar (font menu, colour picker…) must not end editing
+      if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('#formatBar, #gramTip')) return;
       if (editingId && e.target.classList && e.target.classList.contains('note-text')) finishEdit();
     });
     document.addEventListener('input', e => {
       if (editingId && e.target.classList && e.target.classList.contains('note-text')){
         noteTypingStarted();
-        const n = findNote(editingId); if (n){ n.text = e.target.innerText; scheduleSave(); }
+        const n = findNote(editingId); if (n){ syncNoteFromDOM(n, e.target); scheduleSave(); }
+        clearGrammar(); scheduleGrammar();
       }
     });
 
@@ -1855,6 +1999,14 @@
       const id = noteElClicked.dataset.nid;
       const n = findNote(id); if (!n) return;
       if (selectedNoteId !== id) selectNote(id);
+      const grip = e.target.closest('[data-grip]');
+      if (grip){
+        e.preventDefault();   // keep the text focus while dragging the handle
+        const wrapG = noteElClicked.closest('.page-wrap'), rectG = wrapG.getBoundingClientRect();
+        dragCtx = { id, type: 'move', startX: e.clientX, startY: e.clientY, ox: n.x, oy: n.y, ow: n.w, oh: n.h || 0, rect: rectG, moved: false };
+        try { noteElClicked.setPointerCapture(e.pointerId); } catch (err) {}
+        return;
+      }
       const rzEl = e.target.closest('[data-resize]');
       if (rzEl){
         e.preventDefault();
@@ -1903,7 +2055,9 @@
     $('#pagesCol').addEventListener('dblclick', e => {
       if (moveMode) return; // In Move mode, dragging repositions — double-tap does not edit
       const el = e.target.closest('.note'); if (!el) return;
-      startEdit(el.dataset.nid);
+      if (editingId === el.dataset.nid) return;   // already typing: native double-click selects the word
+      const caret = caretRangeAt(e.clientX, e.clientY);   // put the cursor where you double-clicked
+      startEdit(el.dataset.nid, caret);
     });
     function deleteNote(id){
       const n = findNote(id); if (!n) return;
@@ -2240,7 +2394,7 @@
         const names = Array.from(new Set(fonts.map(f => f.family).filter(Boolean))).sort((a, b) => a.localeCompare(b));
         if (!names.length){ toast('No fonts were returned by this device.'); return; }
         saveDeviceFontNames(names);
-        buildFontOptions();
+        buildFontOptions(); updateDeviceFontsBtn();
         closeModal();
         toast('Found ' + names.length + ' fonts on this device — they are now in the Font menu, under "On this device".');
       } catch (e) {
@@ -2312,8 +2466,23 @@
         toast('Font "' + name + '" added — notes will use it if it is installed on this device.');
       });
     }
+    function updateDeviceFontsBtn(){
+      const c = deviceFontNames().length, sp = document.querySelector('#deviceFontsBtn span');
+      if (sp) sp.textContent = c ? 'Device Fonts (' + c + ')' : 'Device Fonts';
+    }
+    /* If font access was already granted, refresh the full list silently (replaces an older, shorter saved list) */
+    async function autoRefreshDeviceFonts(){
+      if (!window.queryLocalFonts || !navigator.permissions) return;
+      try {
+        const st = await navigator.permissions.query({ name: 'local-fonts' });
+        if (st.state !== 'granted') return;
+        const fonts = await window.queryLocalFonts();
+        const names = Array.from(new Set(fonts.map(f => f.family).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+        if (names.length){ saveDeviceFontNames(names); buildFontOptions(); updateDeviceFontsBtn(); }
+      } catch (e) {}
+    }
     const _dfb = $('#deviceFontsBtn'); if (_dfb) _dfb.addEventListener('click', deviceFontsModal);
-    buildFontOptions();
+    buildFontOptions(); updateDeviceFontsBtn(); autoRefreshDeviceFonts();
 
     function syncFormatBar(){
       const s = effectiveStyle(); if (!s) return;
@@ -2331,15 +2500,194 @@
       const mv = $('#moveNoteBtn'); if (mv){ mv.classList.toggle('active', !!moveMode); mv.setAttribute('aria-pressed', moveMode ? 'true' : 'false'); }
       const del = $('#deleteNoteBtn'); if (del){ del.disabled = !selectedNoteId; del.style.opacity = selectedNoteId ? '' : '.45'; }
       syncFavoriteBtn();
+      const ae = document.activeElement;
+      if (editingId && savedRange && !savedRange.collapsed && ae && ae.classList && ae.classList.contains('note-text')){
+        try {
+          $('#fmtBold').classList.toggle('active', document.queryCommandState('bold'));
+          $('#fmtItalic').classList.toggle('active', document.queryCommandState('italic'));
+          $('#fmtUnderline').classList.toggle('active', document.queryCommandState('underline'));
+        } catch (e) {}
+      }
     }
+    /* ----- Formatting a selected word / phrase inside a box being edited ----- */
+    let savedRange = null;
+    const RANGE_PROPS = { color: 1, highlight: 1, font: 1, bold: 1, italic: 1, underline: 1 };
+    const RUN_KEY = { color: 'c', highlight: 'bg', font: 'f', bold: 'b', italic: 'i', underline: 'u' };
+    function editingText(){ const el = editingId && noteEl(editingId); return el ? el.querySelector('.note-text') : null; }
+    function applyToSelection(prop, value){
+      if (!RANGE_PROPS[prop]) return false;
+      const t = editingText(); if (!t) return false;
+      const r = savedRange;
+      if (!r || r.collapsed || !t.contains(r.commonAncestorContainer)) return false;
+      t.focus();
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      document.execCommand('styleWithCSS', false, true);
+      if (prop === 'color') document.execCommand('foreColor', false, value);
+      else if (prop === 'highlight') document.execCommand('hiliteColor', false, value || 'transparent');
+      else if (prop === 'font') document.execCommand('fontName', false, value);
+      else document.execCommand(prop);
+      const n = findNote(editingId); if (n){ syncNoteFromDOM(n, t); scheduleSave(); }
+      return true;
+    }
+    function stripRunProp(n, prop){
+      const k = RUN_KEY[prop]; if (!k) return;
+      const el = noteEl(n.id), t = el && el.querySelector('.note-text');
+      if (editingId === n.id && t) syncNoteFromDOM(n, t);
+      if (!n.runs || !n.runs.some(r => r.s && r.s[k] !== undefined)) return;
+      n.runs.forEach(r => { delete r.s[k]; });
+      n.runs = mergeRuns(n.runs);
+      if (!n.runs.some(r => Object.keys(r.s).length)) delete n.runs;
+      if (t){
+        fillNoteText(t, n);
+        if (editingId === n.id){ t.focus(); const rg = document.createRange(); rg.selectNodeContents(t); rg.collapse(false); const sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(rg); }
+      }
+    }
+    /* ----- Selection tracking (survives clicking the toolbar) ----- */
+    let selRaf = null;
+    document.addEventListener('selectionchange', () => {
+      if (!editingId) return;
+      const t = editingText(), sel = window.getSelection();
+      if (t && sel.rangeCount && t.contains(sel.getRangeAt(0).commonAncestorContainer)) savedRange = sel.getRangeAt(0).cloneRange();
+      if (selRaf) return;
+      selRaf = requestAnimationFrame(() => { selRaf = null; if (editingId){ syncFormatBar(); updateGramTip(); } });
+    });
+    // Paste as plain text so pasted web content cannot bring its own markup
+    document.addEventListener('paste', e => {
+      const t = e.target && e.target.closest && e.target.closest('.note-text');
+      if (!t || !editingId) return;
+      e.preventDefault();
+      document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
+    });
+
+    /* ================= Spelling & grammar =================
+       Spelling: the browser's own spell checker (red squiggles + right-click suggestions) is switched
+       on for the box being edited, using the language chosen in the toolbar.
+       Grammar: optional. After a short pause in typing, the text of the box being edited is sent to the
+       free LanguageTool service; mistakes get a blue wavy underline and a small suggestion card. */
+    function langPref(){ try { return localStorage.getItem('nt-lang') || 'en-US'; } catch (e) { return 'en-US'; } }
+    function langAttr(){ const l = langPref(); return l === 'auto' ? 'en' : l; }
+    let gramOn = false; try { gramOn = localStorage.getItem('nt-gram') === '1'; } catch (e) {}
+    let gramMatches = [], gramTimer = null, gramReq = 0, gramWarnAt = 0;
+    const gramIgnore = new Set();
+    function syncGramUI(){
+      const b = $('#gramBtn'); if (b){ b.classList.toggle('active', gramOn); b.setAttribute('aria-pressed', gramOn ? 'true' : 'false'); }
+      const ls = $('#langSel'); if (ls) ls.value = langPref();
+    }
+    function setGram(v){
+      gramOn = !!v; try { localStorage.setItem('nt-gram', gramOn ? '1' : '0'); } catch (e) {}
+      syncGramUI(); clearGrammar();
+      if (gramOn && editingId) scheduleGrammar(200);
+    }
+    function clearGrammar(){
+      gramReq++; clearTimeout(gramTimer); gramMatches = [];
+      try { if (window.CSS && CSS.highlights) CSS.highlights.delete('nt-gram'); } catch (e) {}
+      const c = $('#gramCount'); if (c) c.textContent = '';
+      hideGramTip();
+    }
+    function scheduleGrammar(delay){
+      if (!gramOn || !editingId) return;
+      clearTimeout(gramTimer);
+      gramTimer = setTimeout(runGrammar, delay || 1200);
+    }
+    function rangeFromOffsets(pieces, s, e){
+      let sp = null, ep = null;
+      for (const p of pieces){
+        const end = p.start + p.node.nodeValue.length;
+        if (!sp && s < end) sp = [p.node, Math.max(0, s - p.start)];
+        if (e > p.start && e <= end){ ep = [p.node, e - p.start]; break; }
+      }
+      if (!sp || !ep) return null;
+      const r = document.createRange(); r.setStart(sp[0], sp[1]); r.setEnd(ep[0], ep[1]); return r;
+    }
+    async function runGrammar(){
+      const id = editingId, t = editingText(), n = id && findNote(id);
+      if (!gramOn || !t || !n) return;
+      const c = collectRuns(t, n.style);
+      if (c.text.trim().length < 3){ clearGrammar(); return; }
+      const req = ++gramReq;
+      try {
+        const body = new URLSearchParams({ text: c.text, language: langPref(), disabledCategories: 'TYPOS' });
+        if (langPref() === 'auto') body.set('preferredVariants', 'en-US,en-GB');
+        const r = await fetch('https://api.languagetool.org/v2/check', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' }, body });
+        if (!r.ok) throw new Error(r.status);
+        const j = await r.json();
+        if (req !== gramReq || editingId !== id) return;
+        const t2 = editingText(); if (!t2) return;
+        const c2 = collectRuns(t2, n.style);
+        if (c2.text !== c.text){ scheduleGrammar(400); return; }   // text changed while waiting
+        gramMatches = (j.matches || []).map(m => ({
+          msg: m.message || m.shortMessage || 'Possible mistake',
+          fixes: (m.replacements || []).slice(0, 3).map(x => x.value).filter(Boolean),
+          key: ((m.rule && m.rule.id) || '') + '|' + c.text.substr(m.offset, m.length),
+          range: rangeFromOffsets(c2.pieces, m.offset, m.offset + m.length)
+        })).filter(m => m.range && !gramIgnore.has(m.key));
+        paintGrammar();
+      } catch (e) {
+        if (Date.now() - gramWarnAt > 60000){ gramWarnAt = Date.now(); toast('Grammar check is unavailable right now (offline or service busy). It will retry as you type.'); }
+      }
+    }
+    function paintGrammar(){
+      try { if (window.CSS && CSS.highlights && window.Highlight){
+        if (gramMatches.length) CSS.highlights.set('nt-gram', new Highlight(...gramMatches.map(m => m.range))); else CSS.highlights.delete('nt-gram');
+      } } catch (e) {}
+      const c = $('#gramCount'); if (c) c.textContent = gramMatches.length ? String(gramMatches.length) : '';
+      updateGramTip();
+    }
+    function hideGramTip(){ const tip = $('#gramTip'); if (tip) tip.remove(); }
+    function updateGramTip(){
+      if (!gramOn || !editingId || !gramMatches.length){ hideGramTip(); return; }
+      const sel = window.getSelection(); if (!sel.rangeCount){ hideGramTip(); return; }
+      const r = sel.getRangeAt(0);
+      const m = gramMatches.find(g => g.range.compareBoundaryPoints(Range.START_TO_START, r) <= 0 && g.range.compareBoundaryPoints(Range.END_TO_END, r) >= 0);
+      if (!m){ hideGramTip(); return; }
+      let tip = $('#gramTip');
+      if (tip && tip._m === m) return;
+      hideGramTip();
+      tip = document.createElement('div'); tip.id = 'gramTip'; tip._m = m;
+      const msg = document.createElement('div'); msg.className = 'gt-msg'; msg.textContent = m.msg; tip.appendChild(msg);
+      const acts = document.createElement('div'); acts.className = 'gt-actions'; tip.appendChild(acts);
+      m.fixes.forEach(f => {
+        const b = document.createElement('button'); b.className = 'fix'; b.textContent = f;
+        b.addEventListener('click', () => {
+          const t = editingText(); if (!t) return;
+          t.focus(); const sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(m.range);
+          document.execCommand('insertText', false, f);
+        });
+        acts.appendChild(b);
+      });
+      const ig = document.createElement('button'); ig.textContent = 'Ignore';
+      ig.addEventListener('click', () => { gramIgnore.add(m.key); gramMatches = gramMatches.filter(x => x !== m); paintGrammar(); });
+      acts.appendChild(ig);
+      tip.addEventListener('pointerdown', e => e.preventDefault());   // keep the cursor in the text
+      document.body.appendChild(tip);
+      const rc = m.range.getBoundingClientRect(), th = tip.offsetHeight;
+      tip.style.left = Math.max(8, Math.min(rc.left, window.innerWidth - tip.offsetWidth - 8)) + 'px';
+      tip.style.top = (rc.bottom + 8 + th > window.innerHeight ? Math.max(8, rc.top - th - 8) : rc.bottom + 8) + 'px';
+    }
+    $('#gramBtn').addEventListener('click', () => {
+      if (gramOn){ setGram(false); return; }
+      let ok = false; try { ok = localStorage.getItem('nt-gram-consent') === '1'; } catch (e) {}
+      if (ok){ setGram(true); return; }
+      openModal('<h3>Turn On Grammar Check?</h3><p>To find grammar mistakes, the text of the note you are typing is sent over HTTPS to the free <b>LanguageTool</b> service (api.languagetool.org). Nothing else from your document is sent. Spell-checking is separate and stays on your device (your browser\'s own spell checker).</p><div class="modal-actions"><button class="btn" id="mCancel">Not Now</button><button class="btn primary" id="gramOk">Turn On</button></div>');
+      $('#mCancel').addEventListener('click', closeModal);
+      $('#gramOk').addEventListener('click', () => { try { localStorage.setItem('nt-gram-consent', '1'); } catch (e) {} closeModal(); setGram(true); });
+    });
+    $('#langSel').addEventListener('change', e => {
+      try { localStorage.setItem('nt-lang', e.target.value); } catch (er) {}
+      const t = editingText(); if (t) t.lang = langAttr();
+      clearGrammar(); scheduleGrammar(200);
+    });
+    syncGramUI();
     function applyStyle(prop, value){
       // With a note selected this restyles that note; with nothing selected
       // (Add Text mode) it sets the style the next text box will be created with.
+      if (applyToSelection(prop, value)){ syncFormatBar(); return; }
       lastStyle[prop] = value;
       const n = findNote(selectedNoteId);
       if (n){
         n.style[prop] = value;
         lastStyle = cloneStyle(n.style);
+        stripRunProp(n, prop);
         const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
         scheduleSave();
       }
@@ -2472,19 +2820,36 @@
     }
 
     /* ================= Export annotated PDF ================= */
-    function wrapTextCanvas(ctx, text, maxW){
-      const out = [];
-      text.split('\n').forEach(par => {
-        if (!par){ out.push(''); return; }
-        let line = '';
-        par.split(' ').forEach(word => {
-          const test = line ? line + ' ' + word : word;
-          if (ctx.measureText(test).width > maxW && line){ out.push(line); line = word; }
-          else line = test;
+    function fontStr(s, st, px){
+      return ((s.i !== undefined ? s.i : st.italic) ? 'italic ' : '') + ((s.b !== undefined ? s.b : st.bold) ? '700 ' : '400 ') + px + 'px "' + (s.f || st.font) + '", sans-serif';
+    }
+    /* Word-wraps styled runs; returns [{parts:[{t,s,w}], w}] */
+    function layoutRuns(ctx, runs, st, px, maxW){
+      const paras = [[]];
+      runs.forEach(r => r.t.split('\n').forEach((seg, i) => { if (i > 0) paras.push([]); if (seg) paras[paras.length - 1].push({ t: seg, s: r.s || {} }); }));
+      const meas = (t, s) => { ctx.font = fontStr(s, st, px); return ctx.measureText(t).width; };
+      const lines = [];
+      paras.forEach(frags => {
+        const words = []; let cur = null;
+        frags.forEach(f => (f.t.match(/\s+|\S+/g) || []).forEach(piece => {
+          const sp = /^\s/.test(piece);
+          if (!cur || (cur.sp && !sp)){ cur = { parts: [], sp: false }; words.push(cur); }
+          if (sp) cur.sp = true;
+          cur.parts.push({ t: piece, s: f.s, sp });
+        }));
+        if (!words.length){ lines.push({ parts: [], w: 0 }); return; }
+        let line = { parts: [], w: 0, trail: 0 };
+        const flush = () => { line.w -= line.trail; lines.push(line); line = { parts: [], w: 0, trail: 0 }; };
+        words.forEach(wd => {
+          let ww = 0, tw = 0;
+          wd.parts.forEach(pt => { pt.w = meas(pt.t, pt.s); ww += pt.w; if (pt.sp) tw += pt.w; });
+          if (line.parts.length && line.w + (ww - tw) > maxW) flush();
+          wd.parts.forEach(pt => line.parts.push(pt));
+          line.w += ww; line.trail = tw;
         });
-        out.push(line);
+        flush();
       });
-      return out;
+      return lines;
     }
     async function exportPdf(pageList){
       if (!currentReader || !pdfDoc) return;
@@ -2507,24 +2872,27 @@
           currentReader.notes.filter(n => n.page === p).forEach(n => {
             const x = n.x * canvas.width, y = n.y * canvas.height, w = n.w * canvas.width;
             const fontPx = n.style.sizeFrac * vp1.width * RS;
+            const runs = (n.runs && n.runs.length) ? n.runs : [{ t: n.text, s: {} }];
+            const lines = layoutRuns(ctx, runs, n.style, fontPx, w - 10);
             if (n.style.highlight){
               ctx.fillStyle = n.style.highlight;
-              const lines0 = wrapTextCanvas(ctx, n.text, w - 10);
               const minH = n.h ? n.h * canvas.height : 0;
-              ctx.fillRect(x, y, w, Math.max(fontPx * 1.5, lines0.length * fontPx * 1.4 + 8, minH));
+              ctx.fillRect(x, y, w, Math.max(fontPx * 1.5, lines.length * fontPx * 1.4 + 8, minH));
             }
-            ctx.font = (n.style.italic ? 'italic ' : '') + (n.style.bold ? '700 ' : '400 ') + fontPx + 'px "' + n.style.font + '", sans-serif';
-            ctx.fillStyle = n.style.color;
             ctx.textBaseline = 'top';
-            const lines = wrapTextCanvas(ctx, n.text, w - 10);
             lines.forEach((line, li) => {
-              const lw = ctx.measureText(line).width;
               let lx = x + 5;
-              if (n.style.align === 'center') lx = x + (w - lw) / 2;
-              else if (n.style.align === 'right') lx = x + w - 5 - lw;
+              if (n.style.align === 'center') lx = x + (w - line.w) / 2;
+              else if (n.style.align === 'right') lx = x + w - 5 - line.w;
               const ly = y + 4 + li * fontPx * 1.4;
-              ctx.fillText(line, lx, ly);
-              if (n.style.underline && line){ ctx.fillRect(lx, ly + fontPx * 1.14, lw, Math.max(1, fontPx * 0.055)); }
+              line.parts.forEach(pt => {
+                ctx.font = fontStr(pt.s, n.style, fontPx);
+                if (pt.s.bg && pt.s.bg !== 'transparent'){ ctx.fillStyle = pt.s.bg; ctx.fillRect(lx, ly - fontPx * 0.12, pt.w, fontPx * 1.3); }
+                ctx.fillStyle = pt.s.c || n.style.color;
+                ctx.fillText(pt.t, lx, ly);
+                if ((pt.s.u || n.style.underline) && pt.t.trim()) ctx.fillRect(lx, ly + fontPx * 1.14, pt.w, Math.max(1, fontPx * 0.055));
+                lx += pt.w;
+              });
             });
           });
           const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.88));
