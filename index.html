@@ -1,19 +1,24 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
-    <title>Ghi chú PDF</title>
+    <title>PDF Notes</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&display=swap" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       :root{
+        /* Book-app type pairing (matches the reference screenshots):
+           warm, soft, slightly rounded serif for titles / file names / section names,
+           clean rounded sans for UI and reading text. */
+        --font-display:"Fraunces","Noto Serif",Georgia,"Times New Roman",serif;
+        --font-ui:"Nunito","Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
         --bg:#f4f2ec; --bg-reader:#e9e6de; --surface:#fffdf9; --surface-2:#efece4;
         --ink:#1d2129; --ink-2:#4b5160; --muted:#828a99; --line:#ddd8cc;
         --accent:#0e7c66; --accent-strong:#0a5f4f; --accent-soft:#e2f0ec;
@@ -35,7 +40,7 @@
       html,body{height:100%;}
       body{
         margin:0; background:var(--bg); color:var(--ink);
-        font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+        font-family:var(--font-ui);
         font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
       }
       button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0;}
@@ -89,7 +94,7 @@
       .lib-brand{display:flex;align-items:center;gap:10px;padding:2px 6px 16px;}
       .lib-brand .owl{width:38px;height:38px;border-radius:12px;background:var(--cream-2);color:var(--lib-brown);display:flex;align-items:center;justify-content:center;flex:none;}
       .lib-brand .owl svg{width:24px;height:24px;}
-      .lib-brand .brand-name{font-family:"Noto Serif",Georgia,serif;font-weight:700;font-size:19px;line-height:1.15;color:var(--ink);}
+      .lib-brand .brand-name{font-family:var(--font-display);font-weight:600;font-size:20px;letter-spacing:.01em;line-height:1.15;color:var(--ink);}
       .lib-brand .brand-sub{font-size:11.5px;color:var(--muted);}
       .side-nav-item{
         display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px 12px;
@@ -133,7 +138,7 @@
       .continue-card .cc-body{display:flex;gap:11px;align-items:center;}
       .continue-card .cc-cover{width:46px;height:64px;border-radius:4px;overflow:hidden;flex:none;box-shadow:3px 4px 9px rgba(60,40,15,.28);background:#fff;}
       .continue-card .cc-cover img{width:100%;height:100%;object-fit:cover;object-position:top;}
-      .continue-card .cc-name{font-weight:600;font-size:13.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+      .continue-card .cc-name{font-family:var(--font-display);font-weight:600;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
       .continue-card .cc-page{font-size:12px;color:var(--muted);margin-top:3px;}
       .cont-progress{height:5px;border-radius:4px;background:var(--surface-2);margin-top:10px;overflow:hidden;}
       .cont-progress i{display:block;height:100%;background:var(--lib-red);border-radius:4px;}
@@ -172,7 +177,7 @@
       .folder-row-mobile{display:none;}
       .drive-bar{margin:0 0 20px;}
       .shelf-head{display:flex;align-items:baseline;gap:12px;margin:4px 0 2px;flex-wrap:wrap;}
-      .shelf-head h2{font-family:"Noto Serif",Georgia,serif;font-size:20px;font-weight:700;margin:0;color:var(--ink);}
+      .shelf-head h2{font-family:var(--font-display);font-size:21px;font-weight:600;letter-spacing:.01em;margin:0;color:var(--ink);}
       .shelf-head .hint{color:var(--muted);font-size:13px;}
       .shelf-head .full-shelf{margin-left:auto;font-size:13px;font-weight:600;color:var(--lib-brown);display:inline-flex;gap:6px;align-items:center;}
       .shelf-head .full-shelf svg{width:15px;height:15px;}
@@ -207,14 +212,14 @@
         position:absolute;inset:0;border-radius:3px 8px 8px 3px;padding:20px 12px 14px 22px;box-sizing:border-box;
         display:flex;flex-direction:column;gap:8px;color:#fff;overflow:hidden;
       }
-      .book-fallback .bf-title{font-family:"Noto Serif",Georgia,serif;font-weight:700;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,.35);}
+      .book-fallback .bf-title{font-family:var(--font-display);font-weight:600;font-size:15.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,.35);}
       .book-fallback .bf-pages{margin-top:auto;font-size:11px;opacity:.85;font-weight:600;letter-spacing:.04em;}
       .book-ribbon{
         position:absolute;bottom:-13px;right:15px;width:21px;height:36px;z-index:3;background:#f0b13e;
         clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%);filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));
       }
       .book-info{padding:15px 2px 0;display:flex;flex-direction:column;gap:2px;}
-      .book-name{font-weight:700;font-size:14.5px;line-height:1.32;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+      .book-name{font-family:var(--font-display);font-weight:600;font-size:15px;line-height:1.32;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
       .book-folder{color:var(--lib-red);font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .book-meta{color:var(--muted);font-size:12px;display:flex;gap:7px;flex-wrap:wrap;}
       .book-meta .notes-n{color:var(--accent);font-weight:700;}
@@ -227,7 +232,7 @@
         display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--surface);margin-top:14px;
       }
       .empty svg{width:40px;height:40px;color:var(--line);}
-      .empty .t{font-size:16px;font-weight:600;color:var(--ink-2);}
+      .empty .t{font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--ink-2);}
       .empty p{margin:0;font-size:13.5px;max-width:420px;}
       .drop-hint{outline:2px dashed var(--accent);outline-offset:-8px;}
       .mobile-bottom-nav{display:none;}
@@ -245,7 +250,7 @@
         .greet-avatar{width:47px;height:47px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--lib-brown);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:var(--shadow);}
         .greet-avatar svg{width:26px;height:26px;}
         .greet-txt{flex:1;min-width:0;}
-        .greet-hi{font-weight:800;font-size:19px;line-height:1.2;}
+        .greet-hi{font-family:var(--font-display);font-weight:600;font-size:21px;line-height:1.2;}
         .greet-sub{font-size:12.5px;color:var(--muted);}
         .greet-drive{width:47px;height:47px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:#1a73e8;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:var(--shadow);}
         .greet-drive svg{width:23px;height:23px;}
@@ -310,7 +315,7 @@
         display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);
         border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:5;
       }
-      .reader-bar .doc-title{font-weight:600;font-size:14.5px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .reader-bar .doc-title{font-family:var(--font-display);font-weight:600;font-size:15px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .save-status{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
       .save-status .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;}
       .save-status.saving .dot{background:#d97706;}
@@ -324,7 +329,21 @@
       .format-bar{
         display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 12px;
         background:var(--surface);border-bottom:1px solid var(--line);z-index:5;
+        transition:opacity .22s ease,transform .22s ease,visibility .22s;
       }
+      /* While the user is typing the toolbar fades away; it returns when they pause */
+      .format-bar.typing-hidden{opacity:0;transform:translateY(-6px);pointer-events:none;visibility:hidden;}
+      .fmt-btn.move-btn,.fmt-btn.fav-btn{width:auto;padding:0 10px;gap:6px;font-weight:600;font-size:13px;}
+      .fmt-btn.move-btn svg,.fmt-btn.fav-btn svg{width:17px;height:17px;flex:none;}
+      .fav-btn{color:#9aa1ad;}
+      .fav-btn svg{fill:none;stroke:currentColor;}
+      .fav-btn.has-fav{color:#e11d48;}
+      .fav-btn.has-fav svg{fill:#e11d48;stroke:#e11d48;}
+      .fav-btn.is-current{background:#ffe4e6;border-color:#fda4af;color:#be123c;}
+      #pagesCol.move-mode .note{cursor:grab;}
+      #pagesCol.move-mode .note:active{cursor:grabbing;}
+      #pagesCol.move-mode .note-text{pointer-events:none;}
+      @media (prefers-reduced-motion: reduce){ .format-bar{transition:none;} }
       .format-bar .fb-label{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
       .fmt-select{
         height:34px;border:1px solid var(--line);border-radius:8px;background:var(--surface);
@@ -388,7 +407,7 @@
       .note.sel .note-resize{display:block;}
       .note .note-empty-hint{color:#8a919d;font-style:italic;pointer-events:none;}
 
-      /* ---------- Thanh preview trang (sidebar) ---------- */
+      /* ---------- Page preview sidebar ---------- */
       .reader-main{display:flex;flex:1;min-height:0;}
       .reader-main .pages-scroll{min-width:0;}
       .thumb-side{width:148px;flex:none;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;z-index:4;}
@@ -407,7 +426,7 @@
         .thumb-meta{font-size:10.5px;padding:3px 5px;}
       }
 
-      /* ---------- Modal xuat PDF theo trang ---------- */
+      /* ---------- Export-by-page modal ---------- */
       .page-pick-list{max-height:44vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:2px;}
       .page-pick{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:14px;}
       .page-pick:hover{background:var(--surface-2);}
@@ -425,7 +444,7 @@
         background:var(--surface);border-radius:16px;box-shadow:var(--shadow-lg);width:100%;max-width:420px;
         padding:22px;max-height:calc(100vh - 40px);overflow-y:auto;
       }
-      .modal h3{margin:0 0 6px;font-size:17px;font-weight:700;}
+      .modal h3{margin:0 0 6px;font-family:var(--font-display);font-size:18px;font-weight:600;letter-spacing:.01em;}
       .modal p{margin:0 0 14px;color:var(--ink-2);font-size:14px;}
       .modal label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px;}
       .modal input[type=text]{
@@ -564,58 +583,58 @@
         <aside class="lib-side">
           <div class="lib-brand">
             <span class="owl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><circle cx="10" cy="10" r="1.4"/><circle cx="15.5" cy="10" r="1.4"/></svg></span>
-            <span><span class="brand-name">Ghi chú PDF</span><br/><span class="brand-sub">Thư viện tài liệu của bạn</span></span>
+            <span><span class="brand-name">PDF Notes</span><br/><span class="brand-sub">Your document library</span></span>
           </div>
           <button class="side-nav-item" id="navHomeBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg>
-            Trang chủ
+            Home
           </button>
           <button class="side-nav-item active" id="navLibBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
-            Thư viện của tôi
+            My Library
           </button>
           <button class="side-nav-item" id="navShopBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h15l-1.7 8.5a2 2 0 0 1-2 1.5H8.6a2 2 0 0 1-2-1.6L4.3 3.8A1 1 0 0 0 3.3 3H2"/><circle cx="9" cy="21" r="1.4"/><circle cx="17" cy="21" r="1.4"/></svg>
-            Cửa hàng
+            Store
           </button>
           <button class="side-nav-item" id="navNewsBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
-            Tin tức
+            News
           </button>
-          <p class="side-title">Môn học</p>
+          <p class="side-title">Subjects</p>
           <div class="folder-list" id="folderList"></div>
           <button class="new-folder-btn" id="newFolderBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            Folder mới
+            New Folder
           </button>
           <div id="continueArea"></div>
           <button class="side-account" id="sideAccountBtn">
             <span class="avatar">G</span>
-            <span>Tài khoản Drive<span class="acc-sub" id="sideAccountSub">Chưa kết nối</span></span>
+            <span>Drive Account<span class="acc-sub" id="sideAccountSub">Not connected</span></span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
           </button>
         </aside>
         <section class="lib-main" id="libBody">
           <div class="mobile-greet">
             <span class="greet-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><circle cx="10" cy="10" r="1.4"/><circle cx="15.5" cy="10" r="1.4"/></svg></span>
-            <div class="greet-txt"><div class="greet-hi">Xin chào!</div><div class="greet-sub">Hôm nay bạn ghi chú gì?</div></div>
-            <button class="greet-drive" id="greetDriveBtn" title="Đồng bộ Google Drive">
+            <div class="greet-txt"><div class="greet-hi">Hello!</div><div class="greet-sub">What will you annotate today?</div></div>
+            <button class="greet-drive" id="greetDriveBtn" title="Google Drive Sync">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg>
             </button>
           </div>
           <div class="lib-topbar">
             <div class="lib-tabs" role="tablist">
-              <button class="lib-tab active" id="tabShelves">Kệ sách</button>
-              <button class="lib-tab" id="tabAll">Tất cả</button>
+              <button class="lib-tab active" id="tabShelves">Shelves</button>
+              <button class="lib-tab" id="tabAll">All</button>
             </div>
             <div class="search-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
-              <input id="searchInput" type="text" placeholder="Tìm trong thư viện của tôi…" autocomplete="off" />
-              <button class="search-go" id="searchGoBtn" title="Tìm tài liệu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg></button>
+              <input id="searchInput" type="text" placeholder="Search in my library…" autocomplete="off" />
+              <button class="search-go" id="searchGoBtn" title="Search documents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg></button>
             </div>
             <button class="btn import-main" id="importBtnTop">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-              Nhập PDF
+              Import PDF
             </button>
           </div>
           <div class="folder-row-mobile" id="folderRowMobile"></div>
@@ -623,30 +642,30 @@
             <div class="drive-card">
               <div class="drive-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg></div>
               <div class="drive-main">
-                <div class="drive-title">Đồng bộ Google Drive <span class="drive-badge" id="driveBadge">Chưa kết nối</span></div>
-                <div class="drive-sub" id="driveSub">Kết nối Drive để file PDF + ghi chú nằm trên Drive của bạn — mở trên điện thoại, máy tính hay máy khác đều thấy cùng một thư viện. Chưa kết nối thì app vẫn lưu trên thiết bị này.</div>
+                <div class="drive-title">Google Drive Sync <span class="drive-badge" id="driveBadge">Not connected</span></div>
+                <div class="drive-sub" id="driveSub">Connect Drive to keep your PDFs and notes on your Drive — open them on your phone, computer, or any other device and see the same library. Until you connect, the app saves on this device only.</div>
               </div>
               <div class="drive-actions">
-                <button class="btn drive" id="driveConnectBtn">Kết nối Google Drive</button>
-                <button class="btn hidden" id="driveSyncBtn">Đồng bộ ngay</button>
-                <button class="btn hidden" id="driveSetupBtn">Cài đặt</button>
-                <button class="btn" id="driveHelpBtn">Dùng 2 thiết bị</button>
-                <button class="btn hidden" id="driveDisconnectBtn">Ngắt</button>
+                <button class="btn drive" id="driveConnectBtn">Connect Google Drive</button>
+                <button class="btn hidden" id="driveSyncBtn">Sync Now</button>
+                <button class="btn hidden" id="driveSetupBtn">Settings</button>
+                <button class="btn" id="driveHelpBtn">Use on 2 Devices</button>
+                <button class="btn hidden" id="driveDisconnectBtn">Disconnect</button>
               </div>
             </div>
           </div>
           <div class="shelf-head">
-            <h2 id="docsTitle">Tất cả tài liệu</h2>
+            <h2 id="docsTitle">All Documents</h2>
             <span class="hint" id="docsHint"></span>
           </div>
           <div id="docsArea"></div>
         </section>
       </div>
       <nav class="mobile-bottom-nav" id="mobileBottomNav">
-        <button data-nav="home" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span>Thư viện</span></button>
-        <button data-nav="continue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5v15l6-4.5 6 4.5v-15Z"/></svg><span>Đọc tiếp</span></button>
-        <button data-nav="import" class="nav-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Nhập PDF</span></button>
-        <button data-nav="folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span>Folder mới</span></button>
+        <button data-nav="home" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span>Library</span></button>
+        <button data-nav="continue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5v15l6-4.5 6 4.5v-15Z"/></svg><span>Continue</span></button>
+        <button data-nav="import" class="nav-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Import PDF</span></button>
+        <button data-nav="folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span>New Folder</span></button>
         <button data-nav="drive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg><span>Drive</span></button>
       </nav>
     </div>
@@ -654,85 +673,97 @@
     <!-- ================= READER ================= -->
     <div id="readerView" class="hidden">
       <div class="reader-bar">
-        <button class="icon-btn" id="backBtn" title="Quay lại thư viện">
+        <button class="icon-btn" id="backBtn" title="Back to library">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
         </button>
-        <button class="icon-btn" id="thumbToggleBtn" title="Hiện / ẩn danh sách trang">
+        <button class="icon-btn" id="thumbToggleBtn" title="Show / hide page list">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9.5 4v16"/></svg>
         </button>
         <span class="doc-title" id="readerTitle"></span>
-        <span class="save-status" id="saveStatus"><span class="dot"></span><span class="txt">Đã lưu</span></span>
+        <span class="save-status" id="saveStatus"><span class="dot"></span><span class="txt">Saved</span></span>
         <div class="spacer" style="flex:1"></div>
         <span class="page-ind" id="pageInd"></span>
         <div class="zoom-group">
-          <button class="icon-btn" id="zoomOut" title="Thu nhỏ">
+          <button class="icon-btn" id="zoomOut" title="Zoom out">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>
           </button>
           <span class="zoom-label" id="zoomLabel">100%</span>
-          <button class="icon-btn" id="zoomIn" title="Phóng to">
+          <button class="icon-btn" id="zoomIn" title="Zoom in">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           </button>
-          <button class="icon-btn" id="zoomFit" title="Vừa chiều ngang" style="width:auto;padding:0 9px;font-size:12.5px;font-weight:600;">Vừa trang</button>
+          <button class="icon-btn" id="zoomFit" title="Fit to width" style="width:auto;padding:0 9px;font-size:12.5px;font-weight:600;">Fit</button>
         </div>
         <div class="bar-sep"></div>
         <button class="btn add-text-btn" id="addTextBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16m-3 0h6"/></svg>
-          Thêm chữ
+          Add Text
         </button>
         <button class="btn" id="exportBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
-          Xuất PDF
+          Export PDF
         </button>
         <button class="btn" id="exportPagesBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="m3.5 6 1.2 1.2L7 4.9M3.5 12l1.2 1.2L7 10.9M3.5 18l1.2 1.2L7 16.9" transform="translate(0,-0.4)"/></svg>
-          Xuất theo trang
+          Export Pages
         </button>
       </div>
-      <div class="add-hint hidden" id="addHint">Chế độ thêm chữ đang bật — <b>kéo chuột / kéo ngón tay</b> trên trang để vẽ khung chữ đúng độ rộng và độ dài mong muốn, thả ra là gõ ngay. Chữ tự xuống dòng trong khung, khung tự cao thêm khi chữ dài.</div>
+      <div class="add-hint hidden" id="addHint">Add Text mode is on — <b>drag with your mouse / finger</b> on the page to draw a text box with exactly the width and height you want, then release to start typing. Text wraps inside the box, and the box grows taller as you type.</div>
       <div class="format-bar hidden" id="formatBar">
-        <span class="fb-label">Định dạng</span>
+        <span class="fb-label">Font</span>
         <select class="fmt-select" id="fmtFont">
-          <option value="Be Vietnam Pro">Be Vietnam Pro (sans)</option>
+          <option value="Nunito">Nunito (sans)</option>
+          <option value="Fraunces">Fraunces (soft serif)</option>
+          <option value="Patrick Hand">Patrick Hand (handwriting)</option>
           <option value="Noto Serif">Noto Serif (serif)</option>
-          <option value="Patrick Hand">Patrick Hand (viết tay)</option>
-          <option value="Arial">Arial</option>
+          <option value="Be Vietnam Pro">Be Vietnam Pro (sans)</option>
           <option value="Georgia">Georgia</option>
+          <option value="Arial">Arial</option>
           <option value="Courier New">Courier New (mono)</option>
         </select>
-        <button class="fmt-btn" id="sizeMinus" title="Giảm cỡ chữ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+        <span class="fb-label">Size</span>
+        <button class="fmt-btn" id="sizeMinus" title="Decrease font size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
         <span class="size-val" id="sizeVal">14</span>
-        <button class="fmt-btn" id="sizePlus" title="Tăng cỡ chữ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-        <button class="fmt-btn" id="fmtBold" title="Đậm"><b>B</b></button>
-        <button class="fmt-btn" id="fmtItalic" title="Nghiêng"><i>I</i></button>
-        <button class="fmt-btn" id="fmtUnderline" title="Gạch chân"><u>U</u></button>
+        <button class="fmt-btn" id="sizePlus" title="Increase font size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="fmt-btn" id="fmtBold" title="Bold"><b>B</b></button>
+        <button class="fmt-btn" id="fmtItalic" title="Italic"><i>I</i></button>
+        <button class="fmt-btn" id="fmtUnderline" title="Underline"><u>U</u></button>
         <div class="bar-sep"></div>
-        <button class="fmt-btn" data-align="left" title="Căn trái"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg></button>
-        <button class="fmt-btn" data-align="center" title="Căn giữa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 11h10M4 16h16M7 21h10"/></svg></button>
-        <button class="fmt-btn" data-align="right" title="Căn phải"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M10 11h10M4 16h16M10 21h10"/></svg></button>
+        <button class="fmt-btn" data-align="left" title="Align left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg></button>
+        <button class="fmt-btn" data-align="center" title="Align center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 11h10M4 16h16M7 21h10"/></svg></button>
+        <button class="fmt-btn" data-align="right" title="Align right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M10 11h10M4 16h16M10 21h10"/></svg></button>
         <div class="bar-sep"></div>
-        <span class="fb-label">Màu chữ</span>
+        <span class="fb-label">Color</span>
         <div class="swatches" id="colorSwatches"></div>
-        <div class="color-input-wrap" title="Màu tùy chọn"><div class="ci-face"></div><input type="color" id="colorCustom" value="#2563eb" /></div>
+        <div class="color-input-wrap" title="Custom color"><div class="ci-face"></div><input type="color" id="colorCustom" value="#2563eb" /></div>
         <div class="bar-sep"></div>
         <span class="fb-label">Highlight</span>
         <div class="swatches" id="hlSwatches"></div>
         <div class="bar-sep"></div>
+        <button class="fmt-btn move-btn" id="moveNoteBtn" title="Move — drag the selected text box to reposition it" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18m0-18L9 6m3-3 3 3m-3 15-3-3m3 3 3-3M3 12h18M3 12l3-3m-3 3 3 3m15-3-3-3m3 3-3 3"/></svg>
+          <span>Move</span>
+        </button>
+        <button class="fmt-btn fav-btn" id="favFormatBtn" title="Save the current format as the favorite for this file">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.7C6.4 17 3 13.6 3 9.9 3 7.2 5 5 7.7 5c1.7 0 3.3.9 4.3 2.4C13 5.9 14.6 5 16.3 5 19 5 21 7.2 21 9.9c0 3.7-3.4 7.1-9 10.8Z"/></svg>
+          <span>Favorite</span>
+        </button>
+        <div class="bar-sep"></div>
         <button class="btn danger" id="deleteNoteBtn" style="padding:7px 12px;font-size:13px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>
-          Xóa ghi chú
+          Delete Note
         </button>
       </div>
       <div class="reader-main">
         <aside class="thumb-side" id="thumbSide">
-          <div class="thumb-side-head"><span>Trang</span>
-            <button class="icon-btn" id="thumbHideBtn" title="Ẩn danh sách trang" style="width:30px;height:30px">
+          <div class="thumb-side-head"><span>Pages</span>
+            <button class="icon-btn" id="thumbHideBtn" title="Hide page list" style="width:30px;height:30px">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M15 5l-7 7 7 7"/></svg>
             </button>
           </div>
           <div class="thumb-list" id="thumbList"></div>
         </aside>
         <div class="pages-scroll" id="pagesScroll">
-          <div class="reader-loading" id="readerLoading"><div class="spinner"></div><span>Đang mở tài liệu…</span></div>
+          <div class="reader-loading" id="readerLoading"><div class="spinner"></div><span>Opening document…</span></div>
           <div class="pages-col" id="pagesCol"></div>
         </div>
       </div>
@@ -751,7 +782,7 @@
     const $ = (s, r) => (r || document).querySelector(s);
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-    function fmtDate(ts){ const d = new Date(ts); return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}); }
+    function fmtDate(ts){ const d = new Date(ts); return d.toLocaleDateString('en-US') + ' ' + d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}); }
     function fmtSize(b){ if (!b) return ''; if (b < 1024*1024) return Math.max(1, Math.round(b/1024)) + ' KB'; return (b/(1024*1024)).toFixed(1) + ' MB'; }
     let toastTimer = null;
     function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
@@ -794,16 +825,16 @@
       const isNew = !folder;
       const f = folder || { name: '', color: FOLDER_COLORS[folders.length % FOLDER_COLORS.length] };
       openModal(
-        '<h3>' + (isNew ? 'Folder môn học mới' : 'Đổi tên folder') + '</h3>' +
-        '<p>Mỗi folder là một môn học — tài liệu PDF sẽ được xếp vào đây.</p>' +
-        '<label for="folderName">Tên folder</label>' +
-        '<input type="text" id="folderName" placeholder="Ví dụ: Toán học" value="' + esc(f.name) + '" />' +
-        '<label>Màu folder</label>' +
+        '<h3>' + (isNew ? 'New Subject Folder' : 'Rename Folder') + '</h3>' +
+        '<p>Each folder is a subject — your PDF documents are filed inside it.</p>' +
+        '<label for="folderName">Folder name</label>' +
+        '<input type="text" id="folderName" placeholder="e.g. Mathematics" value="' + esc(f.name) + '" />' +
+        '<label>Folder color</label>' +
         '<div class="color-row" id="folderColors">' +
-          FOLDER_COLORS.map(c => '<button class="color-choice' + (c === f.color ? ' active' : '') + '" data-color="' + c + '" style="background:' + c + '" aria-label="Màu ' + c + '"></button>').join('') +
+          FOLDER_COLORS.map(c => '<button class="color-choice' + (c === f.color ? ' active' : '') + '" data-color="' + c + '" style="background:' + c + '" aria-label="Color ' + c + '"></button>').join('') +
         '</div>' +
-        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button>' +
-        '<button class="btn primary" id="mSave">' + (isNew ? 'Tạo folder' : 'Lưu') + '</button></div>'
+        '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button>' +
+        '<button class="btn primary" id="mSave">' + (isNew ? 'Create Folder' : 'Save') + '</button></div>'
       );
       let color = f.color;
       $('#folderColors').addEventListener('click', e => {
@@ -825,15 +856,15 @@
     }
     function confirmModal(title, text, okLabel, onOk, danger){
       openModal('<h3>' + esc(title) + '</h3><p>' + esc(text) + '</p>' +
-        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button>' +
         '<button class="btn ' + (danger ? 'danger' : 'primary') + '" id="mOk">' + esc(okLabel) + '</button></div>');
       $('#mCancel').addEventListener('click', closeModal);
       $('#mOk').addEventListener('click', async () => { closeModal(); await onOk(); });
     }
     function renameDocModal(doc){
-      openModal('<h3>Đổi tên tài liệu</h3><label for="docName">Tên tài liệu</label>' +
+      openModal('<h3>Rename Document</h3><label for="docName">Document name</label>' +
         '<input type="text" id="docName" value="' + esc(doc.name) + '" />' +
-        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button><button class="btn primary" id="mSave">Lưu</button></div>');
+        '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mSave">Save</button></div>');
       $('#mCancel').addEventListener('click', closeModal);
       const input = $('#docName'); input.focus(); input.select();
       const save = async () => { const n = input.value.trim(); if (!n) return; doc.name = n; doc.updatedAt = Date.now(); await DB.put('docs', doc); closeModal(); renderLibrary(); };
@@ -854,26 +885,26 @@
     function bookCardHTML(d){
       const f = folderOf(d);
       const spine = f ? f.color : '#7c4a21';
-      const fname = f ? f.name : 'Chưa phân loại';
+      const fname = f ? f.name : 'Uncategorized';
       const notesN = d.notes ? d.notes.length : 0;
       const showRibbon = notesN > 0 || (d.lastPage || 1) > 1;
       const cover = d.thumb
-        ? '<img class="cover-img" src="' + d.thumb + '" alt="Bìa — trang đầu của ' + esc(d.name) + '" />'
-        : '<span class="book-fallback" style="background:linear-gradient(155deg,' + spine + ',' + spine + ' 55%,rgba(0,0,0,.34))"><span class="bf-title">' + esc(d.name) + '</span><span class="bf-pages">' + d.pages + ' TRANG</span></span>';
+        ? '<img class="cover-img" src="' + d.thumb + '" alt="Cover — first page of ' + esc(d.name) + '" />'
+        : '<span class="book-fallback" style="background:linear-gradient(155deg,' + spine + ',' + spine + ' 55%,rgba(0,0,0,.34))"><span class="bf-title">' + esc(d.name) + '</span><span class="bf-pages">' + d.pages + ' PAGES</span></span>';
       return '<div class="book-wrap"><button class="book" data-open="' + d.id + '" style="--spine:' + spine + '">' +
         '<span class="book-cover">' + cover + (showRibbon ? '<span class="book-ribbon"></span>' : '') + '</span>' +
         '<span class="book-info"><span class="book-name">' + esc(d.name) + '</span>' +
         '<span class="book-folder">' + esc(fname) + '</span>' +
-        '<span class="book-meta"><span>' + d.pages + ' trang</span>' +
-        (notesN ? '<span class="notes-n">' + notesN + ' ghi chú</span>' : '') +
-        ((d.lastPage || 1) > 1 ? '<span class="resume-n">' + (isFinishedDoc(d) ? 'Đã đọc xong' : 'Đọc tiếp tr. ' + d.lastPage) + '</span>' : '') +
+        '<span class="book-meta"><span>' + d.pages + ' pages</span>' +
+        (notesN ? '<span class="notes-n">' + notesN + ' notes</span>' : '') +
+        ((d.lastPage || 1) > 1 ? '<span class="resume-n">' + (isFinishedDoc(d) ? 'Finished' : 'Resume p. ' + d.lastPage) + '</span>' : '') +
         '</span></span></button>' +
-        '<button class="card-menu-btn" data-menu="' + d.id + '" title="Tùy chọn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>';
+        '<button class="card-menu-btn" data-menu="' + d.id + '" title="Options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>';
     }
     function shelfHTML(title, list){
       if (!list.length) return '';
-      return '<div class="shelf-head" style="margin-top:10px"><h2>' + esc(title) + '</h2><span class="hint">' + list.length + ' tài liệu</span>' +
-        '<button class="full-shelf" data-fullshelf="1">Xem cả kệ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button></div>' +
+      return '<div class="shelf-head" style="margin-top:10px"><h2>' + esc(title) + '</h2><span class="hint">' + list.length + ' documents</span>' +
+        '<button class="full-shelf" data-fullshelf="1">View full shelf <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button></div>' +
         '<div class="shelf-books">' + list.map(bookCardHTML).join('') + '</div><div class="shelf-plank"></div>';
     }
     let thumbEnsuring = false;
@@ -903,14 +934,14 @@
       const area = $('#continueArea'); if (!area) return;
       const cand = docs.filter(d => isReadingDoc(d)).sort((a, b) => (b.lastOpenedAt || b.updatedAt) - (a.lastOpenedAt || a.updatedAt))[0];
       if (!cand){
-        area.innerHTML = '<div class="continue-empty">Chưa có tài liệu đang đọc dở. Mở một file PDF, app sẽ nhớ đúng trang bạn dừng lại.</div>';
+        area.innerHTML = '<div class="continue-empty">No document in progress yet. Open a PDF and the app will remember exactly where you left off.</div>';
         return;
       }
       const pct = cand.pages ? Math.min(100, Math.round(((cand.lastPage || 1) / cand.pages) * 100)) : 0;
       area.innerHTML = '<button class="continue-card" id="continueCardBtn">' +
-        '<div class="cc-label">Đang đọc tiếp</div><div class="cc-body">' +
+        '<div class="cc-label">Continue Reading</div><div class="cc-body">' +
         '<span class="cc-cover">' + (cand.thumb ? '<img src="' + cand.thumb + '" alt="" />' : '') + '</span>' +
-        '<span><span class="cc-name">' + esc(cand.name) + '</span><span class="cc-page">Trang ' + (cand.lastPage || 1) + ' / ' + cand.pages + '</span></span></div>' +
+        '<span><span class="cc-name">' + esc(cand.name) + '</span><span class="cc-page">Page ' + (cand.lastPage || 1) + ' / ' + cand.pages + '</span></span></div>' +
         '<div class="cont-progress"><i style="width:' + pct + '%"></i></div></button>';
       $('#continueCardBtn').addEventListener('click', () => openReader(cand.id));
     }
@@ -918,34 +949,34 @@
       return '<div class="folder-item' + (active ? ' active' : '') + '" data-fid="' + fid + '" role="button" tabindex="0">' +
         '<span class="folder-dot" style="background:' + color + '"></span><span class="fname">' + esc(label) + '</span>' +
         '<span class="count">' + count + '</span>' +
-        (isFolder ? '<button class="chip-menu-btn" data-chipmenu="' + fid + '" title="Tùy chọn folder" aria-label="Tùy chọn folder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>' +
+        (isFolder ? '<button class="chip-menu-btn" data-chipmenu="' + fid + '" title="Folder options" aria-label="Folder options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>' +
         '<span class="f-actions">' +
-          '<button data-act="rename" title="Đổi tên"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>' +
-          '<button data-act="del" title="Xóa folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg></button>' +
+          '<button data-act="rename" title="Rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>' +
+          '<button data-act="del" title="Delete folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg></button>' +
         '</span>' : '') + '</div>';
     }
     function renderLibrary(){
       // Folder lists (sidebar desktop + hang mon hoc mobile)
-      const items = [folderItemHTML('all', 'Tất cả tài liệu', 'var(--ink-2)', docs.length, false, currentFolderId === 'all')];
+      const items = [folderItemHTML('all', 'All Documents', 'var(--ink-2)', docs.length, false, currentFolderId === 'all')];
       folders.forEach(f => items.push(folderItemHTML(f.id, f.name, f.color, folderDocs(f.id).length, true, currentFolderId === f.id)));
       const noneCount = folderDocs('none').length;
-      if (noneCount > 0) items.push(folderItemHTML('none', 'Chưa phân loại', 'var(--muted)', noneCount, false, currentFolderId === 'none'));
+      if (noneCount > 0) items.push(folderItemHTML('none', 'Uncategorized', 'var(--muted)', noneCount, false, currentFolderId === 'none'));
       const html = items.join('');
       $('#folderList').innerHTML = html;
       const frm = $('#folderRowMobile');
-      if (frm) frm.innerHTML = html + '<div class="folder-item new-folder-chip" data-newfolder="1" role="button" tabindex="0"><span class="folder-dot">+</span><span class="fname">Folder mới</span></div>';
+      if (frm) frm.innerHTML = html + '<div class="folder-item new-folder-chip" data-newfolder="1" role="button" tabindex="0"><span class="folder-dot">+</span><span class="fname">New Folder</span></div>';
       // Tabs
       const tS = $('#tabShelves'), tA = $('#tabAll');
       if (tS && tA){ tS.classList.toggle('active', libViewMode === 'shelves'); tA.classList.toggle('active', libViewMode === 'all'); }
       renderContinue();
       // Docs head
-      let title = libViewMode === 'shelves' ? 'Kệ sách của tôi' : 'Tất cả tài liệu';
-      if (currentFolderId === 'none') title = 'Chưa phân loại';
+      let title = libViewMode === 'shelves' ? 'My Shelves' : 'All Documents';
+      if (currentFolderId === 'none') title = 'Uncategorized';
       else if (currentFolderId !== 'all'){ const f = folders.find(x => x.id === currentFolderId); title = f ? f.name : title; }
-      if (searchText) title = 'Kết quả tìm kiếm';
+      if (searchText) title = 'Search Results';
       $('#docsTitle').textContent = title;
-      $('#docsHint').textContent = searchText ? 'Đang lọc theo từ khóa — bìa là trang đầu tiên của từng file.'
-        : (currentFolderId === 'all' ? 'Mở tài liệu là đọc tiếp đúng trang bạn đã dừng lại.' : 'Tài liệu nhập mới sẽ vào folder này.');
+      $('#docsHint').textContent = searchText ? 'Filtered by keyword — each cover is the first page of its file.'
+        : (currentFolderId === 'all' ? 'Open a document to resume exactly where you left off.' : 'New imports will go into this folder.');
       // Docs area
       const list = visibleDocs();
       const area = $('#docsArea');
@@ -954,9 +985,9 @@
       if (!list.length){
         area.innerHTML = '<div class="empty">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg>' +
-          '<span class="t">' + (searchText ? 'Không tìm thấy tài liệu nào' : 'Chưa có tài liệu nào ở đây') + '</span>' +
-          '<p>' + (searchText ? 'Thử từ khóa khác.' : 'Bấm “Nhập PDF” để thêm tài liệu vào folder này, rồi mở lên và ghi chú trực tiếp lên trang.') + '</p>' +
-          (searchText ? '' : '<button class="btn primary" id="emptyImport">Nhập PDF</button>') + '</div>';
+          '<span class="t">' + (searchText ? 'No documents found' : 'No documents here yet') + '</span>' +
+          '<p>' + (searchText ? 'Try a different keyword.' : 'Tap \'Import PDF\' to add a document to this folder, then open it and annotate directly on the page.') + '</p>' +
+          (searchText ? '' : '<button class="btn primary" id="emptyImport">Import PDF</button>') + '</div>';
         const b = $('#emptyImport'); if (b) b.addEventListener('click', () => $('#fileInput').click());
         return;
       }
@@ -965,7 +996,7 @@
         const reading = list.filter(isReadingDoc);
         const finished = list.filter(isFinishedDoc);
         const next = list.filter(d => !isReadingDoc(d) && !isFinishedDoc(d));
-        area.innerHTML = shelfHTML('Đang đọc', reading) + shelfHTML('Tiếp theo', next) + shelfHTML('Đã xong', finished);
+        area.innerHTML = shelfHTML('Currently Reading', reading) + shelfHTML('Next Up', next) + shelfHTML('Finished', finished);
         if (!area.innerHTML) area.innerHTML = '<div class="book-grid">' + list.map(bookCardHTML).join('') + '</div>';
       } else if (libViewMode === 'shelves' && !searchText){
         // Mot folder = mot ke
@@ -979,11 +1010,11 @@
     }
     function folderDeleteFlow(f){
       const n = folderDocs(f.id).length;
-      if (n === 0){ confirmModal('Xóa folder “' + f.name + '”?', 'Folder đang trống.', 'Xóa folder', async () => { await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; renderLibrary(); }, true); return; }
-      openModal('<h3>Xóa folder “' + esc(f.name) + '”?</h3><p>Folder này đang có ' + n + ' tài liệu. Bạn muốn xử lý tài liệu trong folder thế nào?</p>' +
-        '<div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="mCancel">Hủy</button>' +
-        '<button class="btn" id="mMove">Chuyển ra Chưa phân loại</button>' +
-        '<button class="btn danger" id="mDelAll">Xóa cả tài liệu</button></div>');
+      if (n === 0){ confirmModal('Delete folder "' + f.name + '"?', 'The folder is empty.', 'Delete Folder', async () => { await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; renderLibrary(); }, true); return; }
+      openModal('<h3>Delete folder "' + esc(f.name) + '"?</h3><p>This folder contains ' + n + ' document(s). What would you like to do with them?</p>' +
+        '<div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="mCancel">Cancel</button>' +
+        '<button class="btn" id="mMove">Move to Uncategorized</button>' +
+        '<button class="btn danger" id="mDelAll">Delete documents too</button></div>');
       $('#mCancel').addEventListener('click', closeModal);
       $('#mMove').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ d.folderId = null; await DB.put('docs', d); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
       $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ await DB.del('docs', d.id); await DB.del('files', d.id); docs = docs.filter(x => x.id !== d.id); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
@@ -992,8 +1023,8 @@
       closeMenu();
       const r = anchor.getBoundingClientRect();
       $('#menuRoot').innerHTML = '<div class="menu" style="top:' + (r.bottom + 6) + 'px;left:' + Math.max(8, Math.min(r.left - 60, window.innerWidth - 215)) + 'px">' +
-        '<button data-fm="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Đổi tên / đổi màu</button>' +
-        '<button data-fm="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Xóa folder</button></div>';
+        '<button data-fm="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Rename / Change Color</button>' +
+        '<button data-fm="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Delete Folder</button></div>';
       document.addEventListener('pointerdown', menuOutside, true);
       $('.menu').addEventListener('click', e => {
         const b = e.target.closest('[data-fm]'); if (!b) return;
@@ -1036,23 +1067,23 @@
       const doc = docs.find(d => d.id === docId); if (!doc) return;
       const r = anchor.getBoundingClientRect();
       const moveItems = folders.filter(f => f.id !== doc.folderId).map(f =>
-        '<button data-move="' + f.id + '"><span class="folder-dot" style="background:' + f.color + ';width:11px;height:11px;border-radius:3px"></span>Chuyển tới “' + esc(f.name) + '”</button>').join('');
+        '<button data-move="' + f.id + '"><span class="folder-dot" style="background:' + f.color + ';width:11px;height:11px;border-radius:3px"></span>Move to "' + esc(f.name) + '"</button>').join('');
       $('#menuRoot').innerHTML = '<div class="menu" style="top:' + (r.bottom + 6) + 'px;left:' + Math.max(8, Math.min(r.left - 140, window.innerWidth - 210)) + 'px">' +
-        '<button data-m="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H11v18H4.5A2.5 2.5 0 0 0 2 23.5Z"/><path d="M22 5.5A2.5 2.5 0 0 0 19.5 3H13v18h6.5a2.5 2.5 0 0 1 2.5 2.5Z" transform="translate(0,-2.5)"/></svg>Mở tài liệu</button>' +
-        '<button data-m="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Đổi tên</button>' +
+        '<button data-m="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H11v18H4.5A2.5 2.5 0 0 0 2 23.5Z"/><path d="M22 5.5A2.5 2.5 0 0 0 19.5 3H13v18h6.5a2.5 2.5 0 0 1 2.5 2.5Z" transform="translate(0,-2.5)"/></svg>Open Document</button>' +
+        '<button data-m="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Rename</button>' +
         moveItems +
-        (doc.folderId ? '<button data-move=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Chuyển ra Chưa phân loại</button>' : '') +
-        '<button data-m="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Xóa tài liệu</button></div>';
+        (doc.folderId ? '<button data-move=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Move to Uncategorized</button>' : '') +
+        '<button data-m="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Delete Document</button></div>';
       document.addEventListener('pointerdown', menuOutside, true);
       $('.menu').addEventListener('click', async e => {
         const mv = e.target.closest('[data-move]');
         const b = e.target.closest('[data-m]');
-        if (mv){ doc.folderId = mv.dataset.move || null; doc.updatedAt = Date.now(); await DB.put('docs', doc); closeMenu(); renderLibrary(); toast('Đã chuyển tài liệu.'); return; }
+        if (mv){ doc.folderId = mv.dataset.move || null; doc.updatedAt = Date.now(); await DB.put('docs', doc); closeMenu(); renderLibrary(); toast('Document moved.'); return; }
         if (!b) return;
         const act = b.dataset.m; closeMenu();
         if (act === 'open') openReader(doc.id);
         else if (act === 'rename') renameDocModal(doc);
-        else if (act === 'del') confirmModal('Xóa tài liệu “' + doc.name + '”?', 'Tài liệu và toàn bộ ghi chú trên đó sẽ bị xóa khỏi thiết bị này.', 'Xóa tài liệu', async () => { await DB.del('docs', doc.id); await DB.del('files', doc.id); docs = docs.filter(x => x.id !== doc.id); renderLibrary(); }, true);
+        else if (act === 'del') confirmModal('Delete document "' + doc.name + '"?', 'The document and all its notes will be deleted from this device.', 'Delete Document', async () => { await DB.del('docs', doc.id); await DB.del('files', doc.id); docs = docs.filter(x => x.id !== doc.id); renderLibrary(); }, true);
       });
     }
     $('#newFolderBtn').addEventListener('click', () => folderForm(null));
@@ -1064,11 +1095,11 @@
     const _sa = $('#sideAccountBtn'); if (_sa) _sa.addEventListener('click', scrollToDrive);
     const _gd = $('#greetDriveBtn'); if (_gd) _gd.addEventListener('click', scrollToDrive);
     function shopModal(){
-      openModal('<h3>Cửa hàng — thêm tài liệu vào thư viện</h3>' +
-        '<p>Thư viện hiện có <b>' + docs.length + ' tài liệu</b> trong <b>' + folders.length + ' folder môn học</b>. Thêm sách/tài liệu mới bằng cách nhập file PDF từ máy, hoặc kết nối Google Drive để lấy thư viện đã đồng bộ trên máy khác về.</p>' +
-        '<div class="modal-actions" style="justify-content:flex-start"><button class="btn" id="mCancel">Đóng</button>' +
-        '<button class="btn primary" id="mShopImport">Nhập PDF mới</button>' +
-        '<button class="btn" id="mShopDrive">Kết nối / đồng bộ Drive</button></div>');
+      openModal('<h3>Store — Add Documents to Your Library</h3>' +
+        '<p>Your library currently has <b>' + docs.length + ' documents</b> in <b>' + folders.length + ' subject folders</b>. Add new books and documents by importing a PDF from your device, or connect Google Drive to bring in a library synced from another device.</p>' +
+        '<div class="modal-actions" style="justify-content:flex-start"><button class="btn" id="mCancel">Close</button>' +
+        '<button class="btn primary" id="mShopImport">Import New PDF</button>' +
+        '<button class="btn" id="mShopDrive">Connect / Sync Drive</button></div>');
       $('#mCancel').addEventListener('click', closeModal);
       $('#mShopImport').addEventListener('click', () => { closeModal(); $('#fileInput').click(); });
       $('#mShopDrive').addEventListener('click', () => { closeModal(); const c = document.querySelector('.drive-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
@@ -1076,10 +1107,10 @@
     function newsModal(){
       const recent = docs.slice().sort((a, b) => (b.lastOpenedAt || b.updatedAt) - (a.lastOpenedAt || a.updatedAt)).slice(0, 6);
       const rows = recent.length ? recent.map(d =>
-        '<button class="page-pick" data-news-open="' + d.id + '" style="width:100%;text-align:left"><span>' + esc(d.name) + '</span><span class="cnt">' + ((d.lastPage || 1) > 1 ? 'Đang đọc · trang ' + d.lastPage + ' · ' : '') + fmtDate(d.lastOpenedAt || d.updatedAt) + '</span></button>').join('')
-        : '<p>Chưa có hoạt động nào — mở một tài liệu để đọc, tin tức cập nhật trong thư viện sẽ hiện ở đây.</p>';
-      openModal('<h3>Tin tức thư viện</h3><p>Cập nhật gần đây nhất trong thư viện của bạn: tài liệu vừa mở, vừa sửa ghi chú.</p><div class="page-pick-list">' + rows + '</div>' +
-        '<div class="modal-actions"><button class="btn primary" id="mCancel">Đóng</button></div>');
+        '<button class="page-pick" data-news-open="' + d.id + '" style="width:100%;text-align:left"><span>' + esc(d.name) + '</span><span class="cnt">' + ((d.lastPage || 1) > 1 ? 'Reading · page ' + d.lastPage + ' · ' : '') + fmtDate(d.lastOpenedAt || d.updatedAt) + '</span></button>').join('')
+        : '<p>No activity yet — open a document to read, and library updates will appear here.</p>';
+      openModal('<h3>Library News</h3><p>Your most recent library activity: documents you opened and annotated.</p><div class="page-pick-list">' + rows + '</div>' +
+        '<div class="modal-actions"><button class="btn primary" id="mCancel">Close</button></div>');
       $('#mCancel').addEventListener('click', closeModal);
       document.querySelectorAll('[data-news-open]').forEach(b => b.addEventListener('click', () => { closeModal(); openReader(b.dataset.newsOpen); }));
     }
@@ -1098,7 +1129,7 @@
       else if (act === 'drive'){ scrollToDrive(); }
       else if (act === 'continue'){
         const cand = docs.filter(d => isReadingDoc(d)).sort((a, bb) => (bb.lastOpenedAt || bb.updatedAt) - (a.lastOpenedAt || a.updatedAt))[0];
-        if (cand) openReader(cand.id); else toast('Chưa có tài liệu đang đọc dở.');
+        if (cand) openReader(cand.id); else toast('No document in progress yet.');
       }
     });
     $('#importBtnTop').addEventListener('click', () => $('#fileInput').click());
@@ -1129,9 +1160,9 @@
           await DB.put('files', buf, id);
           await DB.put('docs', doc);
           docs.push(doc); okCount++;
-        } catch (err) { toast('Không đọc được file “' + file.name + '”.'); }
+        } catch (err) { toast('Could not read the file "' + file.name + '".'); }
       }
-      if (okCount) { renderLibrary(); toast('Đã nhập ' + okCount + ' tài liệu PDF.'); }
+      if (okCount) { renderLibrary(); toast('Imported ' + okCount + ' PDF document(s).'); }
     }
 </script>
 
@@ -1149,7 +1180,42 @@
     let saveTimer = null;
     let pageSaveTimer = null;
     let restoringPage = false;
-    let lastStyle = { font: 'Be Vietnam Pro', sizeFrac: 0.027, bold: false, italic: false, underline: false, color: '#111827', highlight: '', align: 'left' };
+    let lastStyle = { font: 'Nunito', sizeFrac: 0.027, bold: false, italic: false, underline: false, color: '#111827', highlight: '', align: 'left' };
+    let moveMode = false;
+    let typingHideTimer = null;
+
+    /* ================= Text toolbar: show / hide ================= */
+    function cloneStyle(s){ return { font: s.font, sizeFrac: s.sizeFrac, bold: !!s.bold, italic: !!s.italic, underline: !!s.underline, color: s.color, highlight: s.highlight || '', align: s.align || 'left' }; }
+    function stylesEqual(a, b){
+      if (!a || !b) return false;
+      return a.font === b.font && Math.abs((a.sizeFrac || 0) - (b.sizeFrac || 0)) < 0.00001 &&
+        !!a.bold === !!b.bold && !!a.italic === !!b.italic && !!a.underline === !!b.underline &&
+        String(a.color).toLowerCase() === String(b.color).toLowerCase() &&
+        (a.highlight || '') === (b.highlight || '') && (a.align || 'left') === (b.align || 'left');
+    }
+    function effectiveStyle(){
+      const n = selectedNoteId ? findNote(selectedNoteId) : null;
+      return n ? n.style : lastStyle;
+    }
+    function shouldShowToolbar(){ return !!(currentReader && (addMode || selectedNoteId || editingId)); }
+    function updateToolbarVisibility(){
+      const bar = $('#formatBar'); if (!bar) return;
+      if (shouldShowToolbar()){
+        bar.classList.remove('hidden');
+        if (typeof syncFormatBar === 'function') syncFormatBar();
+      } else {
+        bar.classList.add('hidden');
+        bar.classList.remove('typing-hidden');
+        clearTimeout(typingHideTimer);
+      }
+    }
+    /* Hide the toolbar while typing; bring it back after a short pause */
+    function noteTypingStarted(){
+      const bar = $('#formatBar'); if (!bar || bar.classList.contains('hidden')) return;
+      bar.classList.add('typing-hidden');
+      clearTimeout(typingHideTimer);
+      typingHideTimer = setTimeout(() => { bar.classList.remove('typing-hidden'); }, 900);
+    }
 
     const TEXT_COLORS = ['#111827', '#dc2626', '#2563eb', '#059669', '#d97706', '#7c3aed', '#db2777', '#0e7490'];
     const HL_COLORS = ['', 'rgba(250,204,21,0.45)', 'rgba(74,222,128,0.42)', 'rgba(249,168,212,0.5)', 'rgba(125,211,252,0.5)', 'rgba(253,186,116,0.55)'];
@@ -1159,8 +1225,8 @@
     function setSaveStatus(saving, ts){
       const el = $('#saveStatus');
       el.classList.toggle('saving', saving);
-      let txt = saving ? 'Đang lưu…' : 'Đã lưu' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : '');
-      if (!saving && typeof driveIsConnected === 'function' && driveIsConnected()) txt += ' · tự đồng bộ Drive';
+      let txt = saving ? 'Saving…' : 'Saved' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) : '');
+      if (!saving && typeof driveIsConnected === 'function' && driveIsConnected()) txt += ' · auto-syncs to Drive';
       el.querySelector('.txt').textContent = txt;
     }
     function scheduleSave(){
@@ -1172,7 +1238,7 @@
       saveTimer = setTimeout(async () => {
         currentReader.updatedAt = Date.now();
         try { await DB.put('docs', currentReader); setSaveStatus(false, currentReader.updatedAt); if (typeof queueDriveSync === 'function') queueDriveSync(); }
-        catch (e) { setSaveStatus(false); toast('Không lưu được ghi chú — bộ nhớ thiết bị có thể đã đầy.'); }
+        catch (e) { setSaveStatus(false); toast('Could not save your notes — device storage may be full.'); }
       }, 450);
     }
 
@@ -1182,13 +1248,15 @@
       currentReader = doc;
       restoringPage = true;
       doc.lastOpenedAt = Date.now();
-      selectedNoteId = null; editingId = null; addMode = false;
+      selectedNoteId = null; editingId = null; addMode = false; moveMode = false;
+      $('#pagesCol').classList.remove('move-mode');
       $('#libraryView').classList.add('hidden');
       $('#readerView').classList.remove('hidden');
       $('#readerTitle').textContent = doc.name;
       $('#addTextBtn').classList.remove('active');
       $('#addHint').classList.add('hidden');
       $('#formatBar').classList.add('hidden');
+      $('#formatBar').classList.remove('typing-hidden');
       $('#readerLoading').classList.remove('hidden');
       $('#pagesCol').innerHTML = '';
       setSaveStatus(false, doc.updatedAt);
@@ -1228,16 +1296,16 @@
             const topT = scT.scrollTop + wrapT.getBoundingClientRect().top - scT.getBoundingClientRect().top - 14;
             scT.scrollTo({ top: Math.max(0, topT), behavior: 'auto' });
           }
-          $('#pageInd').textContent = 'Trang ' + currentPage + ' / ' + pageSizes.length;
+          $('#pageInd').textContent = 'Page ' + currentPage + ' / ' + pageSizes.length;
           updateThumbActive();
-          toast('Mở tiếp từ trang ' + resumePage + ' — trang bạn đọc dở lần trước.');
+          toast('Resumed at page ' + resumePage + ' — where you left off last time.');
         }
         restoringPage = false;
         updatePageInd();
       } catch (e) {
         restoringPage = false;
-        $('#readerLoading').innerHTML = '<span>Không mở được tài liệu này.</span>';
-        toast('Không mở được tài liệu PDF.');
+        $('#readerLoading').innerHTML = '<span>Could not open this document.</span>';
+        toast('Could not open the PDF document.');
       }
     }
     function closeReader(){
@@ -1267,7 +1335,7 @@
         const wrap = document.createElement('div');
         wrap.className = 'page-wrap' + (addMode ? ' add-mode' : '');
         wrap.dataset.page = i + 1;
-        wrap.innerHTML = '<div class="page-loading">Trang ' + (i + 1) + '</div><canvas></canvas><div class="notes-layer"></div><div class="page-num">' + (i + 1) + ' / ' + pageSizes.length + '</div>';
+        wrap.innerHTML = '<div class="page-loading">Page ' + (i + 1) + '</div><canvas></canvas><div class="notes-layer"></div><div class="page-num">' + (i + 1) + ' / ' + pageSizes.length + '</div>';
         col.appendChild(wrap);
         renderNotesForPage(i + 1);
       });
@@ -1316,7 +1384,7 @@
         const ld = wrap.querySelector('.page-loading'); if (ld) ld.remove();
       } catch (e) { delete renderStamps[p]; }
     }
-    function updatePageInd(){ $('#pageInd').textContent = 'Trang ' + currentPage + ' / ' + pageSizes.length; updateThumbActive(); persistLastPage(); }
+    function updatePageInd(){ $('#pageInd').textContent = 'Page ' + currentPage + ' / ' + pageSizes.length; updateThumbActive(); persistLastPage(); }
     /* ----- Nho trang da mo: luu trang cuoi cho tung file, dong bo kem thu vien ----- */
     function persistLastPage(){
       if (!currentReader || restoringPage || !pdfDoc) return;
@@ -1343,7 +1411,7 @@
       try { DB.put('docs', docRef); if (typeof queueDriveSync === 'function') queueDriveSync(); } catch (e) {}
     }
 
-    /* ================= Sidebar preview trang ================= */
+    /* ================= Page preview sidebar ================= */
     let thumbObserver = null;
     let thumbSideVisible = true;
     function buildThumbs(){
@@ -1355,9 +1423,9 @@
         const item = document.createElement('button');
         item.className = 'thumb-item' + (p === currentPage ? ' active' : '');
         item.dataset.tpage = p;
-        item.setAttribute('aria-label', 'Tới trang ' + p);
-        item.innerHTML = '<span class="thumb-ph">Trang ' + p + '</span>' +
-          '<span class="thumb-meta"><span>Trang ' + p + '</span><span class="thumb-notes">' + (notesN ? notesN + ' ghi chú' : '') + '</span></span>';
+        item.setAttribute('aria-label', 'Go to page ' + p);
+        item.innerHTML = '<span class="thumb-ph">Page ' + p + '</span>' +
+          '<span class="thumb-meta"><span>Page ' + p + '</span><span class="thumb-notes">' + (notesN ? notesN + (notesN === 1 ? ' note' : ' notes') : '') + '</span></span>';
         item.addEventListener('click', () => goToPage(p));
         list.appendChild(item);
       });
@@ -1381,7 +1449,7 @@
         if (!document.body.contains(item)) return;
         const img = document.createElement('img');
         img.src = c.toDataURL('image/jpeg', 0.7);
-        img.alt = 'Xem trước trang ' + p;
+        img.alt = 'Preview of page ' + p;
         const ph = item.querySelector('.thumb-ph'); if (ph) ph.replaceWith(img);
       } catch (e) { delete item.dataset.done; }
     }
@@ -1411,7 +1479,7 @@
       if (!item) return;
       const meta = item.querySelector('.thumb-notes'); if (!meta) return;
       const cnt = currentReader.notes.filter(n => n.page === p).length;
-      meta.textContent = cnt ? cnt + ' ghi chú' : '';
+      meta.textContent = cnt ? cnt + (cnt === 1 ? ' note' : ' notes') : '';
     }
     function setThumbSide(v){
       thumbSideVisible = v;
@@ -1467,13 +1535,13 @@
         el.className = 'note' + (n.id === selectedNoteId ? ' sel' : '');
         el.dataset.nid = n.id;
         el.innerHTML = '<div class="note-text"></div>' +
-          '<button class="note-del" title="Xóa ghi chú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
-          '<span class="note-resize-e" data-resize="e" title="Kéo để đổi độ rộng"></span>' +
-          '<span class="note-resize-s" data-resize="s" title="Kéo để đổi chiều cao tối thiểu"></span>' +
-          '<span class="note-resize-se" data-resize="se" title="Kéo để đổi kích thước"></span>';
+          '<button class="note-del" title="Delete Note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+          '<span class="note-resize-e" data-resize="e" title="Drag to change width"></span>' +
+          '<span class="note-resize-s" data-resize="s" title="Drag to change minimum height"></span>' +
+          '<span class="note-resize-se" data-resize="se" title="Drag to resize"></span>';
         const t = el.querySelector('.note-text');
         t.textContent = n.text;
-        if (!n.text && n.id !== editingId) t.innerHTML = '<span class="note-empty-hint">Ghi chú…</span>';
+        if (!n.text && n.id !== editingId) t.innerHTML = '<span class="note-empty-hint">Note…</span>';
         if (n.id === editingId) t.contentEditable = 'true';
         applyNoteStyle(el, n);
         layer.appendChild(el);
@@ -1486,9 +1554,10 @@
     function selectNote(id){
       if (editingId && editingId !== id) finishEdit();
       selectedNoteId = id;
+      if (!id && moveMode && typeof setMoveMode === 'function') setMoveMode(false);
       document.querySelectorAll('.note').forEach(el => el.classList.toggle('sel', el.dataset.nid === id));
-      if (id){ const n = findNote(id); if (n){ lastStyle = Object.assign({}, n.style); } syncFormatBar(); $('#formatBar').classList.remove('hidden'); }
-      else $('#formatBar').classList.add('hidden');
+      if (id){ const n = findNote(id); if (n){ lastStyle = cloneStyle(n.style); } }
+      updateToolbarVisibility();
     }
     function startEdit(id){
       selectNote(id);
@@ -1510,8 +1579,8 @@
       if (!n.text.trim()){
         currentReader.notes = currentReader.notes.filter(x => x.id !== id);
         if (selectedNoteId === id) selectedNoteId = null;
-        $('#formatBar').classList.add('hidden');
         renderNotesForPage(n.page);
+        updateToolbarVisibility();
       } else {
         renderNotesForPage(n.page);
         const el2 = noteEl(id); if (el2 && selectedNoteId === id) el2.classList.add('sel');
@@ -1523,6 +1592,7 @@
     });
     document.addEventListener('input', e => {
       if (editingId && e.target.classList && e.target.classList.contains('note-text')){
+        noteTypingStarted();
         const n = findNote(editingId); if (n){ n.text = e.target.innerText; scheduleSave(); }
       }
     });
@@ -1533,7 +1603,16 @@
       $('#addTextBtn').classList.toggle('active', addMode);
       $('#addHint').classList.toggle('hidden', !addMode);
       document.querySelectorAll('.page-wrap').forEach(w => w.classList.toggle('add-mode', addMode));
-      if (addMode) selectNote(null);
+      if (addMode){
+        // Show the text toolbar right away, set to the style the next box will use
+        // (tap the heart with nothing selected to apply this file's favorite format)
+        if (selectedNoteId) selectNote(null);
+        moveMode = false;
+        updateToolbarVisibility();
+      } else {
+        if (typeof setMoveMode === 'function' && moveMode) setMoveMode(false);
+        updateToolbarVisibility();
+      }
     });
     let suppressNextClick = false;
     $('#pagesCol').addEventListener('click', e => {
@@ -1652,6 +1731,7 @@
       dragCtx = null;
     });
     $('#pagesCol').addEventListener('dblclick', e => {
+      if (moveMode) return; // In Move mode, dragging repositions — double-tap does not edit
       const el = e.target.closest('.note'); if (!el) return;
       startEdit(el.dataset.nid);
     });
@@ -1660,10 +1740,10 @@
       currentReader.notes = currentReader.notes.filter(x => x.id !== id);
       if (selectedNoteId === id) selectedNoteId = null;
       if (editingId === id) editingId = null;
-      $('#formatBar').classList.add('hidden');
       renderNotesForPage(n.page);
+      updateToolbarVisibility();
       scheduleSave();
-      toast('Đã xóa ghi chú.');
+      toast('Note deleted.');
     }
     document.addEventListener('keydown', e => {
       if (!currentReader) return;
@@ -1685,9 +1765,9 @@
     function setDriveUI(state, sub){
       const badge = $('#driveBadge'); if (!badge) return;
       const accSub = document.getElementById('sideAccountSub');
-      if (accSub) accSub.textContent = state === 'on' ? 'Đã kết nối Drive' : state === 'busy' ? 'Đang đồng bộ…' : state === 'err' ? 'Lỗi đồng bộ' : 'Chưa kết nối';
+      if (accSub) accSub.textContent = state === 'on' ? 'Drive Connected' : state === 'busy' ? 'Syncing…' : state === 'err' ? 'Sync Error' : 'Not Connected';
       badge.className = 'drive-badge' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : state === 'err' ? ' err' : '');
-      badge.textContent = state === 'on' ? 'Đã kết nối Drive' : state === 'busy' ? 'Đang đồng bộ…' : state === 'err' ? 'Lỗi đồng bộ' : 'Chưa kết nối';
+      badge.textContent = state === 'on' ? 'Drive Connected' : state === 'busy' ? 'Syncing…' : state === 'err' ? 'Sync Error' : 'Not Connected';
       if (sub) $('#driveSub').textContent = sub;
       const connected = !!driveToken;
       $('#driveConnectBtn').classList.toggle('hidden', connected);
@@ -1818,49 +1898,49 @@
       if (driveSyncing) return;
       if (!driveToken){ if (manual) await driveConnect(); return; }
       driveSyncing = true;
-      setDriveUI('busy', 'Đang đồng bộ với Google Drive…');
+      setDriveUI('busy', 'Syncing with Google Drive…');
       try {
         await driveEnsureFolder();
         await drivePull();
         await drivePush();
         driveLastFingerprint = driveFingerprint();
-        const t = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-        setDriveUI('on', 'Đã đồng bộ lúc ' + t + ' — thư mục “' + DRIVE_FOLDER_NAME + '” trên Drive của bạn chứa PDF + file ghi chú. Mở app trên máy khác, kết nối cùng tài khoản Google là thấy cùng thư viện.');
-        if (manual) toast('Đã đồng bộ Google Drive xong.');
+        const t = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        setDriveUI('on', 'Synced at ' + t + ' — the "' + DRIVE_FOLDER_NAME + '" folder on your Drive holds your PDFs and notes file. Open the app on another device and connect the same Google account to see the same library.');
+        if (manual) toast('Google Drive sync complete.');
       } catch (e) {
-        setDriveUI('err', 'Đồng bộ chưa được. Kiểm tra mạng rồi bấm “Đồng bộ ngay” để thử lại.');
-        if (manual) toast('Đồng bộ Drive thất bại, thử lại sau.');
+        setDriveUI('err', 'Sync failed. Check your connection, then tap "Sync Now" to try again.');
+        if (manual) toast('Drive sync failed. Please try again later.');
       }
       driveSyncing = false;
     }
     async function driveConnect(){
       if (!driveClientId()){ driveSetupModal(true); return; }
       try {
-        setDriveUI('busy', 'Đang mở cửa sổ đăng nhập Google…');
+        setDriveUI('busy', 'Opening the Google sign-in window…');
         await driveRequestToken();
-        setDriveUI('on', 'Đã đăng nhập Google. Đang đồng bộ lần đầu…');
+        setDriveUI('on', 'Signed in with Google. Running the first sync…');
         driveSyncing = false;
         await driveSyncNow(true);
       } catch (e) {
-        setDriveUI('err', 'Chưa kết nối được Google Drive. Kiểm tra Client ID trong Cài đặt, và chắc chắn domain của app đã được thêm vào “Authorized JavaScript origins” của OAuth client.');
-        toast('Chưa kết nối được Google Drive.');
+        setDriveUI('err', 'Could not connect to Google Drive. Check the Client ID in Settings and make sure this app domain has been added to the OAuth client Authorized JavaScript origins.');
+        toast('Could not connect to Google Drive.');
       }
     }
     function driveSetupModal(autoConnect){
       const cid = driveClientId();
       openModal(
-        '<h3>Cài đặt Google Drive</h3>' +
-        '<p>Drive là của chính tài khoản Google của bạn nên app cần một <b>OAuth Client ID</b> (tạo miễn phí, làm 1 lần). Sau khi lưu, mọi máy chỉ cần đăng nhập cùng tài khoản Google là đồng bộ.</p>' +
+        '<h3>Google Drive Settings</h3>' +
+        '<p>Drive belongs to your own Google account, so the app needs an <b>OAuth Client ID</b> (free to create, one time only). After you save it, every device just signs in with the same Google account to sync.</p>' +
         '<ol class="steps">' +
-        '<li>Vào <b>console.cloud.google.com</b> → tạo project → bật <b>Google Drive API</b>.</li>' +
-        '<li>Vào <b>APIs &amp; Services → Credentials → Create OAuth client ID → Web application</b>.</li>' +
-        '<li>Ở “Authorized JavaScript origins”, thêm đúng domain nơi app đang chạy (ví dụ <code>https://l2practice.github.io</code>).</li>' +
-        '<li>Copy Client ID (dạng <code>…apps.googleusercontent.com</code>) dán vào ô dưới.</li>' +
+        '<li>Go to <b>console.cloud.google.com</b> → create a project → enable the <b>Google Drive API</b>.</li>' +
+        '<li>Go to <b>APIs &amp; Services → Credentials → Create OAuth client ID → Web application</b>.</li>' +
+        '<li>Under "Authorized JavaScript origins", add the exact domain where the app runs (for example <code>https://l2practice.github.io</code>).</li>' +
+        '<li>Copy the Client ID (it looks like <code>…apps.googleusercontent.com</code>) and paste it below.</li>' +
         '</ol>' +
         '<label for="driveClientIdInput">Google OAuth Client ID</label>' +
         '<input type="text" class="mono" id="driveClientIdInput" placeholder="xxxxx.apps.googleusercontent.com" value="' + esc(cid) + '" />' +
-        '<ul class="sync-check"><li>PDF được tải lên thư mục “GhiChuPDF” trên Drive của bạn</li><li>Ghi chú nằm trong file ghichu-library.json trong cùng thư mục</li><li>App chỉ có quyền với file do chính app tạo (drive.file)</li></ul>' +
-        '<div class="modal-actions"><button class="btn" id="mCancel">Đóng</button><button class="btn primary" id="mSaveDrive">Lưu &amp; kết nối</button></div>'
+        '<ul class="sync-check"><li>PDFs are uploaded to the "GhiChuPDF" folder on your Drive</li><li>Notes live in the ghichu-library.json file in the same folder</li><li>The app can only access files it creates itself (drive.file)</li></ul>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Close</button><button class="btn primary" id="mSaveDrive">Save &amp; Connect</button></div>'
       );
       $('#mCancel').addEventListener('click', closeModal);
       $('#mSaveDrive').addEventListener('click', async () => {
@@ -1874,21 +1954,21 @@
     }
     function twoDeviceModal(){
       openModal(
-        '<h3>Mở app trên 2 thiết bị</h3>' +
-        '<p>Được — mỗi thiết bị mở một file khác nhau, hoàn toàn độc lập: thiết bị 1 mở file A để tham khảo, thiết bị 2 ghi chú trên file B.</p>' +
+        '<h3>Use the App on 2 Devices</h3>' +
+        '<p>Yes — each device opens a different file, completely independently: device 1 opens File A for reference, device 2 annotates File B.</p>' +
         '<ul class="guide">' +
-        '<li>Cả 2 thiết bị cùng <b>kết nối một tài khoản Google Drive</b>: ở thiết bị mới, mở “Cài đặt” trên thẻ Drive ở thư viện, dán cùng Client ID một lần, rồi bấm “Kết nối Google Drive” và đăng nhập cùng tài khoản Google.</li>' +
-        '<li><b>Tự động lưu:</b> gõ đến đâu app lưu đến đó trên máy; khi đã kết nối Drive, bản mới tự được đẩy lên Drive sau vài giây, và app tự tải bản mới nhất khi mở app / mở file trên thiết bị còn lại — không cần bấm lưu.</li>' +
-        '<li>Tránh sửa <b>cùng một file</b> trên 2 máy cùng lúc: bản lưu sau cùng sẽ được giữ. Dùng mỗi máy một file như cách của bạn thì không xung đột.</li>' +
+        '<li>Both devices <b>connect the same Google Drive account</b>: on the new device, open "Settings" on the Drive card in the library, paste the same Client ID once, then tap "Connect Google Drive" and sign in with the same Google account.</li>' +
+        '<li><b>Auto-save:</b> the app saves on the device as you type; once Drive is connected, the new version is pushed to Drive after a few seconds, and the app loads the latest version when you open the app or a file on the other device — no save button needed.</li>' +
+        '<li>Avoid editing <b>the same file</b> on 2 devices at the exact same time: the last save wins. Using one file per device, as you do, avoids conflicts.</li>' +
         '</ul>' +
-        '<h3 style="margin-top:18px">File đã ghi chú nằm ở đâu?</h3>' +
+        '<h3 style="margin-top:18px">Where do annotated files live?</h3>' +
         '<ul class="guide">' +
-        '<li>Trên Drive có thư mục <code>' + DRIVE_FOLDER_NAME + '</code> chứa <b>file PDF gốc</b> — ghi chú <b>không</b> ghi đè vào file PDF gốc này.</li>' +
-        '<li>Ghi chú nằm trong file <code>' + DRIVE_LIB_NAME + '</code> ở cùng thư mục; mở app lên là ghi chú tự hiện lại đúng trên trang.</li>' +
-        '<li>Muốn một file PDF có ghi chú nằm sẵn trong trang (để gửi hoặc in): mở tài liệu rồi bấm <b>Xuất PDF</b> hoặc <b>Xuất theo trang</b>.</li>' +
-        '<li>Khi chưa kết nối Drive, mọi thứ chỉ lưu trên thiết bị đang dùng.</li>' +
+        '<li>The <code>' + DRIVE_FOLDER_NAME + '</code> folder on Drive holds the <b>original PDF files</b> — notes are <b>not</b> written into those original PDFs.</li>' +
+        '<li>Notes live in the <code>' + DRIVE_LIB_NAME + '</code> file in the same folder; open the app and your notes reappear right on the page.</li>' +
+        '<li>To get a PDF with the notes baked into the pages (to send or print): open the document and tap <b>Export PDF</b> or <b>Export Pages</b>.</li>' +
+        '<li>Until Drive is connected, everything is saved only on the device you are using.</li>' +
         '</ul>' +
-        '<div class="modal-actions"><button class="btn primary" id="mCancel">Đã hiểu</button></div>'
+        '<div class="modal-actions"><button class="btn primary" id="mCancel">Got It</button></div>'
       );
       $('#mCancel').addEventListener('click', closeModal);
     }
@@ -1899,7 +1979,7 @@
     $('#driveDisconnectBtn').addEventListener('click', () => {
       if (window.google && google.accounts && google.accounts.oauth2 && driveToken) google.accounts.oauth2.revoke(driveToken, () => {});
       driveToken = null; driveTokenExp = 0;
-      setDriveUI('', 'Đã ngắt kết nối trên thiết bị này. File trên Drive vẫn còn nguyên — kết nối lại bằng cùng tài khoản Google là thấy lại thư viện.');
+      setDriveUI('', 'Disconnected on this device. Your Drive files are untouched — reconnect with the same Google account to see your library again.');
     });
     // Tu dong nhan thay doi thu vien (folder / tai lieu / ghi chu) de day len Drive
     setInterval(() => {
@@ -1908,7 +1988,7 @@
       if (driveLastFingerprint && fp !== driveLastFingerprint) queueDriveSync();
       else if (!driveLastFingerprint) driveLastFingerprint = fp;
     }, 4000);
-    if (driveClientId()) setDriveUI('', 'Đã có Client ID — bấm “Kết nối Google Drive”, đăng nhập cùng một tài khoản Google trên mọi thiết bị để đồng bộ.');
+    if (driveClientId()) setDriveUI('', 'Client ID saved — tap "Connect Google Drive" and sign in with the same Google account on every device to sync.');
     </script>
 
     <script>
@@ -1917,36 +1997,111 @@
     function buildSwatches(){
       $('#colorSwatches').innerHTML = TEXT_COLORS.map(c => '<button class="swatch" data-tcolor="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('');
       $('#hlSwatches').innerHTML = HL_COLORS.map((c, i) => c === ''
-        ? '<button class="swatch none" data-hl="" title="Không highlight">∅</button>'
+        ? '<button class="swatch none" data-hl="" title="No highlight">∅</button>'
         : '<button class="swatch" data-hl="' + c + '" style="background:' + HL_FACE[i] + '" title="Highlight"></button>').join('');
     }
     function syncFormatBar(){
-      const n = findNote(selectedNoteId); if (!n) return;
-      const s = n.style;
+      const s = effectiveStyle(); if (!s) return;
+      const n = findNote(selectedNoteId);
       $('#fmtFont').value = s.font;
-      const sz = pageSizes[n.page - 1];
-      $('#sizeVal').textContent = sz ? Math.round(s.sizeFrac * sz.w) : '';
+      const sz = n ? pageSizes[n.page - 1] : (pageSizes[currentPage - 1] || pageSizes[0]);
+      $('#sizeVal').textContent = sz ? Math.round(s.sizeFrac * sz.w) : Math.round(s.sizeFrac * 595);
       $('#fmtBold').classList.toggle('active', !!s.bold);
       $('#fmtItalic').classList.toggle('active', !!s.italic);
       $('#fmtUnderline').classList.toggle('active', !!s.underline);
       document.querySelectorAll('#formatBar [data-align]').forEach(b => b.classList.toggle('active', b.dataset.align === s.align));
       document.querySelectorAll('#colorSwatches [data-tcolor]').forEach(b => b.classList.toggle('active', b.dataset.tcolor.toLowerCase() === String(s.color).toLowerCase()));
       document.querySelectorAll('#hlSwatches [data-hl]').forEach(b => b.classList.toggle('active', b.dataset.hl === (s.highlight || '')));
+      const mv = $('#moveNoteBtn'); if (mv){ mv.classList.toggle('active', !!moveMode); mv.setAttribute('aria-pressed', moveMode ? 'true' : 'false'); }
+      const del = $('#deleteNoteBtn'); if (del){ del.disabled = !selectedNoteId; del.style.opacity = selectedNoteId ? '' : '.45'; }
+      syncFavoriteBtn();
     }
     function applyStyle(prop, value){
-      const n = findNote(selectedNoteId); if (!n) return;
-      n.style[prop] = value;
-      lastStyle = Object.assign({}, n.style);
-      const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
+      // With a note selected this restyles that note; with nothing selected
+      // (Add Text mode) it sets the style the next text box will be created with.
+      lastStyle[prop] = value;
+      const n = findNote(selectedNoteId);
+      if (n){
+        n.style[prop] = value;
+        lastStyle = cloneStyle(n.style);
+        const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
+        scheduleSave();
+      }
       syncFormatBar();
-      scheduleSave();
     }
+    /* ================= Move mode ================= */
+    function setMoveMode(v){
+      moveMode = !!v && !!currentReader;
+      if (moveMode && editingId) finishEdit();
+      const col = $('#pagesCol'); if (col) col.classList.toggle('move-mode', moveMode);
+      const btn = $('#moveNoteBtn');
+      if (btn){ btn.classList.toggle('active', moveMode); btn.setAttribute('aria-pressed', moveMode ? 'true' : 'false'); }
+    }
+    $('#moveNoteBtn').addEventListener('click', () => {
+      if (!currentReader) return;
+      setMoveMode(!moveMode);
+      toast(moveMode ? 'Move mode on — drag a text box to reposition it. Tap Move again to go back to typing.' : 'Move mode off.');
+    });
+    /* ================= Favorite format (per file, saved with the document) ================= */
+    function syncFavoriteBtn(){
+      const btn = $('#favFormatBtn'); if (!btn) return;
+      const fav = currentReader ? currentReader.favoriteStyle : null;
+      btn.classList.toggle('has-fav', !!fav);
+      const eff = effectiveStyle();
+      const isCurr = !!(fav && eff && stylesEqual(eff, fav));
+      btn.classList.toggle('is-current', isCurr);
+      if (selectedNoteId){
+        btn.title = fav
+          ? (isCurr ? 'This format is saved as the favorite for this file' : 'Save the current format as the favorite for this file (replaces the previous favorite)')
+          : 'Save the current format as the favorite for this file';
+      } else {
+        btn.title = fav
+          ? 'Apply the favorite format saved for this file to your next text box'
+          : 'No favorite format saved for this file yet — format a text box, select it, then tap the heart to save it';
+      }
+    }
+    async function persistFavorite(){
+      if (!currentReader) return;
+      currentReader.updatedAt = Date.now();
+      try { await DB.put('docs', currentReader); if (typeof queueDriveSync === 'function') queueDriveSync(); } catch (e) {}
+    }
+    function saveFavoriteFormat(){
+      if (!currentReader) return;
+      const eff = effectiveStyle(); if (!eff) return;
+      currentReader.favoriteStyle = cloneStyle(eff);
+      currentReader.favoriteSavedAt = Date.now();
+      persistFavorite();
+      syncFormatBar();
+      toast('Saved as the favorite format for this file — it stays with this file when you reopen it or sync.');
+    }
+    function applyFavoriteFormat(){
+      if (!currentReader) return;
+      const fav = currentReader.favoriteStyle;
+      if (!fav){ toast('No favorite format saved for this file yet. Format a text box, select it, then tap the heart to save it.'); return; }
+      lastStyle = cloneStyle(fav);
+      const n = findNote(selectedNoteId);
+      if (n){
+        n.style = cloneStyle(fav);
+        const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
+        scheduleSave();
+      }
+      syncFormatBar();
+      toast(n ? 'Favorite format applied to the selected text box.' : 'Favorite format applied — your next text box will use it.');
+    }
+    $('#favFormatBtn').addEventListener('click', () => {
+      if (!currentReader) return;
+      // A text box is selected (you just formatted it) → the heart SAVES that format
+      // for this file. Nothing selected (about to add new text) → the heart APPLIES
+      // this file's saved favorite to the next text box.
+      if (selectedNoteId) saveFavoriteFormat();
+      else applyFavoriteFormat();
+    });
     $('#fmtFont').addEventListener('change', e => applyStyle('font', e.target.value));
-    $('#fmtBold').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('bold', !n.style.bold); });
-    $('#fmtItalic').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('italic', !n.style.italic); });
-    $('#fmtUnderline').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('underline', !n.style.underline); });
-    $('#sizePlus').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('sizeFrac', Math.min(0.09, +(n.style.sizeFrac + 0.0025).toFixed(4))); });
-    $('#sizeMinus').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('sizeFrac', Math.max(0.011, +(n.style.sizeFrac - 0.0025).toFixed(4))); });
+    $('#fmtBold').addEventListener('click', () => applyStyle('bold', !effectiveStyle().bold));
+    $('#fmtItalic').addEventListener('click', () => applyStyle('italic', !effectiveStyle().italic));
+    $('#fmtUnderline').addEventListener('click', () => applyStyle('underline', !effectiveStyle().underline));
+    $('#sizePlus').addEventListener('click', () => applyStyle('sizeFrac', Math.min(0.09, +(effectiveStyle().sizeFrac + 0.0025).toFixed(4))));
+    $('#sizeMinus').addEventListener('click', () => applyStyle('sizeFrac', Math.max(0.011, +(effectiveStyle().sizeFrac - 0.0025).toFixed(4))));
     document.querySelectorAll('#formatBar [data-align]').forEach(b => b.addEventListener('click', () => applyStyle('align', b.dataset.align)));
     $('#colorSwatches').addEventListener('click', e => { const b = e.target.closest('[data-tcolor]'); if (b) applyStyle('color', b.dataset.tcolor); });
     $('#hlSwatches').addEventListener('click', e => { const b = e.target.closest('[data-hl]'); if (b) applyStyle('highlight', b.dataset.hl); });
@@ -1955,7 +2110,7 @@
     // Keep editing alive when interacting with the format bar
     $('#formatBar').addEventListener('pointerdown', e => { if (editingId && !e.target.closest('select, input')) e.preventDefault(); }, true);
 
-    /* ================= Export PDF theo trang chon ================= */
+    /* ================= Export PDF by selected pages ================= */
     function exportPagesModal(){
       if (!currentReader || !pdfDoc) return;
       const total = pdfDoc.numPages;
@@ -1963,24 +2118,24 @@
       currentReader.notes.forEach(n => { counts[n.page] = (counts[n.page] || 0) + 1; });
       let rows = '';
       for (let p = 1; p <= total; p++){
-        rows += '<label class="page-pick"><input type="checkbox" class="pp-check" value="' + p + '" checked /><span>Trang ' + p + '</span>' +
-          (counts[p] ? '<span class="cnt">' + counts[p] + ' ghi chú</span>' : '') + '</label>';
+        rows += '<label class="page-pick"><input type="checkbox" class="pp-check" value="' + p + '" checked /><span>Page ' + p + '</span>' +
+          (counts[p] ? '<span class="cnt">' + counts[p] + (counts[p] === 1 ? ' note' : ' notes') + '</span>' : '') + '</label>';
       }
       openModal(
-        '<h3>Xuất PDF theo trang</h3>' +
-        '<p>Tick chọn các trang muốn xuất. File PDF mới chỉ gồm đúng những trang đã chọn, theo đúng thứ tự trang gốc, kèm ghi chú trên các trang đó.</p>' +
+        '<h3>Export PDF by Page</h3>' +
+        '<p>Tick the pages you want to export. The new PDF contains exactly the selected pages, in original page order, with the notes on those pages.</p>' +
         '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">' +
-          '<button class="btn" id="ppAll" style="padding:7px 12px;font-size:13px">Chọn tất cả</button>' +
-          '<button class="btn" id="ppNone" style="padding:7px 12px;font-size:13px">Bỏ tất cả</button>' +
+          '<button class="btn" id="ppAll" style="padding:7px 12px;font-size:13px">Select All</button>' +
+          '<button class="btn" id="ppNone" style="padding:7px 12px;font-size:13px">Deselect All</button>' +
           '<span id="ppCount" style="margin-left:auto;font-size:13px;color:var(--muted)"></span>' +
         '</div>' +
         '<div class="page-pick-list">' + rows + '</div>' +
-        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button><button class="btn primary" id="ppExport">Export PDF</button></div>'
+        '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="ppExport">Export PDF</button></div>'
       );
       const checks = Array.from(document.querySelectorAll('.pp-check'));
       const upd = () => {
         const n = checks.filter(c => c.checked).length;
-        $('#ppCount').textContent = 'Đã chọn ' + n + ' / ' + total + ' trang';
+        $('#ppCount').textContent = 'Selected ' + n + ' / ' + total + ' pages';
         const ex = $('#ppExport'); ex.disabled = n === 0; ex.style.opacity = n === 0 ? '.5' : '';
       };
       checks.forEach(c => c.addEventListener('change', upd));
@@ -2014,7 +2169,7 @@
     async function exportPdf(pageList){
       if (!currentReader || !pdfDoc) return;
       const btn = $('#exportBtn'); btn.disabled = true;
-      toast('Đang tạo PDF kèm ghi chú…');
+      toast('Creating PDF with notes…');
       try {
         const out = await PDFLib.PDFDocument.create();
         const RS = 2;
@@ -2060,12 +2215,12 @@
         const bytes = await out.save();
         const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
         const a = document.createElement('a');
-        a.href = url; a.download = currentReader.name + ' - ghi chú' + (pagesToExport.length < pdfDoc.numPages ? ' (' + pagesToExport.length + ' trang)' : '') + '.pdf';
+        a.href = url; a.download = currentReader.name + ' - notes' + (pagesToExport.length < pdfDoc.numPages ? ' (' + pagesToExport.length + ' pages)' : '') + '.pdf';
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 4000);
-        toast('Đã xuất PDF kèm ghi chú.');
+        toast('Exported PDF with notes.');
       } catch (e) {
-        toast('Xuất PDF thất bại, thử lại sau.');
+        toast('PDF export failed. Please try again later.');
       }
       btn.disabled = false;
     }
@@ -2082,7 +2237,7 @@
         let seeded = false;
         try { seeded = !!localStorage.getItem('ghichu-seeded'); } catch (e) {}
         if (!seeded && folders.length === 0 && docs.length === 0){
-          const seedNames = [['Toán học', '#2563eb'], ['Ngữ văn', '#be3455'], ['Tiếng Anh', '#0e7c66'], ['Vật lý', '#b45309']];
+          const seedNames = [['Mathematics', '#2563eb'], ['Literature', '#be3455'], ['English', '#0e7c66'], ['Physics', '#b45309']];
           for (const [name, color] of seedNames){
             const f = { id: uid(), name, color, createdAt: Date.now() };
             await DB.put('folders', f); folders.push(f);
@@ -2103,7 +2258,7 @@
         renderLibrary();
         ensureDocThumbs();
       } catch (e) {
-        document.querySelector('#docsArea').innerHTML = '<div class="empty"><span class="t">Không mở được bộ nhớ lưu trữ</span><p>Trình duyệt đang chặn IndexedDB (ví dụ chế độ ẩn danh). Hãy mở trang ở chế độ thường để ghi chú được lưu lại.</p></div>';
+        document.querySelector('#docsArea').innerHTML = '<div class="empty"><span class="t">Could Not Open Storage</span><p>Your browser is blocking IndexedDB (for example, in private browsing). Open the page in a regular window so your notes can be saved.</p></div>';
       }
     })();
     </script>
