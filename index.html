@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&display=swap" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       :root{
         --bg:#f4f2ec; --bg-reader:#e9e6de; --surface:#fffdf9; --surface-2:#efece4;
@@ -111,6 +112,9 @@
       }
       .new-folder-btn:hover{color:var(--accent);border-color:var(--accent);}
       .new-folder-btn svg{width:16px;height:16px;}
+      /* Nut menu tren chip folder - chi hien tren mobile (desktop dung nut hover) */
+      .chip-menu-btn{display:none;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;color:var(--muted);flex:none;}
+      .chip-menu-btn svg{width:16px;height:16px;}
       /* Doc grid */
       .docs-head{display:flex;align-items:baseline;gap:12px;margin:2px 0 16px;flex-wrap:wrap;}
       .docs-head h2{font-size:19px;font-weight:700;margin:0;}
@@ -202,14 +206,24 @@
       .pages-col{display:flex;flex-direction:column;align-items:center;gap:22px;min-width:min-content;}
       .page-wrap{position:relative;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18),0 14px 34px rgba(0,0,0,.16);flex:none;}
       .page-wrap canvas{display:block;}
-      .page-wrap.add-mode{cursor:crosshair;}
+      .page-wrap.add-mode{cursor:crosshair;touch-action:none;}
       .page-num{
         position:absolute;right:-4px;bottom:-20px;font-size:11.5px;color:var(--muted);font-weight:600;
       }
       .page-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa0aa;font-size:13px;}
       .notes-layer{position:absolute;inset:0;}
       /* Note */
-      .note{position:absolute;min-height:22px;border-radius:4px;padding:3px 5px;cursor:pointer;}
+      .note{position:absolute;min-height:22px;border-radius:4px;padding:3px 5px;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;box-sizing:border-box;}
+      .note .note-text{-webkit-user-select:text;user-select:text;overflow-wrap:anywhere;word-break:break-word;max-width:100%;box-sizing:border-box;}
+      /* Ghost khung khi keo de tao o text moi */
+      .note-ghost{position:absolute;border:1.5px dashed var(--accent);background:rgba(14,124,102,.10);border-radius:4px;pointer-events:none;z-index:4;}
+      /* Tay cam doi kich thuoc: canh phai, canh duoi, goc duoi-phai */
+      .note .note-resize-e,.note .note-resize-s,.note .note-resize-se{position:absolute;display:none;z-index:3;background:var(--surface);border:2px solid var(--accent);box-sizing:border-box;}
+      .note.sel .note-resize-e,.note.sel .note-resize-s,.note.sel .note-resize-se{display:block;}
+      .note .note-resize-e{right:-8px;top:50%;transform:translateY(-50%);width:14px;height:30px;border-radius:7px;cursor:ew-resize;}
+      .note .note-resize-s{bottom:-8px;left:50%;transform:translateX(-50%);width:30px;height:14px;border-radius:7px;cursor:ns-resize;}
+      .note .note-resize-se{right:-7px;bottom:-7px;width:17px;height:17px;border-radius:50%;cursor:nwse-resize;}
+      .pages-scroll{-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;}
       .note .note-text{outline:none;white-space:pre-wrap;word-break:break-word;line-height:1.4;min-height:1.4em;cursor:text;}
       .note.sel{box-shadow:0 0 0 1.5px var(--accent),0 4px 14px rgba(0,0,0,.18);cursor:move;background-clip:padding-box;}
       .note .note-del{
@@ -225,6 +239,34 @@
       }
       .note.sel .note-resize{display:block;}
       .note .note-empty-hint{color:#8a919d;font-style:italic;pointer-events:none;}
+
+      /* ---------- Thanh preview trang (sidebar) ---------- */
+      .reader-main{display:flex;flex:1;min-height:0;}
+      .reader-main .pages-scroll{min-width:0;}
+      .thumb-side{width:148px;flex:none;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;z-index:4;}
+      .thumb-side-head{display:flex;align-items:center;justify-content:space-between;padding:7px 8px 7px 12px;border-bottom:1px solid var(--line);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+      .thumb-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;}
+      .thumb-item{border:2px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;cursor:pointer;width:100%;padding:0;transition:border-color .15s,box-shadow .15s;}
+      .thumb-item:hover{border-color:var(--muted);}
+      .thumb-item.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft);}
+      .thumb-item img{width:100%;height:auto;}
+      .thumb-ph{display:flex;align-items:center;justify-content:center;aspect-ratio:3/4;color:#9aa0aa;font-size:12px;background:#f4f2ec;}
+      .thumb-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 7px;background:var(--surface);color:var(--ink-2);font-size:11.5px;font-weight:600;}
+      .thumb-notes{color:var(--accent);font-weight:700;white-space:nowrap;}
+      @media (max-width:760px){
+        .thumb-side{width:110px;}
+        .thumb-list{padding:8px;gap:8px;}
+        .thumb-meta{font-size:10.5px;padding:3px 5px;}
+      }
+
+      /* ---------- Modal xuat PDF theo trang ---------- */
+      .page-pick-list{max-height:44vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:2px;}
+      .page-pick{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:14px;}
+      .page-pick:hover{background:var(--surface-2);}
+      .page-pick input{width:19px;height:19px;accent-color:var(--accent);flex:none;cursor:pointer;}
+      .page-pick .cnt{margin-left:auto;color:var(--accent);font-size:12.5px;font-weight:600;white-space:nowrap;}
+      .modal ul.guide{margin:0 0 6px;padding-left:19px;color:var(--ink-2);font-size:13.5px;line-height:1.65;}
+      .modal ul.guide code{background:var(--surface-2);padding:1px 6px;border-radius:6px;font-size:12px;word-break:break-all;}
 
       /* ---------- Modal ---------- */
       .modal-back{
@@ -260,22 +302,98 @@
       .spinner{width:34px;height:34px;border-radius:50%;border:3.5px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite;}
       @keyframes spin{to{transform:rotate(360deg);}}
 
+      /* ---------- Drive sync ---------- */
+      .drive-bar{
+        max-width:1240px;width:100%;margin:0 auto;box-sizing:border-box;padding:0 24px 14px;
+      }
+      .drive-card{
+        display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+        background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+        padding:14px 16px;box-shadow:var(--shadow);
+      }
+      .drive-ico{
+        width:42px;height:42px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;
+        background:#e8f0fe;color:#1a73e8;
+      }
+      @media (prefers-color-scheme: dark){ .drive-ico{background:#1d2f4a;} }
+      .drive-ico svg{width:23px;height:23px;}
+      .drive-main{flex:1;min-width:200px;}
+      .drive-title{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+      .drive-badge{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--surface-2);color:var(--muted);}
+      .drive-badge.on{background:var(--accent-soft);color:var(--accent);}
+      .drive-badge.busy{background:#fef3c7;color:#92400e;}
+      .drive-badge.err{background:var(--danger-soft);color:var(--danger);}
+      @media (prefers-color-scheme: dark){ .drive-badge.busy{background:#3a2e10;color:#fbbf24;} }
+      .drive-sub{color:var(--muted);font-size:13px;margin-top:2px;line-height:1.45;}
+      .drive-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+      .btn.drive{background:#1a73e8;border-color:#1a73e8;color:#fff;}
+      .btn.drive:hover{background:#1663cc;}
+      .modal input[type=text].mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;}
+      .modal .steps{margin:0 0 6px;padding-left:19px;color:var(--ink-2);font-size:13.5px;line-height:1.65;}
+      .modal .steps code{background:var(--surface-2);padding:1px 6px;border-radius:6px;font-size:12px;word-break:break-all;}
+      .sync-check{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--ink-2);}
+      .sync-check li{display:flex;gap:8px;align-items:flex-start;}
+      .sync-check li::before{content:"✓";color:var(--accent);font-weight:800;flex:none;}
+
+      /* ---------- Mobile / responsive ---------- */
       @media (max-width:760px){
-        .lib-head{padding:16px 16px 10px;}
+        body{font-size:15px;}
+        .btn{min-height:44px;padding:10px 15px;}
+        .icon-btn{width:44px;height:44px;}
+        .lib-head{padding:16px 14px 10px;gap:10px;}
         .lib-head h1{font-size:22px;}
-        .lib-body{grid-template-columns:minmax(0,1fr);gap:16px;padding:4px 16px 40px;}
+        .lib-head>div:first-child{flex:1 1 100%;}
+        .search-box{flex:1 1 100%;order:3;height:46px;}
+        #importBtnTop{flex:1;}
+        .drive-bar{padding:0 14px 12px;}
+        .drive-card{padding:13px 14px;gap:10px;}
+        .drive-actions{width:100%;}
+        .drive-actions .btn{flex:1;justify-content:center;}
+        .lib-body{grid-template-columns:minmax(0,1fr);gap:14px;padding:4px 14px 44px;}
         .side{position:static;}
-        .folder-list{flex-direction:row;flex-wrap:wrap;padding-bottom:2px;gap:6px;max-width:100%;min-width:0;}
-        .search-box{flex:1 1 150px;min-width:0;}
-        .folder-item{width:auto;flex:none;border:1px solid var(--line);background:var(--surface);}
+        .side-title{display:block;margin-bottom:8px;}
+        /* Folder thanh chip cuon ngang - drawer rut gon tren mobile */
+        .folder-list{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;padding:2px 2px 8px;gap:7px;max-width:100%;min-width:0;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+        .folder-list::-webkit-scrollbar{display:none;}
+        .folder-item{width:auto;flex:none;border:1px solid var(--line);background:var(--surface);min-height:42px;padding:9px 12px;}
         .folder-item.active{border-color:var(--accent);}
         .folder-item .f-actions{display:none !important;}
-        .new-folder-btn{width:auto;flex:none;margin-top:0;}
-        .side-title{display:none;}
-        .doc-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
-        .reader-bar .doc-title{max-width:130px;}
+        .folder-item .chip-menu-btn{display:flex;}
+        .new-folder-btn{width:100%;justify-content:center;margin-top:2px;min-height:44px;}
+        .docs-head h2{font-size:17px;}
+        .doc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+        .doc-card .card-menu-btn{width:38px;height:38px;}
+        /* Reader mobile */
+        .reader-bar{padding:8px 8px;gap:6px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+        .reader-bar::-webkit-scrollbar{display:none;}
+        .reader-bar .doc-title{max-width:110px;font-size:13.5px;}
         .save-status .txt{display:none;}
-        .pages-scroll{padding:18px 8px 50px;}
+        .zoom-group .icon-btn{width:38px;height:38px;}
+        .zoom-label{min-width:44px;font-size:12.5px;}
+        .reader-bar .btn{padding:9px 11px;font-size:13.5px;min-height:42px;}
+        .format-bar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:8px 10px;scrollbar-width:none;}
+        .format-bar::-webkit-scrollbar{display:none;}
+        .format-bar>*{flex:none;}
+        .fmt-btn{min-width:42px;height:42px;}
+        .fmt-select{height:42px;}
+        .swatch{width:30px;height:30px;}
+        .color-input-wrap{width:32px;height:32px;}
+        .add-hint{font-size:13px;padding:9px 10px;}
+        .pages-scroll{padding:16px 6px 56px;overflow-x:auto;}
+        .pages-col{gap:18px;}
+        .note{min-height:30px;padding:5px 7px;}
+        .note .note-del{width:28px;height:28px;top:-14px;right:-14px;}
+        .note .note-resize-e{width:20px;height:40px;right:-11px;border-radius:10px;}
+        .note .note-resize-s{height:20px;width:40px;bottom:-11px;border-radius:10px;}
+        .note .note-resize-se{width:24px;height:24px;right:-10px;bottom:-10px;}
+        .modal{padding:18px;border-radius:16px 16px 0 0;max-height:92vh;}
+        .modal-back{align-items:flex-end;padding:0;}
+        .modal-actions .btn{flex:1;justify-content:center;}
+      }
+      @media (max-width:380px){
+        .doc-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+        .doc-info{padding:9px 9px 10px;}
+        .doc-name{font-size:13px;}
       }
       @media (prefers-reduced-motion: reduce){
         .spinner{animation-duration:1.6s;}
@@ -289,7 +407,7 @@
       <div class="lib-head">
         <div>
           <h1>Thư viện ghi chú</h1>
-          <p class="sub">Tài liệu PDF được chia theo môn học — ghi chú được tự động lưu trên thiết bị này.</p>
+          <p class="sub">Tài liệu PDF chia theo môn học — tự động lưu và đồng bộ qua Google Drive khi đã kết nối.</p>
         </div>
         <div class="spacer"></div>
         <div class="search-box">
@@ -300,6 +418,22 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
           Nhập PDF
         </button>
+      </div>
+      <div class="drive-bar">
+        <div class="drive-card">
+          <div class="drive-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg></div>
+          <div class="drive-main">
+            <div class="drive-title">Đồng bộ Google Drive <span class="drive-badge" id="driveBadge">Chưa kết nối</span></div>
+            <div class="drive-sub" id="driveSub">Kết nối Drive để file PDF + ghi chú nằm trên Drive của bạn — mở trên điện thoại, máy tính hay máy khác đều thấy cùng một thư viện. Chưa kết nối thì app vẫn lưu trên thiết bị này.</div>
+          </div>
+          <div class="drive-actions">
+            <button class="btn drive" id="driveConnectBtn">Kết nối Google Drive</button>
+            <button class="btn hidden" id="driveSyncBtn">Đồng bộ ngay</button>
+            <button class="btn hidden" id="driveSetupBtn">Cài đặt</button>
+            <button class="btn" id="driveHelpBtn">Dùng 2 thiết bị</button>
+            <button class="btn hidden" id="driveDisconnectBtn">Ngắt</button>
+          </div>
+        </div>
       </div>
       <div class="lib-body" id="libBody">
         <aside class="side">
@@ -326,6 +460,9 @@
         <button class="icon-btn" id="backBtn" title="Quay lại thư viện">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
         </button>
+        <button class="icon-btn" id="thumbToggleBtn" title="Hiện / ẩn danh sách trang">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9.5 4v16"/></svg>
+        </button>
         <span class="doc-title" id="readerTitle"></span>
         <span class="save-status" id="saveStatus"><span class="dot"></span><span class="txt">Đã lưu</span></span>
         <div class="spacer" style="flex:1"></div>
@@ -349,8 +486,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
           Xuất PDF
         </button>
+        <button class="btn" id="exportPagesBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="m3.5 6 1.2 1.2L7 4.9M3.5 12l1.2 1.2L7 10.9M3.5 18l1.2 1.2L7 16.9" transform="translate(0,-0.4)"/></svg>
+          Xuất theo trang
+        </button>
       </div>
-      <div class="add-hint hidden" id="addHint">Chế độ thêm chữ đang bật — chạm hoặc nhấp vào vị trí bất kỳ trên trang để đặt ghi chú.</div>
+      <div class="add-hint hidden" id="addHint">Chế độ thêm chữ đang bật — <b>kéo chuột / kéo ngón tay</b> trên trang để vẽ khung chữ đúng độ rộng và độ dài mong muốn, thả ra là gõ ngay. Chữ tự xuống dòng trong khung, khung tự cao thêm khi chữ dài.</div>
       <div class="format-bar hidden" id="formatBar">
         <span class="fb-label">Định dạng</span>
         <select class="fmt-select" id="fmtFont">
@@ -384,9 +525,19 @@
           Xóa ghi chú
         </button>
       </div>
-      <div class="pages-scroll" id="pagesScroll">
-        <div class="reader-loading" id="readerLoading"><div class="spinner"></div><span>Đang mở tài liệu…</span></div>
-        <div class="pages-col" id="pagesCol"></div>
+      <div class="reader-main">
+        <aside class="thumb-side" id="thumbSide">
+          <div class="thumb-side-head"><span>Trang</span>
+            <button class="icon-btn" id="thumbHideBtn" title="Ẩn danh sách trang" style="width:30px;height:30px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M15 5l-7 7 7 7"/></svg>
+            </button>
+          </div>
+          <div class="thumb-list" id="thumbList"></div>
+        </aside>
+        <div class="pages-scroll" id="pagesScroll">
+          <div class="reader-loading" id="readerLoading"><div class="spinner"></div><span>Đang mở tài liệu…</span></div>
+          <div class="pages-col" id="pagesCol"></div>
+        </div>
       </div>
     </div>
 
@@ -509,6 +660,7 @@
         html += '<div class="folder-item' + (currentFolderId === f.id ? ' active' : '') + '" data-fid="' + f.id + '" role="button" tabindex="0">' +
           '<span class="folder-dot" style="background:' + f.color + '"></span><span class="fname">' + esc(f.name) + '</span>' +
           '<span class="count">' + folderDocs(f.id).length + '</span>' +
+          '<button class="chip-menu-btn" data-chipmenu="' + f.id + '" title="Tùy chọn folder" aria-label="Tùy chọn folder"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>' +
           '<span class="f-actions">' +
             '<button data-act="rename" title="Đổi tên"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>' +
             '<button data-act="del" title="Xóa folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg></button>' +
@@ -549,25 +701,45 @@
         '<button class="card-menu-btn" data-menu="' + d.id + '" title="Tùy chọn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>'
       ).join('') + '</div>';
     }
+    function folderDeleteFlow(f){
+      const n = folderDocs(f.id).length;
+      if (n === 0){ confirmModal('Xóa folder “' + f.name + '”?', 'Folder đang trống.', 'Xóa folder', async () => { await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; renderLibrary(); }, true); return; }
+      openModal('<h3>Xóa folder “' + esc(f.name) + '”?</h3><p>Folder này đang có ' + n + ' tài liệu. Bạn muốn xử lý tài liệu trong folder thế nào?</p>' +
+        '<div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="mCancel">Hủy</button>' +
+        '<button class="btn" id="mMove">Chuyển ra Chưa phân loại</button>' +
+        '<button class="btn danger" id="mDelAll">Xóa cả tài liệu</button></div>');
+      $('#mCancel').addEventListener('click', closeModal);
+      $('#mMove').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ d.folderId = null; await DB.put('docs', d); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
+      $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ await DB.del('docs', d.id); await DB.del('files', d.id); docs = docs.filter(x => x.id !== d.id); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
+    }
+    function openFolderMenu(f, anchor){
+      closeMenu();
+      const r = anchor.getBoundingClientRect();
+      $('#menuRoot').innerHTML = '<div class="menu" style="top:' + (r.bottom + 6) + 'px;left:' + Math.max(8, Math.min(r.left - 60, window.innerWidth - 215)) + 'px">' +
+        '<button data-fm="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Đổi tên / đổi màu</button>' +
+        '<button data-fm="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Xóa folder</button></div>';
+      document.addEventListener('pointerdown', menuOutside, true);
+      $('.menu').addEventListener('click', e => {
+        const b = e.target.closest('[data-fm]'); if (!b) return;
+        const act = b.dataset.fm; closeMenu();
+        if (act === 'rename') folderForm(f);
+        else if (act === 'del') folderDeleteFlow(f);
+      });
+    }
     $('#folderList').addEventListener('click', e => {
       const actBtn = e.target.closest('[data-act]');
+      const chipBtn = e.target.closest('[data-chipmenu]');
       const item = e.target.closest('[data-fid]');
+      if (chipBtn){
+        e.stopPropagation();
+        const f = folders.find(x => x.id === chipBtn.dataset.chipmenu);
+        if (f) openFolderMenu(f, chipBtn);
+        return;
+      }
       if (actBtn && item){
         const f = folders.find(x => x.id === item.dataset.fid); if (!f) return;
         if (actBtn.dataset.act === 'rename') folderForm(f);
-        else if (actBtn.dataset.act === 'del'){
-          const n = folderDocs(f.id).length;
-          if (n === 0){ confirmModal('Xóa folder “' + f.name + '”?', 'Folder đang trống.', 'Xóa folder', async () => { await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; renderLibrary(); }, true); }
-          else {
-            openModal('<h3>Xóa folder “' + esc(f.name) + '”?</h3><p>Folder này đang có ' + n + ' tài liệu. Bạn muốn xử lý tài liệu trong folder thế nào?</p>' +
-              '<div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="mCancel">Hủy</button>' +
-              '<button class="btn" id="mMove">Chuyển ra Chưa phân loại</button>' +
-              '<button class="btn danger" id="mDelAll">Xóa cả tài liệu</button></div>');
-            $('#mCancel').addEventListener('click', closeModal);
-            $('#mMove').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ d.folderId = null; await DB.put('docs', d); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
-            $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ await DB.del('docs', d.id); await DB.del('files', d.id); docs = docs.filter(x => x.id !== d.id); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
-          }
-        }
+        else if (actBtn.dataset.act === 'del'){ folderDeleteFlow(f); }
         return;
       }
       if (item){ currentFolderId = item.dataset.fid; renderLibrary(); }
@@ -628,7 +800,7 @@
             await p1.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
             thumb = c.toDataURL('image/jpeg', 0.72);
           } catch (e) { /* thumbnail optional */ }
-          const doc = { id, folderId: targetFolder, name: file.name.replace(/\.pdf$/i, ''), size: file.size, pages: pdf.numPages, createdAt: Date.now(), updatedAt: Date.now(), thumb, notes: [] };
+          const doc = { id, folderId: targetFolder, name: file.name.replace(/\.pdf$/i, ''), size: file.size, pages: pdf.numPages, createdAt: Date.now(), updatedAt: Date.now(), thumb, notes: [], pdfDirty: true };
           await DB.put('files', buf, id);
           await DB.put('docs', doc);
           docs.push(doc); okCount++;
@@ -660,7 +832,9 @@
     function setSaveStatus(saving, ts){
       const el = $('#saveStatus');
       el.classList.toggle('saving', saving);
-      el.querySelector('.txt').textContent = saving ? 'Đang lưu…' : 'Đã lưu' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : '');
+      let txt = saving ? 'Đang lưu…' : 'Đã lưu' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : '');
+      if (!saving && typeof driveIsConnected === 'function' && driveIsConnected()) txt += ' · tự đồng bộ Drive';
+      el.querySelector('.txt').textContent = txt;
     }
     function scheduleSave(){
       if (!currentReader) return;
@@ -668,7 +842,7 @@
       clearTimeout(saveTimer);
       saveTimer = setTimeout(async () => {
         currentReader.updatedAt = Date.now();
-        try { await DB.put('docs', currentReader); setSaveStatus(false, currentReader.updatedAt); }
+        try { await DB.put('docs', currentReader); setSaveStatus(false, currentReader.updatedAt); if (typeof queueDriveSync === 'function') queueDriveSync(); }
         catch (e) { setSaveStatus(false); toast('Không lưu được ghi chú — bộ nhớ thiết bị có thể đã đầy.'); }
       }, 450);
     }
@@ -687,6 +861,18 @@
       $('#readerLoading').classList.remove('hidden');
       $('#pagesCol').innerHTML = '';
       setSaveStatus(false, doc.updatedAt);
+      thumbSideVisible = window.innerWidth > 760;
+      $('#thumbSide').classList.toggle('hidden', !thumbSideVisible);
+      $('#thumbToggleBtn').classList.toggle('active', thumbSideVisible);
+      // Neu dang ket noi Drive va token con han: tai ban moi nhat ve truoc khi mo,
+      // de ghi chu vua sua tren thiet bi khac khong bi ban cu tren may nay de len
+      if (typeof driveTokenValid === 'function' && driveTokenValid() && typeof driveSyncNow === 'function'){
+        try {
+          await driveSyncNow(false);
+          const fresh = docs.find(d => d.id === docId);
+          if (fresh){ currentReader = fresh; $('#readerTitle').textContent = fresh.name; setSaveStatus(false, fresh.updatedAt); }
+        } catch (e) { /* mo ban local neu dong bo loi */ }
+      }
       try {
         const buf = await DB.get('files', docId);
         if (!buf) throw new Error('missing file');
@@ -699,6 +885,7 @@
         }
         fitScale();
         buildPages();
+        buildThumbs();
         $('#readerLoading').classList.add('hidden');
         updatePageInd();
       } catch (e) {
@@ -709,6 +896,7 @@
     function closeReader(){
       if (pdfDoc){ pdfDoc.destroy(); pdfDoc = null; }
       if (pageObserver){ pageObserver.disconnect(); pageObserver = null; }
+      if (thumbObserver){ thumbObserver.disconnect(); thumbObserver = null; }
       currentReader = null; selectedNoteId = null; editingId = null;
       $('#pagesCol').innerHTML = '';
       $('#readerView').classList.add('hidden');
@@ -751,7 +939,9 @@
         wrap.style.width = Math.round(sz.w * scale) + 'px';
         wrap.style.height = Math.round(sz.h * scale) + 'px';
         wrap.querySelectorAll('.note').forEach(el => {
-          const n = findNote(el.dataset.nid); if (n) el.querySelector('.note-text').style.fontSize = Math.max(9, n.style.sizeFrac * sz.w * scale) + 'px';
+          const n = findNote(el.dataset.nid); if (!n) return;
+          el.querySelector('.note-text').style.fontSize = Math.max(9, n.style.sizeFrac * sz.w * scale) + 'px';
+          el.style.minHeight = n.h ? Math.max(22, n.h * sz.h * scale) + 'px' : '';
         });
       });
       $('#zoomLabel').textContent = Math.round(scale * 100) + '%';
@@ -776,7 +966,87 @@
         const ld = wrap.querySelector('.page-loading'); if (ld) ld.remove();
       } catch (e) { delete renderStamps[p]; }
     }
-    function updatePageInd(){ $('#pageInd').textContent = 'Trang ' + currentPage + ' / ' + pageSizes.length; }
+    function updatePageInd(){ $('#pageInd').textContent = 'Trang ' + currentPage + ' / ' + pageSizes.length; updateThumbActive(); }
+
+    /* ================= Sidebar preview trang ================= */
+    let thumbObserver = null;
+    let thumbSideVisible = true;
+    function buildThumbs(){
+      const list = $('#thumbList'); if (!list) return;
+      list.innerHTML = '';
+      pageSizes.forEach((sz, i) => {
+        const p = i + 1;
+        const notesN = currentReader ? currentReader.notes.filter(n => n.page === p).length : 0;
+        const item = document.createElement('button');
+        item.className = 'thumb-item' + (p === currentPage ? ' active' : '');
+        item.dataset.tpage = p;
+        item.setAttribute('aria-label', 'Tới trang ' + p);
+        item.innerHTML = '<span class="thumb-ph">Trang ' + p + '</span>' +
+          '<span class="thumb-meta"><span>Trang ' + p + '</span><span class="thumb-notes">' + (notesN ? notesN + ' ghi chú' : '') + '</span></span>';
+        item.addEventListener('click', () => goToPage(p));
+        list.appendChild(item);
+      });
+      if (thumbObserver) thumbObserver.disconnect();
+      thumbObserver = new IntersectionObserver(entries => {
+        entries.forEach(en => { if (en.isIntersecting){ renderThumb(+en.target.dataset.tpage); thumbObserver.unobserve(en.target); } });
+      }, { root: list, rootMargin: '300px 0px' });
+      list.querySelectorAll('.thumb-item').forEach(it => thumbObserver.observe(it));
+    }
+    async function renderThumb(p){
+      if (!pdfDoc) return;
+      const item = document.querySelector('.thumb-item[data-tpage="' + p + '"]');
+      if (!item || item.dataset.done) return;
+      item.dataset.done = '1';
+      try {
+        const page = await pdfDoc.getPage(p);
+        const vp1 = page.getViewport({ scale: 1 });
+        const vp = page.getViewport({ scale: 116 / vp1.width });
+        const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+        await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+        if (!document.body.contains(item)) return;
+        const img = document.createElement('img');
+        img.src = c.toDataURL('image/jpeg', 0.7);
+        img.alt = 'Xem trước trang ' + p;
+        const ph = item.querySelector('.thumb-ph'); if (ph) ph.replaceWith(img);
+      } catch (e) { delete item.dataset.done; }
+    }
+    function goToPage(p){
+      const wrap = document.querySelector('.page-wrap[data-page="' + p + '"]');
+      const sc = $('#pagesScroll');
+      if (!wrap || !sc) return;
+      // Chi cuon toi trang - khong dung vao addMode/chon ghi chu, van ghi chu tiep duoc ngay
+      const top = sc.scrollTop + wrap.getBoundingClientRect().top - sc.getBoundingClientRect().top - 14;
+      sc.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      currentPage = p; updatePageInd();
+    }
+    function updateThumbActive(){
+      const list = $('#thumbList'); if (!list) return;
+      list.querySelectorAll('.thumb-item').forEach(it => {
+        const on = +it.dataset.tpage === currentPage;
+        it.classList.toggle('active', on);
+        if (on && thumbSideVisible){
+          const t = it.offsetTop - list.clientHeight / 2 + it.clientHeight / 2;
+          list.scrollTo({ top: Math.max(0, t), behavior: 'smooth' });
+        }
+      });
+    }
+    function refreshThumbMeta(p){
+      if (!currentReader) return;
+      const item = document.querySelector('.thumb-item[data-tpage="' + p + '"]');
+      if (!item) return;
+      const meta = item.querySelector('.thumb-notes'); if (!meta) return;
+      const cnt = currentReader.notes.filter(n => n.page === p).length;
+      meta.textContent = cnt ? cnt + ' ghi chú' : '';
+    }
+    function setThumbSide(v){
+      thumbSideVisible = v;
+      $('#thumbSide').classList.toggle('hidden', !v);
+      $('#thumbToggleBtn').classList.toggle('active', v);
+      if (v) updateThumbActive();
+      if (currentReader && fitMode) requestAnimationFrame(() => { fitScale(); setScale(scale, true); });
+    }
+    $('#thumbToggleBtn').addEventListener('click', () => setThumbSide(!thumbSideVisible));
+    $('#thumbHideBtn').addEventListener('click', () => setThumbSide(false));
     function setScale(s, fit){
       scale = Math.max(0.2, Math.min(4, s)); fitMode = !!fit;
       Object.keys(renderStamps).forEach(k => delete renderStamps[k]);
@@ -809,6 +1079,8 @@
       t.style.textAlign = n.style.align;
       const sz = pageSizes[n.page - 1];
       if (sz) t.style.fontSize = Math.max(9, n.style.sizeFrac * sz.w * scale) + 'px';
+      // Chieu cao keo luc tao chi la chieu cao TOI THIEU - text dai hon se tu gian them, khong cat chu
+      el.style.minHeight = (n.h && sz) ? Math.max(22, n.h * sz.h * scale) + 'px' : '';
     }
     function renderNotesForPage(p){
       const wrap = document.querySelector('.page-wrap[data-page="' + p + '"]');
@@ -821,7 +1093,9 @@
         el.dataset.nid = n.id;
         el.innerHTML = '<div class="note-text"></div>' +
           '<button class="note-del" title="Xóa ghi chú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
-          '<span class="note-resize"></span>';
+          '<span class="note-resize-e" data-resize="e" title="Kéo để đổi độ rộng"></span>' +
+          '<span class="note-resize-s" data-resize="s" title="Kéo để đổi chiều cao tối thiểu"></span>' +
+          '<span class="note-resize-se" data-resize="se" title="Kéo để đổi kích thước"></span>';
         const t = el.querySelector('.note-text');
         t.textContent = n.text;
         if (!n.text && n.id !== editingId) t.innerHTML = '<span class="note-empty-hint">Ghi chú…</span>';
@@ -829,6 +1103,7 @@
         applyNoteStyle(el, n);
         layer.appendChild(el);
       });
+      refreshThumbMeta(p);
     }
     function noteEl(id){ return document.querySelector('.note[data-nid="' + id + '"]'); }
 
@@ -885,40 +1160,96 @@
       document.querySelectorAll('.page-wrap').forEach(w => w.classList.toggle('add-mode', addMode));
       if (addMode) selectNote(null);
     });
+    let suppressNextClick = false;
     $('#pagesCol').addEventListener('click', e => {
+      if (suppressNextClick){ suppressNextClick = false; return; }
       const wrap = e.target.closest('.page-wrap'); if (!wrap) return;
       if (e.target.closest('.note')) return;
-      if (addMode){
-        const rect = wrap.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
-        createNote(+wrap.dataset.page, x, y);
-      } else if (!e.target.closest('.note')) selectNote(null);
+      if (!addMode) selectNote(null);
     });
-    function createNote(page, x, y){
-      const w = 0.34;
-      const n = { id: uid(), page, x: Math.max(0, Math.min(x, 1 - w)), y: Math.max(0, Math.min(y, 0.97)), w, text: '', style: Object.assign({}, lastStyle) };
+    function createNote(page, x, y, w, h){
+      w = Math.max(0.08, Math.min(w || 0.08, 1 - x));
+      const n = { id: uid(), page, x: Math.max(0, Math.min(x, 1 - w)), y: Math.max(0, Math.min(y, 0.98)), w, h: h || 0, text: '', style: Object.assign({}, lastStyle) };
       currentReader.notes.push(n);
       renderNotesForPage(page);
       startEdit(n.id);
       scheduleSave();
     }
+    /* ----- Keo de tao khung text (chuot + cam ung) ----- */
+    let createCtx = null;
+    function startCreateDrag(e, wrap){
+      const rect = wrap.getBoundingClientRect();
+      const ghost = document.createElement('div');
+      ghost.className = 'note-ghost';
+      wrap.appendChild(ghost);
+      createCtx = { page: +wrap.dataset.page, wrap, rect, ghost, startX: e.clientX, startY: e.clientY };
+      try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
+      drawGhost(e);
+    }
+    function drawGhost(e){
+      if (!createCtx) return;
+      const r = createCtx.rect;
+      const x0 = Math.max(0, Math.min(createCtx.startX, e.clientX) - r.left);
+      const y0 = Math.max(0, Math.min(createCtx.startY, e.clientY) - r.top);
+      const x1 = Math.min(r.width, Math.max(createCtx.startX, e.clientX) - r.left);
+      const y1 = Math.min(r.height, Math.max(createCtx.startY, e.clientY) - r.top);
+      const g = createCtx.ghost;
+      g.style.left = x0 + 'px'; g.style.top = y0 + 'px';
+      g.style.width = Math.max(2, x1 - x0) + 'px'; g.style.height = Math.max(2, y1 - y0) + 'px';
+      createCtx.geo = { x: x0 / r.width, y: y0 / r.height, w: (x1 - x0) / r.width, h: (y1 - y0) / r.height };
+    }
+    function finishCreateDrag(e){
+      if (!createCtx) return;
+      drawGhost(e);
+      const ctx = createCtx; createCtx = null;
+      ctx.ghost.remove();
+      const geo = ctx.geo || { x: 0, y: 0, w: 0, h: 0 };
+      // Cham nhe khong keo: tao o toi thieu tai diem cham de go ngay (khong co kich thuoc mac dinh lon)
+      if (geo.w < 0.03){
+        const px = (e.clientX - ctx.rect.left) / ctx.rect.width;
+        const py = (e.clientY - ctx.rect.top) / ctx.rect.height;
+        geo.x = px; geo.y = py; geo.w = Math.min(0.16, 1 - px); geo.h = 0;
+      }
+      if (geo.h < 0.012) geo.h = 0; // chieu cao ngan = tu do gian theo text
+      suppressNextClick = true;
+      createNote(ctx.page, geo.x, geo.y, geo.w, geo.h);
+    }
     let dragCtx = null;
     $('#pagesCol').addEventListener('pointerdown', e => {
       const delBtn = e.target.closest('.note-del');
       if (delBtn){ e.preventDefault(); e.stopPropagation(); deleteNote(delBtn.closest('.note').dataset.nid); return; }
-      const noteElClicked = e.target.closest('.note'); if (!noteElClicked) return;
+      const noteElClicked = e.target.closest('.note');
+      if (!noteElClicked){
+        // Khong cham vao note nao: neu dang o che do them chu thi bat dau keo tao khung
+        if (addMode){
+          const wrap = e.target.closest('.page-wrap');
+          if (wrap && !editingId){ e.preventDefault(); startCreateDrag(e, wrap); }
+          else if (wrap && editingId){ finishEdit(); }
+        }
+        return;
+      }
       const id = noteElClicked.dataset.nid;
       const n = findNote(id); if (!n) return;
       if (selectedNoteId !== id) selectNote(id);
+      const rzEl = e.target.closest('[data-resize]');
+      if (rzEl){
+        e.preventDefault();
+        if (editingId === id) finishEdit();
+        const wrap = noteElClicked.closest('.page-wrap');
+        const rect = wrap.getBoundingClientRect();
+        const curH = n.h || (noteElClicked.offsetHeight / rect.height);
+        dragCtx = { id, type: 'resize-' + rzEl.dataset.resize, startX: e.clientX, startY: e.clientY, ox: n.x, oy: n.y, ow: n.w, oh: curH, rect, moved: false };
+        try { noteElClicked.setPointerCapture(e.pointerId); } catch (err) {}
+        return;
+      }
       if (editingId === id) return; // let text editing work
       const wrap = noteElClicked.closest('.page-wrap');
       const rect = wrap.getBoundingClientRect();
-      const isResize = !!e.target.closest('.note-resize');
-      dragCtx = { id, type: isResize ? 'resize' : 'move', startX: e.clientX, startY: e.clientY, ox: n.x, oy: n.y, ow: n.w, rect, moved: false };
-      noteElClicked.setPointerCapture(e.pointerId);
+      dragCtx = { id, type: 'move', startX: e.clientX, startY: e.clientY, ox: n.x, oy: n.y, ow: n.w, oh: n.h || 0, rect, moved: false };
+      try { noteElClicked.setPointerCapture(e.pointerId); } catch (err) {}
     });
     $('#pagesCol').addEventListener('pointermove', e => {
+      if (createCtx){ drawGhost(e); return; }
       if (!dragCtx) return;
       const n = findNote(dragCtx.id); if (!n) { dragCtx = null; return; }
       const dx = (e.clientX - dragCtx.startX) / dragCtx.rect.width;
@@ -927,15 +1258,23 @@
       if (dragCtx.type === 'move'){
         n.x = Math.max(0, Math.min(dragCtx.ox + dx, 1 - n.w));
         n.y = Math.max(0, Math.min(dragCtx.oy + dy, 0.98));
-      } else {
-        n.w = Math.max(0.09, Math.min(dragCtx.ow + dx, 1 - n.x));
+      } else if (dragCtx.type === 'resize-e' || dragCtx.type === 'resize-se'){
+        n.w = Math.max(0.08, Math.min(dragCtx.ow + dx, 1 - n.x));
+        if (dragCtx.type === 'resize-se') n.h = Math.max(0.015, Math.min(dragCtx.oh + dy, 1 - n.y));
+      } else if (dragCtx.type === 'resize-s'){
+        n.h = Math.max(0.015, Math.min(dragCtx.oh + dy, 1 - n.y));
       }
       const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
     });
     $('#pagesCol').addEventListener('pointerup', e => {
+      if (createCtx){ finishCreateDrag(e); return; }
       if (!dragCtx) return;
       const wasMoved = dragCtx.moved; dragCtx = null;
       if (wasMoved) scheduleSave();
+    });
+    $('#pagesCol').addEventListener('pointercancel', () => {
+      if (createCtx){ createCtx.ghost.remove(); createCtx = null; }
+      dragCtx = null;
     });
     $('#pagesCol').addEventListener('dblclick', e => {
       const el = e.target.closest('.note'); if (!el) return;
@@ -957,6 +1296,242 @@
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNoteId && !editingId) deleteNote(selectedNoteId);
     });
 </script>
+
+    <script>
+    'use strict';
+    /* ================= Google Drive sync ================= */
+    const DRIVE_FOLDER_NAME = 'GhiChuPDF';
+    const DRIVE_LIB_NAME = 'ghichu-library.json';
+    let driveToken = null, driveTokenExp = 0, driveFolderId = null, driveLibFileId = null;
+    let driveSyncing = false, driveSyncTimer = null, driveLastFingerprint = '';
+    function driveClientId(){ try { return localStorage.getItem('ghichu-drive-client-id') || ''; } catch (e) { return ''; } }
+    function driveIsConnected(){ return !!driveToken; }
+    function driveTokenValid(){ return !!driveToken && Date.now() < driveTokenExp; }
+    function setDriveUI(state, sub){
+      const badge = $('#driveBadge'); if (!badge) return;
+      badge.className = 'drive-badge' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : state === 'err' ? ' err' : '');
+      badge.textContent = state === 'on' ? 'Đã kết nối Drive' : state === 'busy' ? 'Đang đồng bộ…' : state === 'err' ? 'Lỗi đồng bộ' : 'Chưa kết nối';
+      if (sub) $('#driveSub').textContent = sub;
+      const connected = !!driveToken;
+      $('#driveConnectBtn').classList.toggle('hidden', connected);
+      $('#driveSyncBtn').classList.toggle('hidden', !connected);
+      $('#driveSetupBtn').classList.toggle('hidden', !connected);
+      $('#driveDisconnectBtn').classList.toggle('hidden', !connected);
+      if (!connected) $('#driveSetupBtn').classList.remove('hidden');
+    }
+    function driveFingerprint(){
+      let s = folders.length + ':' + docs.length + ':';
+      folders.forEach(f => { s += f.id + f.name + ';'; });
+      docs.forEach(d => { s += d.id + (d.updatedAt || 0) + (d.notes ? d.notes.length : 0) + ';'; });
+      return s;
+    }
+    function queueDriveSync(){
+      if (!driveToken) return;
+      clearTimeout(driveSyncTimer);
+      driveSyncTimer = setTimeout(() => { driveSyncNow(false); }, 2500);
+    }
+    function waitForGIS(){
+      return new Promise((resolve, reject) => {
+        let n = 0;
+        const t = setInterval(() => {
+          if (window.google && google.accounts && google.accounts.oauth2){ clearInterval(t); resolve(); }
+          else if (++n > 40){ clearInterval(t); reject(new Error('gis')); }
+        }, 250);
+      });
+    }
+    async function driveRequestToken(){
+      await waitForGIS();
+      const cid = driveClientId();
+      if (!cid) throw new Error('no-client-id');
+      return new Promise((resolve, reject) => {
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: cid,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+          callback: resp => {
+            if (resp && resp.access_token){ driveToken = resp.access_token; driveTokenExp = Date.now() + (resp.expires_in || 3600) * 1000 - 60000; resolve(driveToken); }
+            else reject(new Error('no-token'));
+          },
+          error_callback: () => reject(new Error('oauth-error'))
+        });
+        client.requestAccessToken({ prompt: driveToken ? '' : 'consent' });
+      });
+    }
+    async function driveFetch(url, opts){
+      if (!driveToken || Date.now() > driveTokenExp) await driveRequestToken();
+      const r = await fetch(url, Object.assign({}, opts || {}, { headers: Object.assign({ 'Authorization': 'Bearer ' + driveToken }, (opts && opts.headers) || {}) }));
+      if (r.status === 401){ await driveRequestToken(); return fetch(url, Object.assign({}, opts || {}, { headers: Object.assign({ 'Authorization': 'Bearer ' + driveToken }, (opts && opts.headers) || {}) })); }
+      return r;
+    }
+    async function driveEnsureFolder(){
+      if (driveFolderId) return driveFolderId;
+      const q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+      const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)');
+      const j = await r.json();
+      if (j.files && j.files.length){ driveFolderId = j.files[0].id; return driveFolderId; }
+      const cr = await driveFetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }) });
+      const cj = await cr.json();
+      driveFolderId = cj.id;
+      return driveFolderId;
+    }
+    async function driveFindLibFile(){
+      const q = encodeURIComponent("name='" + DRIVE_LIB_NAME + "' and '" + driveFolderId + "' in parents and trashed=false");
+      const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,modifiedTime)');
+      const j = await r.json();
+      driveLibFileId = (j.files && j.files.length) ? j.files[0].id : null;
+      return driveLibFileId;
+    }
+    async function driveUploadMedia(metadata, blob, existingId){
+      let id = existingId;
+      if (!id){
+        const cr = await driveFetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(metadata) });
+        const cj = await cr.json(); id = cj.id;
+        if (!id) throw new Error('create-failed');
+      }
+      const up = await driveFetch('https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=media', { method: 'PATCH', headers: { 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });
+      if (!up.ok) throw new Error('upload-failed');
+      return id;
+    }
+    async function drivePull(){
+      await driveFindLibFile();
+      if (!driveLibFileId) return false;
+      const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + driveLibFileId + '?alt=media');
+      if (!r.ok) return false;
+      const remote = await r.json();
+      if (!remote || !Array.isArray(remote.docs)) return false;
+      let changed = false;
+      for (const rf of (remote.folders || [])){
+        const lf = folders.find(f => f.id === rf.id);
+        if (!lf){ folders.push(rf); await DB.put('folders', rf); changed = true; }
+        else if (lf.name !== rf.name || lf.color !== rf.color){ Object.assign(lf, rf); await DB.put('folders', lf); changed = true; }
+      }
+      for (const rd of remote.docs){
+        const ld = docs.find(d => d.id === rd.id);
+        if (!ld || (rd.updatedAt || 0) > (ld.updatedAt || 0)){
+          const merged = Object.assign({}, ld || {}, rd);
+          if (ld && ld.thumb) merged.thumb = ld.thumb;
+          if (!ld) docs.push(merged); else Object.assign(ld, merged);
+          await DB.put('docs', merged); changed = true;
+        }
+        const target = docs.find(d => d.id === rd.id);
+        const localBuf = await DB.get('files', rd.id);
+        if (!localBuf && target && target.driveFileId){
+          const fr = await driveFetch('https://www.googleapis.com/drive/v3/files/' + target.driveFileId + '?alt=media');
+          if (fr.ok){ const buf = await fr.arrayBuffer(); await DB.put('files', buf, rd.id); changed = true; }
+        }
+      }
+      if (changed) renderLibrary();
+      return true;
+    }
+    async function drivePush(){
+      for (const d of docs){
+        const buf = await DB.get('files', d.id);
+        if (!buf) continue;
+        if (d.driveFileId && d.drivePushedAt && d.drivePushedAt >= (d.createdAt || 0) && !d.pdfDirty) continue;
+        const blob = new Blob([buf], { type: 'application/pdf' });
+        d.driveFileId = await driveUploadMedia({ name: d.id + '.pdf', parents: [driveFolderId] }, blob, d.driveFileId || null);
+        d.drivePushedAt = Date.now(); d.pdfDirty = false;
+        await DB.put('docs', d);
+      }
+      const lib = { version: 1, updatedAt: Date.now(), folders: folders, docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
+      const blob = new Blob([JSON.stringify(lib)], { type: 'application/json' });
+      driveLibFileId = await driveUploadMedia({ name: DRIVE_LIB_NAME, parents: [driveFolderId] }, blob, driveLibFileId);
+    }
+    async function driveSyncNow(manual){
+      if (driveSyncing) return;
+      if (!driveToken){ if (manual) await driveConnect(); return; }
+      driveSyncing = true;
+      setDriveUI('busy', 'Đang đồng bộ với Google Drive…');
+      try {
+        await driveEnsureFolder();
+        await drivePull();
+        await drivePush();
+        driveLastFingerprint = driveFingerprint();
+        const t = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        setDriveUI('on', 'Đã đồng bộ lúc ' + t + ' — thư mục “' + DRIVE_FOLDER_NAME + '” trên Drive của bạn chứa PDF + file ghi chú. Mở app trên máy khác, kết nối cùng tài khoản Google là thấy cùng thư viện.');
+        if (manual) toast('Đã đồng bộ Google Drive xong.');
+      } catch (e) {
+        setDriveUI('err', 'Đồng bộ chưa được. Kiểm tra mạng rồi bấm “Đồng bộ ngay” để thử lại.');
+        if (manual) toast('Đồng bộ Drive thất bại, thử lại sau.');
+      }
+      driveSyncing = false;
+    }
+    async function driveConnect(){
+      if (!driveClientId()){ driveSetupModal(true); return; }
+      try {
+        setDriveUI('busy', 'Đang mở cửa sổ đăng nhập Google…');
+        await driveRequestToken();
+        setDriveUI('on', 'Đã đăng nhập Google. Đang đồng bộ lần đầu…');
+        driveSyncing = false;
+        await driveSyncNow(true);
+      } catch (e) {
+        setDriveUI('err', 'Chưa kết nối được Google Drive. Kiểm tra Client ID trong Cài đặt, và chắc chắn domain của app đã được thêm vào “Authorized JavaScript origins” của OAuth client.');
+        toast('Chưa kết nối được Google Drive.');
+      }
+    }
+    function driveSetupModal(autoConnect){
+      const cid = driveClientId();
+      openModal(
+        '<h3>Cài đặt Google Drive</h3>' +
+        '<p>Drive là của chính tài khoản Google của bạn nên app cần một <b>OAuth Client ID</b> (tạo miễn phí, làm 1 lần). Sau khi lưu, mọi máy chỉ cần đăng nhập cùng tài khoản Google là đồng bộ.</p>' +
+        '<ol class="steps">' +
+        '<li>Vào <b>console.cloud.google.com</b> → tạo project → bật <b>Google Drive API</b>.</li>' +
+        '<li>Vào <b>APIs &amp; Services → Credentials → Create OAuth client ID → Web application</b>.</li>' +
+        '<li>Ở “Authorized JavaScript origins”, thêm đúng domain nơi app đang chạy (ví dụ <code>https://l2practice.github.io</code>).</li>' +
+        '<li>Copy Client ID (dạng <code>…apps.googleusercontent.com</code>) dán vào ô dưới.</li>' +
+        '</ol>' +
+        '<label for="driveClientIdInput">Google OAuth Client ID</label>' +
+        '<input type="text" class="mono" id="driveClientIdInput" placeholder="xxxxx.apps.googleusercontent.com" value="' + esc(cid) + '" />' +
+        '<ul class="sync-check"><li>PDF được tải lên thư mục “GhiChuPDF” trên Drive của bạn</li><li>Ghi chú nằm trong file ghichu-library.json trong cùng thư mục</li><li>App chỉ có quyền với file do chính app tạo (drive.file)</li></ul>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Đóng</button><button class="btn primary" id="mSaveDrive">Lưu &amp; kết nối</button></div>'
+      );
+      $('#mCancel').addEventListener('click', closeModal);
+      $('#mSaveDrive').addEventListener('click', async () => {
+        const v = $('#driveClientIdInput').value.trim();
+        if (!v){ $('#driveClientIdInput').focus(); return; }
+        try { localStorage.setItem('ghichu-drive-client-id', v); } catch (e) {}
+        closeModal();
+        await driveConnect();
+      });
+      const inp = $('#driveClientIdInput'); inp.focus();
+    }
+    function twoDeviceModal(){
+      openModal(
+        '<h3>Mở app trên 2 thiết bị</h3>' +
+        '<p>Được — mỗi thiết bị mở một file khác nhau, hoàn toàn độc lập: thiết bị 1 mở file A để tham khảo, thiết bị 2 ghi chú trên file B.</p>' +
+        '<ul class="guide">' +
+        '<li>Cả 2 thiết bị cùng <b>kết nối một tài khoản Google Drive</b>: ở thiết bị mới, mở “Cài đặt” trên thẻ Drive ở thư viện, dán cùng Client ID một lần, rồi bấm “Kết nối Google Drive” và đăng nhập cùng tài khoản Google.</li>' +
+        '<li><b>Tự động lưu:</b> gõ đến đâu app lưu đến đó trên máy; khi đã kết nối Drive, bản mới tự được đẩy lên Drive sau vài giây, và app tự tải bản mới nhất khi mở app / mở file trên thiết bị còn lại — không cần bấm lưu.</li>' +
+        '<li>Tránh sửa <b>cùng một file</b> trên 2 máy cùng lúc: bản lưu sau cùng sẽ được giữ. Dùng mỗi máy một file như cách của bạn thì không xung đột.</li>' +
+        '</ul>' +
+        '<h3 style="margin-top:18px">File đã ghi chú nằm ở đâu?</h3>' +
+        '<ul class="guide">' +
+        '<li>Trên Drive có thư mục <code>' + DRIVE_FOLDER_NAME + '</code> chứa <b>file PDF gốc</b> — ghi chú <b>không</b> ghi đè vào file PDF gốc này.</li>' +
+        '<li>Ghi chú nằm trong file <code>' + DRIVE_LIB_NAME + '</code> ở cùng thư mục; mở app lên là ghi chú tự hiện lại đúng trên trang.</li>' +
+        '<li>Muốn một file PDF có ghi chú nằm sẵn trong trang (để gửi hoặc in): mở tài liệu rồi bấm <b>Xuất PDF</b> hoặc <b>Xuất theo trang</b>.</li>' +
+        '<li>Khi chưa kết nối Drive, mọi thứ chỉ lưu trên thiết bị đang dùng.</li>' +
+        '</ul>' +
+        '<div class="modal-actions"><button class="btn primary" id="mCancel">Đã hiểu</button></div>'
+      );
+      $('#mCancel').addEventListener('click', closeModal);
+    }
+    $('#driveHelpBtn').addEventListener('click', twoDeviceModal);
+    $('#driveConnectBtn').addEventListener('click', driveConnect);
+    $('#driveSyncBtn').addEventListener('click', () => driveSyncNow(true));
+    $('#driveSetupBtn').addEventListener('click', () => driveSetupModal(false));
+    $('#driveDisconnectBtn').addEventListener('click', () => {
+      if (window.google && google.accounts && google.accounts.oauth2 && driveToken) google.accounts.oauth2.revoke(driveToken, () => {});
+      driveToken = null; driveTokenExp = 0;
+      setDriveUI('', 'Đã ngắt kết nối trên thiết bị này. File trên Drive vẫn còn nguyên — kết nối lại bằng cùng tài khoản Google là thấy lại thư viện.');
+    });
+    // Tu dong nhan thay doi thu vien (folder / tai lieu / ghi chu) de day len Drive
+    setInterval(() => {
+      if (!driveToken || driveSyncing) return;
+      const fp = driveFingerprint();
+      if (driveLastFingerprint && fp !== driveLastFingerprint) queueDriveSync();
+      else if (!driveLastFingerprint) driveLastFingerprint = fp;
+    }, 4000);
+    if (driveClientId()) setDriveUI('', 'Đã có Client ID — bấm “Kết nối Google Drive”, đăng nhập cùng một tài khoản Google trên mọi thiết bị để đồng bộ.');
+    </script>
 
     <script>
     'use strict';
@@ -1002,6 +1577,47 @@
     // Keep editing alive when interacting with the format bar
     $('#formatBar').addEventListener('pointerdown', e => { if (editingId && !e.target.closest('select, input')) e.preventDefault(); }, true);
 
+    /* ================= Export PDF theo trang chon ================= */
+    function exportPagesModal(){
+      if (!currentReader || !pdfDoc) return;
+      const total = pdfDoc.numPages;
+      const counts = {};
+      currentReader.notes.forEach(n => { counts[n.page] = (counts[n.page] || 0) + 1; });
+      let rows = '';
+      for (let p = 1; p <= total; p++){
+        rows += '<label class="page-pick"><input type="checkbox" class="pp-check" value="' + p + '" checked /><span>Trang ' + p + '</span>' +
+          (counts[p] ? '<span class="cnt">' + counts[p] + ' ghi chú</span>' : '') + '</label>';
+      }
+      openModal(
+        '<h3>Xuất PDF theo trang</h3>' +
+        '<p>Tick chọn các trang muốn xuất. File PDF mới chỉ gồm đúng những trang đã chọn, theo đúng thứ tự trang gốc, kèm ghi chú trên các trang đó.</p>' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">' +
+          '<button class="btn" id="ppAll" style="padding:7px 12px;font-size:13px">Chọn tất cả</button>' +
+          '<button class="btn" id="ppNone" style="padding:7px 12px;font-size:13px">Bỏ tất cả</button>' +
+          '<span id="ppCount" style="margin-left:auto;font-size:13px;color:var(--muted)"></span>' +
+        '</div>' +
+        '<div class="page-pick-list">' + rows + '</div>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button><button class="btn primary" id="ppExport">Export PDF</button></div>'
+      );
+      const checks = Array.from(document.querySelectorAll('.pp-check'));
+      const upd = () => {
+        const n = checks.filter(c => c.checked).length;
+        $('#ppCount').textContent = 'Đã chọn ' + n + ' / ' + total + ' trang';
+        const ex = $('#ppExport'); ex.disabled = n === 0; ex.style.opacity = n === 0 ? '.5' : '';
+      };
+      checks.forEach(c => c.addEventListener('change', upd));
+      upd();
+      $('#ppAll').addEventListener('click', () => { checks.forEach(c => { c.checked = true; }); upd(); });
+      $('#ppNone').addEventListener('click', () => { checks.forEach(c => { c.checked = false; }); upd(); });
+      $('#mCancel').addEventListener('click', closeModal);
+      $('#ppExport').addEventListener('click', () => {
+        const sel = checks.filter(c => c.checked).map(c => +c.value).sort((a, b) => a - b);
+        if (!sel.length) return;
+        closeModal();
+        exportPdf(sel);
+      });
+    }
+
     /* ================= Export annotated PDF ================= */
     function wrapTextCanvas(ctx, text, maxW){
       const out = [];
@@ -1017,14 +1633,16 @@
       });
       return out;
     }
-    async function exportPdf(){
+    async function exportPdf(pageList){
       if (!currentReader || !pdfDoc) return;
       const btn = $('#exportBtn'); btn.disabled = true;
       toast('Đang tạo PDF kèm ghi chú…');
       try {
         const out = await PDFLib.PDFDocument.create();
         const RS = 2;
-        for (let p = 1; p <= pdfDoc.numPages; p++){
+        const allPages = []; for (let i = 1; i <= pdfDoc.numPages; i++) allPages.push(i);
+        const pagesToExport = (pageList && pageList.length) ? pageList.slice().sort((a, b) => a - b) : allPages;
+        for (const p of pagesToExport){
           const page = await pdfDoc.getPage(p);
           const vp1 = page.getViewport({ scale: 1 });
           const vp = page.getViewport({ scale: RS });
@@ -1039,7 +1657,8 @@
             if (n.style.highlight){
               ctx.fillStyle = n.style.highlight;
               const lines0 = wrapTextCanvas(ctx, n.text, w - 10);
-              ctx.fillRect(x, y, w, Math.max(fontPx * 1.5, lines0.length * fontPx * 1.4 + 8));
+              const minH = n.h ? n.h * canvas.height : 0;
+              ctx.fillRect(x, y, w, Math.max(fontPx * 1.5, lines0.length * fontPx * 1.4 + 8, minH));
             }
             ctx.font = (n.style.italic ? 'italic ' : '') + (n.style.bold ? '700 ' : '400 ') + fontPx + 'px "' + n.style.font + '", sans-serif';
             ctx.fillStyle = n.style.color;
@@ -1063,7 +1682,7 @@
         const bytes = await out.save();
         const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
         const a = document.createElement('a');
-        a.href = url; a.download = currentReader.name + ' - ghi chú.pdf';
+        a.href = url; a.download = currentReader.name + ' - ghi chú' + (pagesToExport.length < pdfDoc.numPages ? ' (' + pagesToExport.length + ' trang)' : '') + '.pdf';
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 4000);
         toast('Đã xuất PDF kèm ghi chú.');
@@ -1072,7 +1691,8 @@
       }
       btn.disabled = false;
     }
-    $('#exportBtn').addEventListener('click', exportPdf);
+    $('#exportBtn').addEventListener('click', () => exportPdf(null));
+    $('#exportPagesBtn').addEventListener('click', exportPagesModal);
 
     /* ================= Init ================= */
     (async function init(){
