@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Ghi chú PDF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+      :root{
+        --bg:#f4f2ec; --bg-reader:#e9e6de; --surface:#fffdf9; --surface-2:#efece4;
+        --ink:#1d2129; --ink-2:#4b5160; --muted:#828a99; --line:#ddd8cc;
+        --accent:#0e7c66; --accent-strong:#0a5f4f; --accent-soft:#e2f0ec;
+        --danger:#c62f3b; --danger-soft:#fbe9ea;
+        --shadow:0 1px 2px rgba(29,33,41,.06),0 8px 24px rgba(29,33,41,.08);
+        --shadow-lg:0 4px 12px rgba(29,33,41,.12),0 20px 48px rgba(29,33,41,.18);
+        --radius:14px;
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#14161a; --bg-reader:#0e1013; --surface:#1d2026; --surface-2:#262a31;
+          --ink:#eceef2; --ink-2:#b9bfc9; --muted:#8a919d; --line:#333842;
+          --accent:#2fbf9f; --accent-strong:#5ed3b7; --accent-soft:#17352e;
+          --danger:#f26d78; --danger-soft:#3d1d21;
+          --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+          --shadow-lg:0 4px 12px rgba(0,0,0,.5),0 20px 48px rgba(0,0,0,.55);
+        }
+      }
+      html,body{height:100%;}
+      body{
+        margin:0; background:var(--bg); color:var(--ink);
+        font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+        font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+      }
+      button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0;}
+      input,select,textarea{font:inherit;color:inherit;}
+      svg{display:block;}
+      .hidden{display:none !important;}
+
+      /* ---------- Buttons ---------- */
+      .btn{
+        display:inline-flex;align-items:center;gap:8px;border-radius:10px;
+        padding:9px 14px;font-weight:600;font-size:14px;border:1px solid var(--line);
+        background:var(--surface);color:var(--ink);transition:background .15s,border-color .15s,transform .1s;
+        white-space:nowrap;
+      }
+      .btn:hover{background:var(--surface-2);}
+      .btn:active{transform:scale(.98);}
+      .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+      .btn.primary:hover{background:var(--accent-strong);}
+      .btn.danger{background:var(--danger-soft);border-color:transparent;color:var(--danger);}
+      .btn svg{width:17px;height:17px;flex:none;}
+      .icon-btn{
+        display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;
+        border-radius:9px;color:var(--ink-2);border:1px solid transparent;flex:none;
+        transition:background .15s,color .15s;
+      }
+      .icon-btn:hover{background:var(--surface-2);color:var(--ink);}
+      .icon-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+      .icon-btn svg{width:19px;height:19px;}
+      .icon-btn:disabled{opacity:.35;cursor:default;}
+      .icon-btn:disabled:hover{background:none;color:var(--ink-2);}
+
+      /* ---------- Library layout ---------- */
+      #libraryView{min-height:100%;display:flex;flex-direction:column;}
+      .lib-head{
+        display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+        padding:20px 24px 14px;max-width:1240px;width:100%;margin:0 auto;box-sizing:border-box;
+      }
+      .lib-head h1{font-size:26px;font-weight:800;margin:0;letter-spacing:-.02em;}
+      .lib-head .sub{color:var(--muted);font-size:13.5px;margin:2px 0 0;}
+      .lib-head .spacer{flex:1;}
+      .search-box{
+        display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);
+        border-radius:10px;padding:0 12px;height:40px;min-width:200px;
+      }
+      .search-box svg{width:16px;height:16px;color:var(--muted);flex:none;}
+      .search-box input{border:0;outline:0;background:none;width:100%;font-size:14px;color:var(--ink);}
+      .lib-body{
+        display:grid;grid-template-columns:248px 1fr;gap:28px;align-items:start;
+        padding:6px 24px 48px;max-width:1240px;width:100%;margin:0 auto;box-sizing:border-box;flex:1;
+      }
+      .lib-body > *{min-width:0;}
+      /* Sidebar */
+      .side{position:sticky;top:16px;}
+      .side-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px 4px;}
+      .folder-list{display:flex;flex-direction:column;gap:2px;}
+      .folder-item{
+        display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+        padding:9px 10px;border-radius:10px;font-size:14.5px;font-weight:500;color:var(--ink-2);
+      }
+      .folder-item:hover{background:var(--surface-2);}
+      .folder-item.active{background:var(--accent-soft);color:var(--ink);font-weight:600;}
+      .folder-dot{width:12px;height:12px;border-radius:4px;flex:none;}
+      .folder-item .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .folder-item .count{font-size:12px;color:var(--muted);background:var(--surface-2);border-radius:20px;padding:1px 8px;}
+      .folder-item.active .count{background:var(--surface);}
+      .folder-item .f-actions{display:none;gap:2px;}
+      .folder-item:hover .f-actions{display:flex;}
+      .folder-item .f-actions button{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:var(--muted);}
+      .folder-item .f-actions button:hover{background:var(--surface);color:var(--ink);}
+      .folder-item .f-actions svg{width:14px;height:14px;}
+      .new-folder-btn{
+        display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;margin-top:8px;
+        border-radius:10px;border:1.5px dashed var(--line);color:var(--muted);font-size:14px;font-weight:500;
+      }
+      .new-folder-btn:hover{color:var(--accent);border-color:var(--accent);}
+      .new-folder-btn svg{width:16px;height:16px;}
+      /* Doc grid */
+      .docs-head{display:flex;align-items:baseline;gap:12px;margin:2px 0 16px;flex-wrap:wrap;}
+      .docs-head h2{font-size:19px;font-weight:700;margin:0;}
+      .docs-head .hint{color:var(--muted);font-size:13px;}
+      .doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:18px;}
+      .doc-card{
+        background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+        overflow:hidden;box-shadow:var(--shadow);cursor:pointer;text-align:left;width:100%;
+        transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;
+      }
+      .doc-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+      .doc-thumb{aspect-ratio:3/3.6;background:#fff;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;border-bottom:1px solid var(--line);}
+      .doc-thumb img{width:100%;height:100%;object-fit:cover;object-position:top;}
+      .doc-thumb .no-thumb{color:#9aa0aa;font-size:12px;padding:24px 10px;text-align:center;}
+      .doc-info{padding:11px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1;}
+      .doc-name{font-weight:600;font-size:14px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+      .doc-meta{color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap;}
+      .doc-meta .notes-n{color:var(--accent);font-weight:600;}
+      .doc-card .card-menu-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.92);color:#444;box-shadow:0 1px 4px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;}
+      .doc-card .card-menu-btn:hover{background:#fff;color:#111;}
+      .doc-card .card-menu-btn svg{width:17px;height:17px;}
+      .doc-wrap{position:relative;}
+      .empty{
+        border:1.5px dashed var(--line);border-radius:var(--radius);padding:44px 24px;text-align:center;color:var(--muted);
+        display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--surface);
+      }
+      .empty svg{width:40px;height:40px;color:var(--line);}
+      .empty .t{font-size:16px;font-weight:600;color:var(--ink-2);}
+      .empty p{margin:0;font-size:13.5px;max-width:420px;}
+      .drop-hint{outline:2px dashed var(--accent);outline-offset:-8px;}
+
+      /* ---------- Dropdown menu ---------- */
+      .menu{
+        position:fixed;z-index:200;background:var(--surface);border:1px solid var(--line);
+        border-radius:12px;box-shadow:var(--shadow-lg);padding:5px;min-width:190px;
+      }
+      .menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:8px;font-size:14px;}
+      .menu button:hover{background:var(--surface-2);}
+      .menu button.danger{color:var(--danger);}
+      .menu svg{width:16px;height:16px;}
+
+      /* ---------- Reader ---------- */
+      #readerView{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg-reader);z-index:50;}
+      .reader-bar{
+        display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);
+        border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:5;
+      }
+      .reader-bar .doc-title{font-weight:600;font-size:14.5px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .save-status{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+      .save-status .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;}
+      .save-status.saving .dot{background:#d97706;}
+      .zoom-group{display:flex;align-items:center;gap:2px;background:var(--surface-2);border-radius:10px;padding:2px;}
+      .zoom-group .icon-btn{width:32px;height:32px;}
+      .zoom-label{font-size:13px;font-weight:600;min-width:52px;text-align:center;font-variant-numeric:tabular-nums;}
+      .bar-sep{width:1px;height:24px;background:var(--line);margin:0 4px;flex:none;}
+      .page-ind{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
+      .add-text-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+      /* Format bar */
+      .format-bar{
+        display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 12px;
+        background:var(--surface);border-bottom:1px solid var(--line);z-index:5;
+      }
+      .format-bar .fb-label{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+      .fmt-select{
+        height:34px;border:1px solid var(--line);border-radius:8px;background:var(--surface);
+        padding:0 8px;font-size:13.5px;max-width:170px;
+      }
+      .fmt-btn{
+        min-width:34px;height:34px;padding:0 7px;border-radius:8px;border:1px solid transparent;
+        display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink-2);gap:2px;
+      }
+      .fmt-btn:hover{background:var(--surface-2);}
+      .fmt-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+      .fmt-btn svg{width:16px;height:16px;}
+      .fmt-btn b{font-weight:800;} .fmt-btn i{font-style:italic;font-family:Georgia,serif;} .fmt-btn u{text-underline-offset:3px;}
+      .size-val{font-size:13px;font-weight:600;min-width:34px;text-align:center;font-variant-numeric:tabular-nums;}
+      .swatches{display:flex;align-items:center;gap:5px;}
+      .swatch{width:22px;height:22px;border-radius:7px;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);flex:none;padding:0;}
+      .swatch.active{border-color:var(--ink);}
+      .swatch.none{background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;}
+      .color-input-wrap{position:relative;width:26px;height:26px;flex:none;}
+      .color-input-wrap input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+      .color-input-wrap .ci-face{position:absolute;inset:0;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);background:conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);pointer-events:none;}
+      .add-hint{
+        background:var(--accent);color:#fff;font-size:13.5px;font-weight:500;text-align:center;padding:8px 14px;
+      }
+      /* Pages */
+      .pages-scroll{flex:1;overflow-y:auto;overflow-x:auto;padding:26px 16px 60px;scroll-behavior:auto;}
+      .pages-col{display:flex;flex-direction:column;align-items:center;gap:22px;min-width:min-content;}
+      .page-wrap{position:relative;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18),0 14px 34px rgba(0,0,0,.16);flex:none;}
+      .page-wrap canvas{display:block;}
+      .page-wrap.add-mode{cursor:crosshair;}
+      .page-num{
+        position:absolute;right:-4px;bottom:-20px;font-size:11.5px;color:var(--muted);font-weight:600;
+      }
+      .page-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa0aa;font-size:13px;}
+      .notes-layer{position:absolute;inset:0;}
+      /* Note */
+      .note{position:absolute;min-height:22px;border-radius:4px;padding:3px 5px;cursor:pointer;}
+      .note .note-text{outline:none;white-space:pre-wrap;word-break:break-word;line-height:1.4;min-height:1.4em;cursor:text;}
+      .note.sel{box-shadow:0 0 0 1.5px var(--accent),0 4px 14px rgba(0,0,0,.18);cursor:move;background-clip:padding-box;}
+      .note .note-del{
+        position:absolute;top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;
+        background:var(--danger);color:#fff;display:none;align-items:center;justify-content:center;
+        box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:3;cursor:pointer;
+      }
+      .note.sel .note-del{display:flex;}
+      .note .note-del svg{width:12px;height:12px;}
+      .note .note-resize{
+        position:absolute;right:-6px;bottom:-6px;width:16px;height:16px;border-radius:50%;
+        background:var(--surface);border:2px solid var(--accent);display:none;cursor:nwse-resize;z-index:3;
+      }
+      .note.sel .note-resize{display:block;}
+      .note .note-empty-hint{color:#8a919d;font-style:italic;pointer-events:none;}
+
+      /* ---------- Modal ---------- */
+      .modal-back{
+        position:fixed;inset:0;background:rgba(15,17,20,.5);z-index:300;display:flex;
+        align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(2px);
+      }
+      .modal{
+        background:var(--surface);border-radius:16px;box-shadow:var(--shadow-lg);width:100%;max-width:420px;
+        padding:22px;max-height:calc(100vh - 40px);overflow-y:auto;
+      }
+      .modal h3{margin:0 0 6px;font-size:17px;font-weight:700;}
+      .modal p{margin:0 0 14px;color:var(--ink-2);font-size:14px;}
+      .modal label{display:block;font-size:13px;font-weight:600;margin:12px 0 6px;}
+      .modal input[type=text]{
+        width:100%;box-sizing:border-box;height:42px;border:1px solid var(--line);border-radius:10px;
+        padding:0 12px;background:var(--surface);font-size:14.5px;outline:none;
+      }
+      .modal input[type=text]:focus{border-color:var(--accent);}
+      .color-row{display:flex;gap:8px;flex-wrap:wrap;}
+      .color-choice{width:34px;height:34px;border-radius:10px;border:3px solid transparent;padding:0;}
+      .color-choice.active{border-color:var(--ink);}
+      .modal-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
+
+      /* ---------- Toast ---------- */
+      #toast{
+        position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:400;
+        background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:14px;font-weight:500;
+        box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:calc(100vw - 40px);text-align:center;
+      }
+      #toast.show{opacity:1;transform:translate(-50%,0);}
+
+      .reader-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);}
+      .spinner{width:34px;height:34px;border-radius:50%;border:3.5px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite;}
+      @keyframes spin{to{transform:rotate(360deg);}}
+
+      @media (max-width:760px){
+        .lib-head{padding:16px 16px 10px;}
+        .lib-head h1{font-size:22px;}
+        .lib-body{grid-template-columns:minmax(0,1fr);gap:16px;padding:4px 16px 40px;}
+        .side{position:static;}
+        .folder-list{flex-direction:row;flex-wrap:wrap;padding-bottom:2px;gap:6px;max-width:100%;min-width:0;}
+        .search-box{flex:1 1 150px;min-width:0;}
+        .folder-item{width:auto;flex:none;border:1px solid var(--line);background:var(--surface);}
+        .folder-item.active{border-color:var(--accent);}
+        .folder-item .f-actions{display:none !important;}
+        .new-folder-btn{width:auto;flex:none;margin-top:0;}
+        .side-title{display:none;}
+        .doc-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+        .reader-bar .doc-title{max-width:130px;}
+        .save-status .txt{display:none;}
+        .pages-scroll{padding:18px 8px 50px;}
+      }
+      @media (prefers-reduced-motion: reduce){
+        .spinner{animation-duration:1.6s;}
+        .doc-card{transition:none;}
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ================= LIBRARY ================= -->
+    <div id="libraryView">
+      <div class="lib-head">
+        <div>
+          <h1>Thư viện ghi chú</h1>
+          <p class="sub">Tài liệu PDF được chia theo môn học — ghi chú được tự động lưu trên thiết bị này.</p>
+        </div>
+        <div class="spacer"></div>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+          <input id="searchInput" type="text" placeholder="Tìm tài liệu…" autocomplete="off" />
+        </div>
+        <button class="btn primary" id="importBtnTop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          Nhập PDF
+        </button>
+      </div>
+      <div class="lib-body" id="libBody">
+        <aside class="side">
+          <p class="side-title">Môn học</p>
+          <div class="folder-list" id="folderList"></div>
+          <button class="new-folder-btn" id="newFolderBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Folder mới
+          </button>
+        </aside>
+        <section>
+          <div class="docs-head">
+            <h2 id="docsTitle">Tất cả tài liệu</h2>
+            <span class="hint" id="docsHint"></span>
+          </div>
+          <div id="docsArea"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ================= READER ================= -->
+    <div id="readerView" class="hidden">
+      <div class="reader-bar">
+        <button class="icon-btn" id="backBtn" title="Quay lại thư viện">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <span class="doc-title" id="readerTitle"></span>
+        <span class="save-status" id="saveStatus"><span class="dot"></span><span class="txt">Đã lưu</span></span>
+        <div class="spacer" style="flex:1"></div>
+        <span class="page-ind" id="pageInd"></span>
+        <div class="zoom-group">
+          <button class="icon-btn" id="zoomOut" title="Thu nhỏ">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+          </button>
+          <span class="zoom-label" id="zoomLabel">100%</span>
+          <button class="icon-btn" id="zoomIn" title="Phóng to">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button class="icon-btn" id="zoomFit" title="Vừa chiều ngang" style="width:auto;padding:0 9px;font-size:12.5px;font-weight:600;">Vừa trang</button>
+        </div>
+        <div class="bar-sep"></div>
+        <button class="btn add-text-btn" id="addTextBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16m-3 0h6"/></svg>
+          Thêm chữ
+        </button>
+        <button class="btn" id="exportBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
+          Xuất PDF
+        </button>
+      </div>
+      <div class="add-hint hidden" id="addHint">Chế độ thêm chữ đang bật — chạm hoặc nhấp vào vị trí bất kỳ trên trang để đặt ghi chú.</div>
+      <div class="format-bar hidden" id="formatBar">
+        <span class="fb-label">Định dạng</span>
+        <select class="fmt-select" id="fmtFont">
+          <option value="Be Vietnam Pro">Be Vietnam Pro (sans)</option>
+          <option value="Noto Serif">Noto Serif (serif)</option>
+          <option value="Patrick Hand">Patrick Hand (viết tay)</option>
+          <option value="Arial">Arial</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Courier New">Courier New (mono)</option>
+        </select>
+        <button class="fmt-btn" id="sizeMinus" title="Giảm cỡ chữ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+        <span class="size-val" id="sizeVal">14</span>
+        <button class="fmt-btn" id="sizePlus" title="Tăng cỡ chữ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="fmt-btn" id="fmtBold" title="Đậm"><b>B</b></button>
+        <button class="fmt-btn" id="fmtItalic" title="Nghiêng"><i>I</i></button>
+        <button class="fmt-btn" id="fmtUnderline" title="Gạch chân"><u>U</u></button>
+        <div class="bar-sep"></div>
+        <button class="fmt-btn" data-align="left" title="Căn trái"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg></button>
+        <button class="fmt-btn" data-align="center" title="Căn giữa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 11h10M4 16h16M7 21h10"/></svg></button>
+        <button class="fmt-btn" data-align="right" title="Căn phải"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M10 11h10M4 16h16M10 21h10"/></svg></button>
+        <div class="bar-sep"></div>
+        <span class="fb-label">Màu chữ</span>
+        <div class="swatches" id="colorSwatches"></div>
+        <div class="color-input-wrap" title="Màu tùy chọn"><div class="ci-face"></div><input type="color" id="colorCustom" value="#2563eb" /></div>
+        <div class="bar-sep"></div>
+        <span class="fb-label">Highlight</span>
+        <div class="swatches" id="hlSwatches"></div>
+        <div class="bar-sep"></div>
+        <button class="btn danger" id="deleteNoteBtn" style="padding:7px 12px;font-size:13px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>
+          Xóa ghi chú
+        </button>
+      </div>
+      <div class="pages-scroll" id="pagesScroll">
+        <div class="reader-loading" id="readerLoading"><div class="spinner"></div><span>Đang mở tài liệu…</span></div>
+        <div class="pages-col" id="pagesCol"></div>
+      </div>
+    </div>
+
+    <div id="modalRoot"></div>
+    <div id="menuRoot"></div>
+    <div id="toast"></div>
+    <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple class="hidden" />
+
+    <script>
+    'use strict';
+    if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    /* ================= Utilities ================= */
+    const $ = (s, r) => (r || document).querySelector(s);
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function fmtDate(ts){ const d = new Date(ts); return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}); }
+    function fmtSize(b){ if (!b) return ''; if (b < 1024*1024) return Math.max(1, Math.round(b/1024)) + ' KB'; return (b/(1024*1024)).toFixed(1) + ' MB'; }
+    let toastTimer = null;
+    function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+
+    /* ================= IndexedDB ================= */
+    const DB = {
+      db: null,
+      open(){
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open('ghichu-pdf-db', 1);
+          req.onupgradeneeded = e => {
+            const d = e.target.result;
+            d.createObjectStore('folders', { keyPath: 'id' });
+            d.createObjectStore('docs', { keyPath: 'id' });
+            d.createObjectStore('files');
+          };
+          req.onsuccess = () => { DB.db = req.result; resolve(); };
+          req.onerror = () => reject(req.error);
+        });
+      },
+      _store(name, mode){ return DB.db.transaction(name, mode).objectStore(name); },
+      getAll(name){ return new Promise((res, rej) => { const q = DB._store(name, 'readonly').getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); },
+      get(name, key){ return new Promise((res, rej) => { const q = DB._store(name, 'readonly').get(key); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+      put(name, val, key){ return new Promise((res, rej) => { const q = key === undefined ? DB._store(name, 'readwrite').put(val) : DB._store(name, 'readwrite').put(val, key); q.onsuccess = () => res(); q.onerror = () => rej(q.error); }); },
+      del(name, key){ return new Promise((res, rej) => { const q = DB._store(name, 'readwrite').delete(key); q.onsuccess = () => res(); q.onerror = () => rej(q.error); }); }
+    };
+
+    /* ================= State ================= */
+    const FOLDER_COLORS = ['#0e7c66','#b45309','#2563eb','#be3455','#6d5bd0','#0e7490','#7c4a21','#4d7c0f'];
+    let folders = [];
+    let docs = [];
+    let currentFolderId = 'all'; // 'all' | folder id | 'none'
+    let searchText = '';
+
+    /* ================= Modal ================= */
+    function closeModal(){ $('#modalRoot').innerHTML = ''; }
+    function openModal(html){ $('#modalRoot').innerHTML = '<div class="modal-back"><div class="modal">' + html + '</div></div>'; $('.modal-back').addEventListener('pointerdown', e => { if (e.target.classList.contains('modal-back')) closeModal(); }); }
+    function folderForm(folder){
+      const isNew = !folder;
+      const f = folder || { name: '', color: FOLDER_COLORS[folders.length % FOLDER_COLORS.length] };
+      openModal(
+        '<h3>' + (isNew ? 'Folder môn học mới' : 'Đổi tên folder') + '</h3>' +
+        '<p>Mỗi folder là một môn học — tài liệu PDF sẽ được xếp vào đây.</p>' +
+        '<label for="folderName">Tên folder</label>' +
+        '<input type="text" id="folderName" placeholder="Ví dụ: Toán học" value="' + esc(f.name) + '" />' +
+        '<label>Màu folder</label>' +
+        '<div class="color-row" id="folderColors">' +
+          FOLDER_COLORS.map(c => '<button class="color-choice' + (c === f.color ? ' active' : '') + '" data-color="' + c + '" style="background:' + c + '" aria-label="Màu ' + c + '"></button>').join('') +
+        '</div>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button>' +
+        '<button class="btn primary" id="mSave">' + (isNew ? 'Tạo folder' : 'Lưu') + '</button></div>'
+      );
+      let color = f.color;
+      $('#folderColors').addEventListener('click', e => {
+        const b = e.target.closest('[data-color]'); if (!b) return;
+        color = b.dataset.color;
+        document.querySelectorAll('#folderColors .color-choice').forEach(x => x.classList.toggle('active', x === b));
+      });
+      $('#mCancel').addEventListener('click', closeModal);
+      const input = $('#folderName'); input.focus(); input.select();
+      const save = async () => {
+        const name = input.value.trim();
+        if (!name){ input.focus(); return; }
+        if (isNew){ const nf = { id: uid(), name, color, createdAt: Date.now() }; await DB.put('folders', nf); folders.push(nf); currentFolderId = nf.id; }
+        else { f.name = name; f.color = color; await DB.put('folders', f); }
+        closeModal(); renderLibrary();
+      };
+      $('#mSave').addEventListener('click', save);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+    }
+    function confirmModal(title, text, okLabel, onOk, danger){
+      openModal('<h3>' + esc(title) + '</h3><p>' + esc(text) + '</p>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button>' +
+        '<button class="btn ' + (danger ? 'danger' : 'primary') + '" id="mOk">' + esc(okLabel) + '</button></div>');
+      $('#mCancel').addEventListener('click', closeModal);
+      $('#mOk').addEventListener('click', async () => { closeModal(); await onOk(); });
+    }
+    function renameDocModal(doc){
+      openModal('<h3>Đổi tên tài liệu</h3><label for="docName">Tên tài liệu</label>' +
+        '<input type="text" id="docName" value="' + esc(doc.name) + '" />' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Hủy</button><button class="btn primary" id="mSave">Lưu</button></div>');
+      $('#mCancel').addEventListener('click', closeModal);
+      const input = $('#docName'); input.focus(); input.select();
+      const save = async () => { const n = input.value.trim(); if (!n) return; doc.name = n; doc.updatedAt = Date.now(); await DB.put('docs', doc); closeModal(); renderLibrary(); };
+      $('#mSave').addEventListener('click', save);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+    }
+
+    /* ================= Library ================= */
+    function folderDocs(fid){ return docs.filter(d => (fid === 'none' ? !d.folderId : d.folderId === fid)); }
+    function visibleDocs(){
+      let list = currentFolderId === 'all' ? docs.slice() : folderDocs(currentFolderId);
+      if (searchText) list = list.filter(d => d.name.toLowerCase().includes(searchText));
+      return list.sort((a, b) => b.updatedAt - a.updatedAt);
+    }
+    function renderLibrary(){
+      // Sidebar
+      const fl = $('#folderList');
+      const totalCount = docs.length;
+      let html = '<button class="folder-item' + (currentFolderId === 'all' ? ' active' : '') + '" data-fid="all">' +
+        '<span class="folder-dot" style="background:var(--ink-2)"></span><span class="fname">Tất cả tài liệu</span><span class="count">' + totalCount + '</span></button>';
+      folders.forEach(f => {
+        html += '<div class="folder-item' + (currentFolderId === f.id ? ' active' : '') + '" data-fid="' + f.id + '" role="button" tabindex="0">' +
+          '<span class="folder-dot" style="background:' + f.color + '"></span><span class="fname">' + esc(f.name) + '</span>' +
+          '<span class="count">' + folderDocs(f.id).length + '</span>' +
+          '<span class="f-actions">' +
+            '<button data-act="rename" title="Đổi tên"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>' +
+            '<button data-act="del" title="Xóa folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg></button>' +
+          '</span></div>';
+      });
+      const noneCount = folderDocs('none').length;
+      if (noneCount > 0){
+        html += '<button class="folder-item' + (currentFolderId === 'none' ? ' active' : '') + '" data-fid="none">' +
+          '<span class="folder-dot" style="background:var(--muted)"></span><span class="fname">Chưa phân loại</span><span class="count">' + noneCount + '</span></button>';
+      }
+      fl.innerHTML = html;
+      // Docs head
+      let title = 'Tất cả tài liệu';
+      if (currentFolderId === 'none') title = 'Chưa phân loại';
+      else if (currentFolderId !== 'all'){ const f = folders.find(x => x.id === currentFolderId); title = f ? f.name : title; }
+      $('#docsTitle').textContent = title;
+      $('#docsHint').textContent = currentFolderId === 'all' ? 'Nhập PDF sẽ vào mục Chưa phân loại — mở menu ⋯ trên thẻ để chuyển folder.' : 'Tài liệu nhập mới sẽ vào folder này.';
+      // Docs area
+      const list = visibleDocs();
+      const area = $('#docsArea');
+      if (!list.length){
+        area.innerHTML = '<div class="empty">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg>' +
+          '<span class="t">' + (searchText ? 'Không tìm thấy tài liệu nào' : 'Chưa có tài liệu nào ở đây') + '</span>' +
+          '<p>' + (searchText ? 'Thử từ khóa khác.' : 'Bấm “Nhập PDF” để thêm tài liệu vào folder này, rồi mở lên và ghi chú trực tiếp lên trang.') + '</p>' +
+          (searchText ? '' : '<button class="btn primary" id="emptyImport">Nhập PDF</button>') + '</div>';
+        const b = $('#emptyImport'); if (b) b.addEventListener('click', () => $('#fileInput').click());
+        return;
+      }
+      area.innerHTML = '<div class="doc-grid">' + list.map(d =>
+        '<div class="doc-wrap"><button class="doc-card" data-open="' + d.id + '">' +
+          '<span class="doc-thumb">' + (d.thumb ? '<img src="' + d.thumb + '" alt="Trang đầu của ' + esc(d.name) + '" />' : '<span class="no-thumb">PDF<br/>' + d.pages + ' trang</span>') + '</span>' +
+          '<span class="doc-info"><span class="doc-name">' + esc(d.name) + '</span>' +
+          '<span class="doc-meta"><span>' + d.pages + ' trang</span><span>' + fmtSize(d.size) + '</span>' +
+          (d.notes && d.notes.length ? '<span class="notes-n">' + d.notes.length + ' ghi chú</span>' : '') + '</span>' +
+          '<span class="doc-meta"><span>Sửa ' + fmtDate(d.updatedAt) + '</span></span></span>' +
+        '</button>' +
+        '<button class="card-menu-btn" data-menu="' + d.id + '" title="Tùy chọn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>'
+      ).join('') + '</div>';
+    }
+    $('#folderList').addEventListener('click', e => {
+      const actBtn = e.target.closest('[data-act]');
+      const item = e.target.closest('[data-fid]');
+      if (actBtn && item){
+        const f = folders.find(x => x.id === item.dataset.fid); if (!f) return;
+        if (actBtn.dataset.act === 'rename') folderForm(f);
+        else if (actBtn.dataset.act === 'del'){
+          const n = folderDocs(f.id).length;
+          if (n === 0){ confirmModal('Xóa folder “' + f.name + '”?', 'Folder đang trống.', 'Xóa folder', async () => { await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; renderLibrary(); }, true); }
+          else {
+            openModal('<h3>Xóa folder “' + esc(f.name) + '”?</h3><p>Folder này đang có ' + n + ' tài liệu. Bạn muốn xử lý tài liệu trong folder thế nào?</p>' +
+              '<div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="mCancel">Hủy</button>' +
+              '<button class="btn" id="mMove">Chuyển ra Chưa phân loại</button>' +
+              '<button class="btn danger" id="mDelAll">Xóa cả tài liệu</button></div>');
+            $('#mCancel').addEventListener('click', closeModal);
+            $('#mMove').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ d.folderId = null; await DB.put('docs', d); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
+            $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ await DB.del('docs', d.id); await DB.del('files', d.id); docs = docs.filter(x => x.id !== d.id); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
+          }
+        }
+        return;
+      }
+      if (item){ currentFolderId = item.dataset.fid; renderLibrary(); }
+    });
+    $('#docsArea').addEventListener('click', e => {
+      const menuBtn = e.target.closest('[data-menu]');
+      if (menuBtn){ openDocMenu(menuBtn.dataset.menu, menuBtn); return; }
+      const card = e.target.closest('[data-open]');
+      if (card) openReader(card.dataset.open);
+    });
+    function closeMenu(){ $('#menuRoot').innerHTML = ''; document.removeEventListener('pointerdown', menuOutside, true); }
+    function menuOutside(e){ if (!e.target.closest('.menu')) closeMenu(); }
+    function openDocMenu(docId, anchor){
+      const doc = docs.find(d => d.id === docId); if (!doc) return;
+      const r = anchor.getBoundingClientRect();
+      const moveItems = folders.filter(f => f.id !== doc.folderId).map(f =>
+        '<button data-move="' + f.id + '"><span class="folder-dot" style="background:' + f.color + ';width:11px;height:11px;border-radius:3px"></span>Chuyển tới “' + esc(f.name) + '”</button>').join('');
+      $('#menuRoot').innerHTML = '<div class="menu" style="top:' + (r.bottom + 6) + 'px;left:' + Math.max(8, Math.min(r.left - 140, window.innerWidth - 210)) + 'px">' +
+        '<button data-m="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H11v18H4.5A2.5 2.5 0 0 0 2 23.5Z"/><path d="M22 5.5A2.5 2.5 0 0 0 19.5 3H13v18h6.5a2.5 2.5 0 0 1 2.5 2.5Z" transform="translate(0,-2.5)"/></svg>Mở tài liệu</button>' +
+        '<button data-m="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Đổi tên</button>' +
+        moveItems +
+        (doc.folderId ? '<button data-move=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Chuyển ra Chưa phân loại</button>' : '') +
+        '<button data-m="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Xóa tài liệu</button></div>';
+      document.addEventListener('pointerdown', menuOutside, true);
+      $('.menu').addEventListener('click', async e => {
+        const mv = e.target.closest('[data-move]');
+        const b = e.target.closest('[data-m]');
+        if (mv){ doc.folderId = mv.dataset.move || null; doc.updatedAt = Date.now(); await DB.put('docs', doc); closeMenu(); renderLibrary(); toast('Đã chuyển tài liệu.'); return; }
+        if (!b) return;
+        const act = b.dataset.m; closeMenu();
+        if (act === 'open') openReader(doc.id);
+        else if (act === 'rename') renameDocModal(doc);
+        else if (act === 'del') confirmModal('Xóa tài liệu “' + doc.name + '”?', 'Tài liệu và toàn bộ ghi chú trên đó sẽ bị xóa khỏi thiết bị này.', 'Xóa tài liệu', async () => { await DB.del('docs', doc.id); await DB.del('files', doc.id); docs = docs.filter(x => x.id !== doc.id); renderLibrary(); }, true);
+      });
+    }
+    $('#newFolderBtn').addEventListener('click', () => folderForm(null));
+    $('#importBtnTop').addEventListener('click', () => $('#fileInput').click());
+    $('#searchInput').addEventListener('input', e => { searchText = e.target.value.trim().toLowerCase(); renderLibrary(); });
+    // Drag & drop import
+    ['dragenter', 'dragover'].forEach(ev => document.addEventListener(ev, e => { if (currentReader) return; e.preventDefault(); $('#libBody').classList.add('drop-hint'); }));
+    ['dragleave', 'drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if (ev === 'drop' || e.relatedTarget === null) $('#libBody').classList.remove('drop-hint'); }));
+    document.addEventListener('drop', e => { if (currentReader) return; const files = Array.from(e.dataTransfer.files || []).filter(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name)); if (files.length) importFiles(files); });
+    $('#fileInput').addEventListener('change', e => { const files = Array.from(e.target.files || []); e.target.value = ''; if (files.length) importFiles(files); });
+
+    async function importFiles(files){
+      const targetFolder = (currentFolderId !== 'all' && currentFolderId !== 'none') ? currentFolderId : null;
+      let okCount = 0;
+      for (const file of files){
+        try {
+          const buf = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+          const id = uid();
+          let thumb = '';
+          try {
+            const p1 = await pdf.getPage(1);
+            const vp = p1.getViewport({ scale: 0.5 });
+            const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+            await p1.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+            thumb = c.toDataURL('image/jpeg', 0.72);
+          } catch (e) { /* thumbnail optional */ }
+          const doc = { id, folderId: targetFolder, name: file.name.replace(/\.pdf$/i, ''), size: file.size, pages: pdf.numPages, createdAt: Date.now(), updatedAt: Date.now(), thumb, notes: [] };
+          await DB.put('files', buf, id);
+          await DB.put('docs', doc);
+          docs.push(doc); okCount++;
+        } catch (err) { toast('Không đọc được file “' + file.name + '”.'); }
+      }
+      if (okCount) { renderLibrary(); toast('Đã nhập ' + okCount + ' tài liệu PDF.'); }
+    }
+</script>
+
+    <script>
+    'use strict';
+    /* ================= Reader state ================= */
+    let currentReader = null;   // doc meta object (shared reference with docs[])
+    let pdfDoc = null;
+    let pageSizes = [];         // [{w,h}] in PDF points
+    let scale = 1, fitMode = true;
+    let addMode = false;
+    let selectedNoteId = null;
+    let editingId = null;
+    let pageObserver = null, currentPage = 1;
+    let saveTimer = null;
+    let lastStyle = { font: 'Be Vietnam Pro', sizeFrac: 0.027, bold: false, italic: false, underline: false, color: '#111827', highlight: '', align: 'left' };
+
+    const TEXT_COLORS = ['#111827', '#dc2626', '#2563eb', '#059669', '#d97706', '#7c3aed', '#db2777', '#0e7490'];
+    const HL_COLORS = ['', 'rgba(250,204,21,0.45)', 'rgba(74,222,128,0.42)', 'rgba(249,168,212,0.5)', 'rgba(125,211,252,0.5)', 'rgba(253,186,116,0.55)'];
+    const HL_FACE = ['', '#facc15', '#4ade80', '#f9a8d4', '#7dd3fc', '#fdba74'];
+
+    function findNote(id){ return currentReader ? currentReader.notes.find(n => n.id === id) : null; }
+    function setSaveStatus(saving, ts){
+      const el = $('#saveStatus');
+      el.classList.toggle('saving', saving);
+      el.querySelector('.txt').textContent = saving ? 'Đang lưu…' : 'Đã lưu' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : '');
+    }
+    function scheduleSave(){
+      if (!currentReader) return;
+      setSaveStatus(true);
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        currentReader.updatedAt = Date.now();
+        try { await DB.put('docs', currentReader); setSaveStatus(false, currentReader.updatedAt); }
+        catch (e) { setSaveStatus(false); toast('Không lưu được ghi chú — bộ nhớ thiết bị có thể đã đầy.'); }
+      }, 450);
+    }
+
+    /* ================= Open / close ================= */
+    async function openReader(docId){
+      const doc = docs.find(d => d.id === docId); if (!doc) return;
+      currentReader = doc;
+      selectedNoteId = null; editingId = null; addMode = false;
+      $('#libraryView').classList.add('hidden');
+      $('#readerView').classList.remove('hidden');
+      $('#readerTitle').textContent = doc.name;
+      $('#addTextBtn').classList.remove('active');
+      $('#addHint').classList.add('hidden');
+      $('#formatBar').classList.add('hidden');
+      $('#readerLoading').classList.remove('hidden');
+      $('#pagesCol').innerHTML = '';
+      setSaveStatus(false, doc.updatedAt);
+      try {
+        const buf = await DB.get('files', docId);
+        if (!buf) throw new Error('missing file');
+        pdfDoc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+        pageSizes = [];
+        for (let i = 1; i <= pdfDoc.numPages; i++){
+          const p = await pdfDoc.getPage(i);
+          const vp = p.getViewport({ scale: 1 });
+          pageSizes.push({ w: vp.width, h: vp.height });
+        }
+        fitScale();
+        buildPages();
+        $('#readerLoading').classList.add('hidden');
+        updatePageInd();
+      } catch (e) {
+        $('#readerLoading').innerHTML = '<span>Không mở được tài liệu này.</span>';
+        toast('Không mở được tài liệu PDF.');
+      }
+    }
+    function closeReader(){
+      if (pdfDoc){ pdfDoc.destroy(); pdfDoc = null; }
+      if (pageObserver){ pageObserver.disconnect(); pageObserver = null; }
+      currentReader = null; selectedNoteId = null; editingId = null;
+      $('#pagesCol').innerHTML = '';
+      $('#readerView').classList.add('hidden');
+      $('#libraryView').classList.remove('hidden');
+      renderLibrary();
+    }
+    $('#backBtn').addEventListener('click', closeReader);
+
+    /* ================= Pages ================= */
+    function fitScale(){
+      const w = $('#pagesScroll').clientWidth - 36;
+      const pw = pageSizes.length ? pageSizes[0].w : 595;
+      scale = Math.max(0.2, Math.min(3, w / pw));
+    }
+    function buildPages(){
+      const col = $('#pagesCol'); col.innerHTML = '';
+      pageSizes.forEach((sz, i) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'page-wrap' + (addMode ? ' add-mode' : '');
+        wrap.dataset.page = i + 1;
+        wrap.innerHTML = '<div class="page-loading">Trang ' + (i + 1) + '</div><canvas></canvas><div class="notes-layer"></div><div class="page-num">' + (i + 1) + ' / ' + pageSizes.length + '</div>';
+        col.appendChild(wrap);
+        renderNotesForPage(i + 1);
+      });
+      sizeAllPages();
+      // Lazy render observer
+      if (pageObserver) pageObserver.disconnect();
+      pageObserver = new IntersectionObserver(entries => {
+        entries.forEach(en => {
+          const p = +en.target.dataset.page;
+          if (en.isIntersecting){ renderPage(p); }
+          if (en.intersectionRatio > 0.25){ currentPage = p; updatePageInd(); }
+        });
+      }, { root: $('#pagesScroll'), rootMargin: '500px 0px', threshold: [0, 0.25] });
+      document.querySelectorAll('.page-wrap').forEach(w => pageObserver.observe(w));
+    }
+    function sizeAllPages(){
+      document.querySelectorAll('.page-wrap').forEach(wrap => {
+        const sz = pageSizes[+wrap.dataset.page - 1];
+        wrap.style.width = Math.round(sz.w * scale) + 'px';
+        wrap.style.height = Math.round(sz.h * scale) + 'px';
+        wrap.querySelectorAll('.note').forEach(el => {
+          const n = findNote(el.dataset.nid); if (n) el.querySelector('.note-text').style.fontSize = Math.max(9, n.style.sizeFrac * sz.w * scale) + 'px';
+        });
+      });
+      $('#zoomLabel').textContent = Math.round(scale * 100) + '%';
+    }
+    const renderStamps = {};
+    async function renderPage(p){
+      if (!pdfDoc) return;
+      const stamp = Math.round(scale * 100);
+      if (renderStamps[p] === stamp) return;
+      renderStamps[p] = stamp;
+      const wrap = document.querySelector('.page-wrap[data-page="' + p + '"]');
+      if (!wrap) return;
+      try {
+        const page = await pdfDoc.getPage(p);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const vp = page.getViewport({ scale: scale * dpr });
+        const canvas = wrap.querySelector('canvas');
+        canvas.width = vp.width; canvas.height = vp.height;
+        canvas.style.width = Math.round(vp.width / dpr) + 'px';
+        canvas.style.height = Math.round(vp.height / dpr) + 'px';
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+        const ld = wrap.querySelector('.page-loading'); if (ld) ld.remove();
+      } catch (e) { delete renderStamps[p]; }
+    }
+    function updatePageInd(){ $('#pageInd').textContent = 'Trang ' + currentPage + ' / ' + pageSizes.length; }
+    function setScale(s, fit){
+      scale = Math.max(0.2, Math.min(4, s)); fitMode = !!fit;
+      Object.keys(renderStamps).forEach(k => delete renderStamps[k]);
+      sizeAllPages();
+      document.querySelectorAll('.page-wrap').forEach(w => { if (isInView(w)) renderPage(+w.dataset.page); });
+    }
+    function isInView(el){ const r = el.getBoundingClientRect(); const sr = $('#pagesScroll').getBoundingClientRect(); return r.bottom > sr.top - 500 && r.top < sr.bottom + 500; }
+    $('#zoomIn').addEventListener('click', () => setScale(scale * 1.25));
+    $('#zoomOut').addEventListener('click', () => setScale(scale / 1.25));
+    $('#zoomFit').addEventListener('click', () => { fitScale(); setScale(scale, true); });
+    $('#pagesScroll').addEventListener('wheel', e => {
+      if (e.ctrlKey || e.metaKey){ e.preventDefault(); setScale(scale * (e.deltaY < 0 ? 1.1 : 0.9)); }
+    }, { passive: false });
+    let resizeTimer = null;
+    window.addEventListener('resize', () => { if (!currentReader || !fitMode) return; clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { fitScale(); setScale(scale, true); }, 200); });
+
+    /* ================= Notes rendering ================= */
+    function applyNoteStyle(el, n){
+      el.style.left = (n.x * 100) + '%';
+      el.style.top = (n.y * 100) + '%';
+      el.style.width = (n.w * 100) + '%';
+      el.style.background = n.style.highlight || 'transparent';
+      const t = el.querySelector('.note-text');
+      t.style.fontFamily = '"' + n.style.font + '", sans-serif';
+      t.style.fontWeight = n.style.bold ? '700' : '400';
+      t.style.fontStyle = n.style.italic ? 'italic' : 'normal';
+      t.style.textDecoration = n.style.underline ? 'underline' : 'none';
+      t.style.textUnderlineOffset = '3px';
+      t.style.color = n.style.color;
+      t.style.textAlign = n.style.align;
+      const sz = pageSizes[n.page - 1];
+      if (sz) t.style.fontSize = Math.max(9, n.style.sizeFrac * sz.w * scale) + 'px';
+    }
+    function renderNotesForPage(p){
+      const wrap = document.querySelector('.page-wrap[data-page="' + p + '"]');
+      if (!wrap || !currentReader) return;
+      const layer = wrap.querySelector('.notes-layer');
+      layer.innerHTML = '';
+      currentReader.notes.filter(n => n.page === p).forEach(n => {
+        const el = document.createElement('div');
+        el.className = 'note' + (n.id === selectedNoteId ? ' sel' : '');
+        el.dataset.nid = n.id;
+        el.innerHTML = '<div class="note-text"></div>' +
+          '<button class="note-del" title="Xóa ghi chú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+          '<span class="note-resize"></span>';
+        const t = el.querySelector('.note-text');
+        t.textContent = n.text;
+        if (!n.text && n.id !== editingId) t.innerHTML = '<span class="note-empty-hint">Ghi chú…</span>';
+        if (n.id === editingId) t.contentEditable = 'true';
+        applyNoteStyle(el, n);
+        layer.appendChild(el);
+      });
+    }
+    function noteEl(id){ return document.querySelector('.note[data-nid="' + id + '"]'); }
+
+    /* ================= Selection & editing ================= */
+    function selectNote(id){
+      if (editingId && editingId !== id) finishEdit();
+      selectedNoteId = id;
+      document.querySelectorAll('.note').forEach(el => el.classList.toggle('sel', el.dataset.nid === id));
+      if (id){ const n = findNote(id); if (n){ lastStyle = Object.assign({}, n.style); } syncFormatBar(); $('#formatBar').classList.remove('hidden'); }
+      else $('#formatBar').classList.add('hidden');
+    }
+    function startEdit(id){
+      selectNote(id);
+      editingId = id;
+      const el = noteEl(id); if (!el) return;
+      const t = el.querySelector('.note-text');
+      if (t.querySelector('.note-empty-hint')) t.textContent = '';
+      t.contentEditable = 'true';
+      t.focus();
+      const range = document.createRange(); range.selectNodeContents(t); range.collapse(false);
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    }
+    function finishEdit(){
+      if (!editingId) return;
+      const id = editingId; editingId = null;
+      const n = findNote(id); if (!n) return;
+      const el = noteEl(id);
+      if (el){ const t = el.querySelector('.note-text'); n.text = t.innerText.replace(/\n+$/, ''); t.contentEditable = 'false'; }
+      if (!n.text.trim()){
+        currentReader.notes = currentReader.notes.filter(x => x.id !== id);
+        if (selectedNoteId === id) selectedNoteId = null;
+        $('#formatBar').classList.add('hidden');
+        renderNotesForPage(n.page);
+      } else {
+        renderNotesForPage(n.page);
+        const el2 = noteEl(id); if (el2 && selectedNoteId === id) el2.classList.add('sel');
+      }
+      scheduleSave();
+    }
+    document.addEventListener('focusout', e => {
+      if (editingId && e.target.classList && e.target.classList.contains('note-text')) finishEdit();
+    });
+    document.addEventListener('input', e => {
+      if (editingId && e.target.classList && e.target.classList.contains('note-text')){
+        const n = findNote(editingId); if (n){ n.text = e.target.innerText; scheduleSave(); }
+      }
+    });
+
+    /* ================= Pointer interactions ================= */
+    $('#addTextBtn').addEventListener('click', () => {
+      addMode = !addMode;
+      $('#addTextBtn').classList.toggle('active', addMode);
+      $('#addHint').classList.toggle('hidden', !addMode);
+      document.querySelectorAll('.page-wrap').forEach(w => w.classList.toggle('add-mode', addMode));
+      if (addMode) selectNote(null);
+    });
+    $('#pagesCol').addEventListener('click', e => {
+      const wrap = e.target.closest('.page-wrap'); if (!wrap) return;
+      if (e.target.closest('.note')) return;
+      if (addMode){
+        const rect = wrap.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        createNote(+wrap.dataset.page, x, y);
+      } else if (!e.target.closest('.note')) selectNote(null);
+    });
+    function createNote(page, x, y){
+      const w = 0.34;
+      const n = { id: uid(), page, x: Math.max(0, Math.min(x, 1 - w)), y: Math.max(0, Math.min(y, 0.97)), w, text: '', style: Object.assign({}, lastStyle) };
+      currentReader.notes.push(n);
+      renderNotesForPage(page);
+      startEdit(n.id);
+      scheduleSave();
+    }
+    let dragCtx = null;
+    $('#pagesCol').addEventListener('pointerdown', e => {
+      const delBtn = e.target.closest('.note-del');
+      if (delBtn){ e.preventDefault(); e.stopPropagation(); deleteNote(delBtn.closest('.note').dataset.nid); return; }
+      const noteElClicked = e.target.closest('.note'); if (!noteElClicked) return;
+      const id = noteElClicked.dataset.nid;
+      const n = findNote(id); if (!n) return;
+      if (selectedNoteId !== id) selectNote(id);
+      if (editingId === id) return; // let text editing work
+      const wrap = noteElClicked.closest('.page-wrap');
+      const rect = wrap.getBoundingClientRect();
+      const isResize = !!e.target.closest('.note-resize');
+      dragCtx = { id, type: isResize ? 'resize' : 'move', startX: e.clientX, startY: e.clientY, ox: n.x, oy: n.y, ow: n.w, rect, moved: false };
+      noteElClicked.setPointerCapture(e.pointerId);
+    });
+    $('#pagesCol').addEventListener('pointermove', e => {
+      if (!dragCtx) return;
+      const n = findNote(dragCtx.id); if (!n) { dragCtx = null; return; }
+      const dx = (e.clientX - dragCtx.startX) / dragCtx.rect.width;
+      const dy = (e.clientY - dragCtx.startY) / dragCtx.rect.height;
+      if (Math.abs(e.clientX - dragCtx.startX) + Math.abs(e.clientY - dragCtx.startY) > 3) dragCtx.moved = true;
+      if (dragCtx.type === 'move'){
+        n.x = Math.max(0, Math.min(dragCtx.ox + dx, 1 - n.w));
+        n.y = Math.max(0, Math.min(dragCtx.oy + dy, 0.98));
+      } else {
+        n.w = Math.max(0.09, Math.min(dragCtx.ow + dx, 1 - n.x));
+      }
+      const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
+    });
+    $('#pagesCol').addEventListener('pointerup', e => {
+      if (!dragCtx) return;
+      const wasMoved = dragCtx.moved; dragCtx = null;
+      if (wasMoved) scheduleSave();
+    });
+    $('#pagesCol').addEventListener('dblclick', e => {
+      const el = e.target.closest('.note'); if (!el) return;
+      startEdit(el.dataset.nid);
+    });
+    function deleteNote(id){
+      const n = findNote(id); if (!n) return;
+      currentReader.notes = currentReader.notes.filter(x => x.id !== id);
+      if (selectedNoteId === id) selectedNoteId = null;
+      if (editingId === id) editingId = null;
+      $('#formatBar').classList.add('hidden');
+      renderNotesForPage(n.page);
+      scheduleSave();
+      toast('Đã xóa ghi chú.');
+    }
+    document.addEventListener('keydown', e => {
+      if (!currentReader) return;
+      if (e.key === 'Escape'){ if (editingId) finishEdit(); else if (addMode) $('#addTextBtn').click(); else selectNote(null); }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNoteId && !editingId) deleteNote(selectedNoteId);
+    });
+</script>
+
+    <script>
+    'use strict';
+    /* ================= Format bar ================= */
+    function buildSwatches(){
+      $('#colorSwatches').innerHTML = TEXT_COLORS.map(c => '<button class="swatch" data-tcolor="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('');
+      $('#hlSwatches').innerHTML = HL_COLORS.map((c, i) => c === ''
+        ? '<button class="swatch none" data-hl="" title="Không highlight">∅</button>'
+        : '<button class="swatch" data-hl="' + c + '" style="background:' + HL_FACE[i] + '" title="Highlight"></button>').join('');
+    }
+    function syncFormatBar(){
+      const n = findNote(selectedNoteId); if (!n) return;
+      const s = n.style;
+      $('#fmtFont').value = s.font;
+      const sz = pageSizes[n.page - 1];
+      $('#sizeVal').textContent = sz ? Math.round(s.sizeFrac * sz.w) : '';
+      $('#fmtBold').classList.toggle('active', !!s.bold);
+      $('#fmtItalic').classList.toggle('active', !!s.italic);
+      $('#fmtUnderline').classList.toggle('active', !!s.underline);
+      document.querySelectorAll('#formatBar [data-align]').forEach(b => b.classList.toggle('active', b.dataset.align === s.align));
+      document.querySelectorAll('#colorSwatches [data-tcolor]').forEach(b => b.classList.toggle('active', b.dataset.tcolor.toLowerCase() === String(s.color).toLowerCase()));
+      document.querySelectorAll('#hlSwatches [data-hl]').forEach(b => b.classList.toggle('active', b.dataset.hl === (s.highlight || '')));
+    }
+    function applyStyle(prop, value){
+      const n = findNote(selectedNoteId); if (!n) return;
+      n.style[prop] = value;
+      lastStyle = Object.assign({}, n.style);
+      const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
+      syncFormatBar();
+      scheduleSave();
+    }
+    $('#fmtFont').addEventListener('change', e => applyStyle('font', e.target.value));
+    $('#fmtBold').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('bold', !n.style.bold); });
+    $('#fmtItalic').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('italic', !n.style.italic); });
+    $('#fmtUnderline').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('underline', !n.style.underline); });
+    $('#sizePlus').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('sizeFrac', Math.min(0.09, +(n.style.sizeFrac + 0.0025).toFixed(4))); });
+    $('#sizeMinus').addEventListener('click', () => { const n = findNote(selectedNoteId); if (n) applyStyle('sizeFrac', Math.max(0.011, +(n.style.sizeFrac - 0.0025).toFixed(4))); });
+    document.querySelectorAll('#formatBar [data-align]').forEach(b => b.addEventListener('click', () => applyStyle('align', b.dataset.align)));
+    $('#colorSwatches').addEventListener('click', e => { const b = e.target.closest('[data-tcolor]'); if (b) applyStyle('color', b.dataset.tcolor); });
+    $('#hlSwatches').addEventListener('click', e => { const b = e.target.closest('[data-hl]'); if (b) applyStyle('highlight', b.dataset.hl); });
+    $('#colorCustom').addEventListener('input', e => applyStyle('color', e.target.value));
+    $('#deleteNoteBtn').addEventListener('click', () => { if (selectedNoteId) deleteNote(selectedNoteId); });
+    // Keep editing alive when interacting with the format bar
+    $('#formatBar').addEventListener('pointerdown', e => { if (editingId && !e.target.closest('select, input')) e.preventDefault(); }, true);
+
+    /* ================= Export annotated PDF ================= */
+    function wrapTextCanvas(ctx, text, maxW){
+      const out = [];
+      text.split('\n').forEach(par => {
+        if (!par){ out.push(''); return; }
+        let line = '';
+        par.split(' ').forEach(word => {
+          const test = line ? line + ' ' + word : word;
+          if (ctx.measureText(test).width > maxW && line){ out.push(line); line = word; }
+          else line = test;
+        });
+        out.push(line);
+      });
+      return out;
+    }
+    async function exportPdf(){
+      if (!currentReader || !pdfDoc) return;
+      const btn = $('#exportBtn'); btn.disabled = true;
+      toast('Đang tạo PDF kèm ghi chú…');
+      try {
+        const out = await PDFLib.PDFDocument.create();
+        const RS = 2;
+        for (let p = 1; p <= pdfDoc.numPages; p++){
+          const page = await pdfDoc.getPage(p);
+          const vp1 = page.getViewport({ scale: 1 });
+          const vp = page.getViewport({ scale: RS });
+          const canvas = document.createElement('canvas');
+          canvas.width = vp.width; canvas.height = vp.height;
+          const ctx = canvas.getContext('2d');
+          await page.render({ canvasContext: ctx, viewport: vp }).promise;
+          // Draw notes
+          currentReader.notes.filter(n => n.page === p).forEach(n => {
+            const x = n.x * canvas.width, y = n.y * canvas.height, w = n.w * canvas.width;
+            const fontPx = n.style.sizeFrac * vp1.width * RS;
+            if (n.style.highlight){
+              ctx.fillStyle = n.style.highlight;
+              const lines0 = wrapTextCanvas(ctx, n.text, w - 10);
+              ctx.fillRect(x, y, w, Math.max(fontPx * 1.5, lines0.length * fontPx * 1.4 + 8));
+            }
+            ctx.font = (n.style.italic ? 'italic ' : '') + (n.style.bold ? '700 ' : '400 ') + fontPx + 'px "' + n.style.font + '", sans-serif';
+            ctx.fillStyle = n.style.color;
+            ctx.textBaseline = 'top';
+            const lines = wrapTextCanvas(ctx, n.text, w - 10);
+            lines.forEach((line, li) => {
+              const lw = ctx.measureText(line).width;
+              let lx = x + 5;
+              if (n.style.align === 'center') lx = x + (w - lw) / 2;
+              else if (n.style.align === 'right') lx = x + w - 5 - lw;
+              const ly = y + 4 + li * fontPx * 1.4;
+              ctx.fillText(line, lx, ly);
+              if (n.style.underline && line){ ctx.fillRect(lx, ly + fontPx * 1.14, lw, Math.max(1, fontPx * 0.055)); }
+            });
+          });
+          const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.88));
+          const img = await out.embedJpg(await blob.arrayBuffer());
+          const pg = out.addPage([vp1.width, vp1.height]);
+          pg.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
+        }
+        const bytes = await out.save();
+        const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.href = url; a.download = currentReader.name + ' - ghi chú.pdf';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        toast('Đã xuất PDF kèm ghi chú.');
+      } catch (e) {
+        toast('Xuất PDF thất bại, thử lại sau.');
+      }
+      btn.disabled = false;
+    }
+    $('#exportBtn').addEventListener('click', exportPdf);
+
+    /* ================= Init ================= */
+    (async function init(){
+      buildSwatches();
+      try {
+        await DB.open();
+        folders = await DB.getAll('folders');
+        docs = await DB.getAll('docs');
+        let seeded = false;
+        try { seeded = !!localStorage.getItem('ghichu-seeded'); } catch (e) {}
+        if (!seeded && folders.length === 0 && docs.length === 0){
+          const seedNames = [['Toán học', '#2563eb'], ['Ngữ văn', '#be3455'], ['Tiếng Anh', '#0e7c66'], ['Vật lý', '#b45309']];
+          for (const [name, color] of seedNames){
+            const f = { id: uid(), name, color, createdAt: Date.now() };
+            await DB.put('folders', f); folders.push(f);
+          }
+          try { localStorage.setItem('ghichu-seeded', '1'); } catch (e) {}
+        }
+        renderLibrary();
+      } catch (e) {
+        document.querySelector('#docsArea').innerHTML = '<div class="empty"><span class="t">Không mở được bộ nhớ lưu trữ</span><p>Trình duyệt đang chặn IndexedDB (ví dụ chế độ ẩn danh). Hãy mở trang ở chế độ thường để ghi chú được lưu lại.</p></div>';
+      }
+    })();
+    </script>
+  </body>
+</html>
