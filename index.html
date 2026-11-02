@@ -189,6 +189,29 @@
       .shelf-head{display:flex;align-items:baseline;gap:12px;margin:4px 0 0;flex-wrap:wrap;}
       .shelf-head h2{font-size:16px;font-weight:600;letter-spacing:-.01em;margin:0;color:var(--ink);}
       .shelf-head .hint{color:var(--muted);font-size:13px;}
+      .sort-sel{margin-left:auto;height:30px;border:1px solid var(--control);border-radius:var(--radius-control);background:var(--surface);color:var(--ink);padding:0 8px;font-size:13px;}
+      .drop-ico{display:inline-flex;align-items:center;color:var(--muted);vertical-align:-3px;margin-left:6px;cursor:help;}
+      .drop-ico svg{width:17px;height:17px;}
+      .page-title{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:0 0 2px;}
+      .page-sub{margin:0;color:var(--muted);font-size:13.5px;max-width:640px;}
+      .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--radius);margin:18px 0 16px;}
+      .kpi{padding:16px 20px;border-left:1px solid var(--line);min-width:0;}
+      .kpi:first-child{border-left:0;}
+      .kpi .k-l{font-size:12.5px;color:var(--muted);}
+      .kpi .k-v{font-size:26px;font-weight:600;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums;}
+      .kpi .k-s{font-size:12.5px;color:var(--muted);margin-top:2px;}
+      .charts{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px;margin-bottom:16px;}
+      .chart-card{border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;min-width:0;}
+      .chart-card h3{font-size:14px;font-weight:600;margin:0 0 2px;letter-spacing:-.005em;}
+      .chart-card .sub{font-size:12.5px;color:var(--muted);margin-bottom:12px;}
+      .chart-card svg text{font-family:var(--font-ui);font-size:11px;fill:var(--muted);}
+      .hbar-row{display:grid;grid-template-columns:minmax(0,130px) 1fr auto;gap:10px;align-items:center;padding:5px 0;font-size:13px;}
+      .hbar-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .hbar-row .vl{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12.5px;}
+      .hbar{height:8px;border-radius:4px;background:var(--surface-2);}
+      .hbar i{display:block;height:100%;border-radius:4px;background:var(--accent);}
+      .chart-empty{color:var(--muted);font-size:13px;padding:18px 0;}
+      @media (max-width:900px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr));} .kpi:nth-child(3){border-left:0;} .kpi:nth-child(n+3){border-top:1px solid var(--line);} .charts{grid-template-columns:minmax(0,1fr);} }
       .shelf-head .full-shelf{margin-left:auto;font-size:13px;font-weight:500;color:var(--ink-2);display:inline-flex;gap:6px;align-items:center;}
       .shelf-head .full-shelf svg{width:14px;height:14px;}
       .shelf-head .full-shelf:hover{color:var(--ink);}
@@ -628,13 +651,13 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
             My Library
           </button>
-          <button class="side-nav-item" id="navShopBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h15l-1.7 8.5a2 2 0 0 1-2 1.5H8.6a2 2 0 0 1-2-1.6L4.3 3.8A1 1 0 0 0 3.3 3H2"/><circle cx="9" cy="21" r="1.4"/><circle cx="17" cy="21" r="1.4"/></svg>
-            Store
-          </button>
           <button class="side-nav-item" id="navNewsBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
             News
+          </button>
+          <button class="side-nav-item" id="navSettingsBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+            Settings
           </button>
           <p class="side-title">Subjects</p>
           <div class="folder-list" id="folderList"></div>
@@ -657,6 +680,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg>
             </button>
           </div>
+          <div id="libraryPane">
           <div class="lib-topbar">
             <div class="lib-tabs" role="tablist">
               <button class="lib-tab active" id="tabShelves">Shelves</button>
@@ -673,7 +697,22 @@
             </button>
           </div>
           <div class="folder-row-mobile" id="folderRowMobile"></div>
-          <div class="drive-bar">
+          <div class="shelf-head">
+            <h2 id="docsTitle">All Documents</h2>
+            <span class="hint" id="docsHint"></span>
+            <select class="sort-sel" id="sortSel" aria-label="Sort documents">
+              <option value="recent">Recent</option>
+              <option value="newest">Newest</option>
+              <option value="alpha">A–Z</option>
+            </select>
+          </div>
+          <div id="docsArea"></div>
+          </div>
+          <div id="homeView" class="hidden"></div>
+          <div id="settingsView" class="hidden">
+            <h2 class="page-title">Settings</h2>
+            <p class="page-sub">Sync your library across devices.</p>
+          <div class="drive-bar" style="margin-top:16px">
             <div class="drive-card">
               <div class="drive-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg></div>
               <div class="drive-main">
@@ -683,17 +722,13 @@
               <div class="drive-actions">
                 <button class="btn drive" id="driveConnectBtn">Connect Google Drive</button>
                 <button class="btn hidden" id="driveSyncBtn">Sync Now</button>
-                <button class="btn hidden" id="driveSetupBtn">Settings</button>
-                <button class="btn" id="driveHelpBtn">Use on 2 Devices</button>
+                <button class="btn hidden" id="driveSetupBtn">Client ID</button>
                 <button class="btn hidden" id="driveDisconnectBtn">Disconnect</button>
               </div>
             </div>
           </div>
-          <div class="shelf-head">
-            <h2 id="docsTitle">All Documents</h2>
-            <span class="hint" id="docsHint"></span>
+            <p class="page-sub" style="margin-top:14px">On another device: open this app, tap <b>Connect Google Drive</b> and sign in with the same Google account. Folders, documents and notes stay in step, and deleting a document here removes it everywhere.</p>
           </div>
-          <div id="docsArea"></div>
         </section>
       </div>
       <nav class="mobile-bottom-nav" id="mobileBottomNav">
@@ -701,7 +736,7 @@
         <button data-nav="continue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5v15l6-4.5 6 4.5v-15Z"/></svg><span>Continue</span></button>
         <button data-nav="import" class="nav-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Import PDF</span></button>
         <button data-nav="folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span>New Folder</span></button>
-        <button data-nav="drive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg><span>Drive</span></button>
+        <button data-nav="drive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg><span>Settings</span></button>
       </nav>
     </div>
 
@@ -866,6 +901,9 @@
     let docs = [];
     let currentFolderId = 'all'; // 'all' | folder id | 'none'
     let libViewMode = 'shelves'; // 'shelves' (ke sach) | 'all' (luoi tat ca)
+    let libView = 'library';     // 'library' | 'home' (statistics) | 'settings'
+    let sortMode = 'recent';     // 'recent' (last opened) | 'newest' (date added) | 'alpha'
+    try { sortMode = localStorage.getItem('nt-sort') || 'recent'; } catch (e) {}
     let searchText = '';
 
     /* ================= Modal ================= */
@@ -925,7 +963,7 @@
       const save = async () => {
         const name = input.value.trim();
         if (!name){ input.focus(); return; }
-        if (isNew){ const nf = { id: uid(), name, color, createdAt: Date.now(), updatedAt: Date.now() }; if (cover) nf.cover = cover; await DB.put('folders', nf); folders.push(nf); currentFolderId = nf.id; }
+        if (isNew){ const nf = { id: uid(), name, color, createdAt: Date.now(), updatedAt: Date.now() }; if (cover) nf.cover = cover; await DB.put('folders', nf); folders.push(nf); currentFolderId = nf.id; libView = 'library'; }
         else { f.name = name; f.color = color; if (cover) f.cover = cover; else delete f.cover; f.updatedAt = Date.now(); await DB.put('folders', f); }
         closeModal(); renderLibrary();
       };
@@ -952,10 +990,16 @@
 
     /* ================= Library ================= */
     function folderDocs(fid){ return docs.filter(d => (fid === 'none' ? !d.folderId : d.folderId === fid)); }
+    function sortDocs(list){
+      const m = sortMode;
+      return list.sort((a, b) => m === 'alpha' ? a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+        : m === 'newest' ? (b.createdAt || 0) - (a.createdAt || 0)
+        : (b.lastOpenedAt || b.updatedAt || 0) - (a.lastOpenedAt || a.updatedAt || 0));
+    }
     function visibleDocs(){
       let list = currentFolderId === 'all' ? docs.slice() : folderDocs(currentFolderId);
       if (searchText) list = list.filter(d => d.name.toLowerCase().includes(searchText));
-      return list.sort((a, b) => b.updatedAt - a.updatedAt);
+      return sortDocs(list);
     }
     function folderOf(d){ return d.folderId ? folders.find(f => f.id === d.folderId) : null; }
     function isFinishedDoc(d){ return !!(d.lastOpenedAt && d.pages > 0 && (d.lastPage || 1) >= d.pages); }
@@ -1048,14 +1092,26 @@
       const tS = $('#tabShelves'), tA = $('#tabAll');
       if (tS && tA){ tS.classList.toggle('active', libViewMode === 'shelves'); tA.classList.toggle('active', libViewMode === 'all'); }
       renderContinue();
+      // Which pane is showing (Home statistics / Library / Settings)
+      $('#libraryPane').classList.toggle('hidden', libView !== 'library');
+      $('#homeView').classList.toggle('hidden', libView !== 'home');
+      $('#settingsView').classList.toggle('hidden', libView !== 'settings');
+      [['navHomeBtn', 'home'], ['navLibBtn', 'library'], ['navSettingsBtn', 'settings']].forEach(([id, v]) => { const b = document.getElementById(id); if (b) b.classList.toggle('active', libView === v); });
+      if (libView === 'home'){ renderHome(); return; }
+      if (libView !== 'library') return;
+      $('#sortSel').value = sortMode;
       // Docs head
       let title = libViewMode === 'shelves' ? 'My Shelves' : 'All Documents';
       if (currentFolderId === 'none') title = 'Uncategorized';
       else if (currentFolderId !== 'all'){ const f = folders.find(x => x.id === currentFolderId); title = f ? f.name : title; }
       if (searchText) title = 'Search Results';
       $('#docsTitle').textContent = title;
-      $('#docsHint').textContent = searchText ? 'Filtered by keyword — each cover is the first page of its file.'
-        : (currentFolderId === 'all' ? 'Open a document to resume exactly where you left off.' : 'New imports will go into this folder.');
+      const inFolder = !searchText && currentFolderId !== 'all';
+      const dropIco = '<span class="drop-ico" title="Drag PDF files onto this page to add them to this folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4m0 0L8 8m4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>';
+      const nDocs = visibleDocs().length;
+      if (searchText) $('#docsHint').textContent = 'Filtered by keyword — each cover is the first page of its file.';
+      else if (inFolder) $('#docsHint').innerHTML = nDocs + (nDocs === 1 ? ' document' : ' documents') + dropIco;
+      else $('#docsHint').innerHTML = 'Open a document to resume exactly where you left off.' + dropIco;
       // Docs area
       const list = visibleDocs();
       const area = $('#docsArea');
@@ -1078,14 +1134,74 @@
         area.innerHTML = shelfHTML('Currently Reading', reading) + shelfHTML('Next Up', next) + shelfHTML('Finished', finished);
         if (!area.innerHTML) area.innerHTML = '<div class="book-grid">' + list.map(bookCardHTML).join('') + '</div>';
       } else if (libViewMode === 'shelves' && !searchText){
-        // Mot folder = mot ke
-        area.innerHTML = shelfHTML(title, list);
+        // One folder = one flat grid (the heading above already names it)
+        area.innerHTML = '<div class="book-grid">' + list.map(bookCardHTML).join('') + '</div>';
       } else {
         area.innerHTML = '<div class="book-grid">' + list.map(bookCardHTML).join('') + '</div>';
       }
     }
+    /* ================= Home: statistics ================= */
+    function dayKey(t){ const d = new Date(t || Date.now()); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+    function docSecs(d){ let t = 0; const l = d.readLog || {}; for (const k in l) t += l[k] || 0; return t; }
+    function fmtDur(sec){ const m = Math.round(sec / 60); if (m < 60) return m + ' min'; return Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min'; }
+    function inkCount(d){ let n = 0; if (d.ink) for (const k in d.ink) n += (d.ink[k] || []).length; return n; }
+    function niceMax(v){ const steps = [10, 20, 30, 60, 90, 120, 180, 240, 360, 480]; return steps.find(x => x >= v) || Math.ceil(v / 60) * 60; }
+    function renderHome(){
+      const el = $('#homeView');
+      const totalPages = docs.reduce((a, d) => a + (d.pages || 0), 0);
+      const pagesRead = docs.reduce((a, d) => a + (d.lastOpenedAt ? Math.min(d.lastPage || 1, d.pages || 1) : 0), 0);
+      const secs = docs.reduce((a, d) => a + docSecs(d), 0);
+      const marks = docs.reduce((a, d) => a + (d.notes ? d.notes.length : 0) + inkCount(d), 0);
+      const days = []; const now = new Date();
+      for (let i = 13; i >= 0; i--){ const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); const k = dayKey(t); days.push({ k, d: t.getDate(), label: t.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }), m: docs.reduce((a, x) => a + ((x.readLog || {})[k] || 0), 0) / 60 }); }
+      const week = days.slice(7).reduce((a, x) => a + x.m, 0) * 60;
+      // bar chart
+      const mx = niceMax(Math.max.apply(null, days.map(x => x.m).concat([5])));
+      const W = 620, H = 190, L = 34, B = 22, T = 8, cw = (W - L) / days.length, ch = H - B - T;
+      let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Reading minutes per day">';
+      [0, .5, 1].forEach(f => { const y = T + ch - f * ch; svg += '<line x1="' + L + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-width="1"' + (f ? ' stroke-dasharray="3 4"' : '') + '/><text x="' + (L - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + Math.round(f * mx) + '</text>'; });
+      days.forEach((x, i) => {
+        const h = Math.max(x.m ? 2 : 0, x.m / mx * ch), bx = L + i * cw + cw * 0.2;
+        svg += '<rect x="' + bx + '" y="' + (T + ch - h) + '" width="' + cw * 0.6 + '" height="' + h + '" rx="3" fill="var(--accent)"><title>' + x.label + ' — ' + Math.round(x.m) + ' min</title></rect>';
+        svg += '<text x="' + (bx + cw * 0.3) + '" y="' + (H - 6) + '" text-anchor="middle">' + x.d + '</text>';
+      });
+      svg += '</svg>';
+      // per folder
+      const groups = folders.map(f => ({ name: f.name, docs: folderDocs(f.id) }));
+      if (folderDocs('none').length) groups.push({ name: 'Uncategorized', docs: folderDocs('none') });
+      const gmax = Math.max.apply(null, groups.map(g => g.docs.reduce((a, d) => a + (d.pages || 0), 0)).concat([1]));
+      const folderRows = groups.length ? groups.map(g => { const pg = g.docs.reduce((a, d) => a + (d.pages || 0), 0); return '<div class="hbar-row"><span class="nm" title="' + esc(g.name) + '">' + esc(g.name) + '</span><span class="hbar"><i style="width:' + (pg / gmax * 100) + '%"></i></span><span class="vl">' + g.docs.length + (g.docs.length === 1 ? ' doc' : ' docs') + ' · ' + pg + ' pp</span></div>'; }).join('') : '<div class="chart-empty">No folders yet.</div>';
+      const top = docs.filter(d => docSecs(d) > 0).sort((a, b) => docSecs(b) - docSecs(a)).slice(0, 5);
+      const tmax = top.length ? docSecs(top[0]) : 1;
+      const topRows = top.length ? top.map(d => '<div class="hbar-row"><span class="nm" title="' + esc(d.name) + '">' + esc(d.name) + '</span><span class="hbar"><i style="width:' + (docSecs(d) / tmax * 100) + '%"></i></span><span class="vl">' + fmtDur(docSecs(d)) + '</span></div>').join('') : '<div class="chart-empty">Time is counted while a document is open and you are working in it.</div>';
+      el.innerHTML = '<h2 class="page-title">Home</h2><p class="page-sub">Your library and study time at a glance.</p>' +
+        '<div class="kpis">' +
+          '<div class="kpi"><div class="k-l">Documents</div><div class="k-v">' + docs.length + '</div><div class="k-s">' + folders.length + (folders.length === 1 ? ' folder' : ' folders') + '</div></div>' +
+          '<div class="kpi"><div class="k-l">Pages</div><div class="k-v">' + totalPages.toLocaleString('en-US') + '</div><div class="k-s">' + pagesRead.toLocaleString('en-US') + ' reached' + (totalPages ? ' (' + Math.round(pagesRead / totalPages * 100) + '%)' : '') + '</div></div>' +
+          '<div class="kpi"><div class="k-l">Time spent</div><div class="k-v">' + fmtDur(secs) + '</div><div class="k-s">' + fmtDur(week) + ' in the last 7 days</div></div>' +
+          '<div class="kpi"><div class="k-l">Notes and drawings</div><div class="k-v">' + marks.toLocaleString('en-US') + '</div><div class="k-s">across all documents</div></div>' +
+        '</div>' +
+        '<div class="charts"><div class="chart-card"><h3>Time per day</h3><div class="sub">Minutes, last 14 days</div>' + svg + '</div>' +
+        '<div class="chart-card"><h3>Documents by folder</h3><div class="sub">Pages per folder</div>' + folderRows + '</div></div>' +
+        '<div class="chart-card"><h3>Most-used documents</h3><div class="sub">By time spent</div>' + topRows + '</div>';
+    }
     function shelfAreaClick(e){
       if (e.target.closest('[data-fullshelf]')){ libViewMode = 'all'; renderLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    }
+    /* Deleted documents are remembered ("tombstones", with their Drive file id) so every device
+       removes them too and the Drive copy is deleted, instead of the other device re-uploading it */
+    function deletedDocList(){ try { return JSON.parse(localStorage.getItem('nt-deleted-docs') || '[]'); } catch (e) { return []; } }
+    function setDeletedDocList(l){ try { localStorage.setItem('nt-deleted-docs', JSON.stringify(l.slice(-2000))); } catch (e) {} }
+    function addDocTombstone(id, fid){
+      const l = deletedDocList(), t = l.find(x => x.id === id);
+      if (t){ if (fid && !t.fid) t.fid = fid; } else l.push({ id, fid: fid || '' });
+      setDeletedDocList(l);
+    }
+    async function removeDoc(doc){
+      await DB.del('docs', doc.id); await DB.del('files', doc.id);
+      docs = docs.filter(x => x.id !== doc.id);
+      addDocTombstone(doc.id, doc.driveFileId);
+      if (typeof queueDriveSync === 'function') queueDriveSync();
     }
     function folderDeleteFlow(f){
       const n = folderDocs(f.id).length;
@@ -1096,7 +1212,7 @@
         '<button class="btn danger" id="mDelAll">Delete documents too</button></div>');
       $('#mCancel').addEventListener('click', closeModal);
       $('#mMove').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ d.folderId = null; await DB.put('docs', d); } await removeFolder(f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
-      $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ await DB.del('docs', d.id); await DB.del('files', d.id); docs = docs.filter(x => x.id !== d.id); } await removeFolder(f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
+      $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id).slice()){ await removeDoc(d); } await removeFolder(f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
     }
     function openFolderMenu(f, anchor){
       closeMenu();
@@ -1130,7 +1246,7 @@
       }
       const nf = e.target.closest('[data-newfolder]');
       if (nf){ folderForm(null); return; }
-      if (item){ currentFolderId = item.dataset.fid; renderLibrary(); }
+      if (item){ currentFolderId = item.dataset.fid; libView = 'library'; renderLibrary(); }
     };
     $('#folderList').addEventListener('click', onFolderListClick);
     const _frmEl = $('#folderRowMobile'); if (_frmEl) _frmEl.addEventListener('click', onFolderListClick);
@@ -1162,27 +1278,18 @@
         const act = b.dataset.m; closeMenu();
         if (act === 'open') openReader(doc.id);
         else if (act === 'rename') renameDocModal(doc);
-        else if (act === 'del') confirmModal('Delete document "' + doc.name + '"?', 'The document and all its notes will be deleted from this device.', 'Delete Document', async () => { await DB.del('docs', doc.id); await DB.del('files', doc.id); docs = docs.filter(x => x.id !== doc.id); renderLibrary(); }, true);
+        else if (act === 'del') confirmModal('Delete document "' + doc.name + '"?', 'The document and all its notes will be deleted from every connected device and from Google Drive.', 'Delete Document', async () => { await removeDoc(doc); renderLibrary(); }, true);
       });
     }
     $('#newFolderBtn').addEventListener('click', () => folderForm(null));
+    $('#sortSel').addEventListener('change', e => { sortMode = e.target.value; try { localStorage.setItem('nt-sort', sortMode); } catch (er) {} renderLibrary(); });
     const _tS = $('#tabShelves'), _tA = $('#tabAll');
     if (_tS) _tS.addEventListener('click', () => { libViewMode = 'shelves'; renderLibrary(); });
     if (_tA) _tA.addEventListener('click', () => { libViewMode = 'all'; renderLibrary(); });
     const _sg = $('#searchGoBtn'); if (_sg) _sg.addEventListener('click', () => { const i = $('#searchInput'); if (i) i.focus(); renderLibrary(); });
-    const scrollToDrive = () => { const c = document.querySelector('.drive-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+    const scrollToDrive = () => { libView = 'settings'; renderLibrary(); window.scrollTo({ top: 0 }); };
     const _sa = $('#sideAccountBtn'); if (_sa) _sa.addEventListener('click', scrollToDrive);
     const _gd = $('#greetDriveBtn'); if (_gd) _gd.addEventListener('click', scrollToDrive);
-    function shopModal(){
-      openModal('<h3>Store — Add Documents to Your Library</h3>' +
-        '<p>Your library currently has <b>' + docs.length + ' documents</b> in <b>' + folders.length + ' subject folders</b>. Add new books and documents by importing a PDF from your device, or connect Google Drive to bring in a library synced from another device.</p>' +
-        '<div class="modal-actions" style="justify-content:flex-start"><button class="btn" id="mCancel">Close</button>' +
-        '<button class="btn primary" id="mShopImport">Import New PDF</button>' +
-        '<button class="btn" id="mShopDrive">Connect / Sync Drive</button></div>');
-      $('#mCancel').addEventListener('click', closeModal);
-      $('#mShopImport').addEventListener('click', () => { closeModal(); $('#fileInput').click(); });
-      $('#mShopDrive').addEventListener('click', () => { closeModal(); const c = document.querySelector('.drive-card'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
-    }
     function newsModal(){
       const recent = docs.slice().sort((a, b) => (b.lastOpenedAt || b.updatedAt) - (a.lastOpenedAt || a.updatedAt)).slice(0, 6);
       const rows = recent.length ? recent.map(d =>
@@ -1193,16 +1300,16 @@
       $('#mCancel').addEventListener('click', closeModal);
       document.querySelectorAll('[data-news-open]').forEach(b => b.addEventListener('click', () => { closeModal(); openReader(b.dataset.newsOpen); }));
     }
-    const _nsh = $('#navShopBtn'); if (_nsh) _nsh.addEventListener('click', shopModal);
+    const _nst = $('#navSettingsBtn'); if (_nst) _nst.addEventListener('click', scrollToDrive);
     const _nnw = $('#navNewsBtn'); if (_nnw) _nnw.addEventListener('click', newsModal);
-    const _nh = $('#navHomeBtn'); if (_nh) _nh.addEventListener('click', () => { currentFolderId = 'all'; libViewMode = 'shelves'; renderLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
-    const _nl = $('#navLibBtn'); if (_nl) _nl.addEventListener('click', () => { libViewMode = 'shelves'; renderLibrary(); });
+    const _nh = $('#navHomeBtn'); if (_nh) _nh.addEventListener('click', () => { libView = 'home'; renderLibrary(); window.scrollTo({ top: 0 }); });
+    const _nl = $('#navLibBtn'); if (_nl) _nl.addEventListener('click', () => { libView = 'library'; libViewMode = 'shelves'; renderLibrary(); });
     const _mbn = $('#mobileBottomNav');
     if (_mbn) _mbn.addEventListener('click', e => {
       const b = e.target.closest('[data-nav]'); if (!b) return;
       _mbn.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
       const act = b.dataset.nav;
-      if (act === 'home'){ currentFolderId = 'all'; renderLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      if (act === 'home'){ currentFolderId = 'all'; libView = 'library'; renderLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
       else if (act === 'import'){ $('#fileInput').click(); }
       else if (act === 'folder'){ folderForm(null); }
       else if (act === 'drive'){ scrollToDrive(); }
@@ -1413,6 +1520,7 @@
       }
     }
     function closeReader(fromPop){
+      flushReadLog();
       if (fromPop !== true && history.state && history.state.nt === 'reader'){ history.back(); return; }
       flushLastPage();
       if (pdfDoc){ pdfDoc.destroy(); pdfDoc = null; }
@@ -1427,7 +1535,17 @@
     }
     $('#backBtn').addEventListener('click', () => closeReader());
     window.addEventListener('popstate', () => { if (currentReader) closeReader(true); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) flushLastPage(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden){ flushLastPage(); flushReadLog(); } });
+    /* Time spent: counts 5 s at a time while a document is open, the tab is visible and you touched it in the last minute */
+    let lastActive = Date.now(), readLogDirty = false;
+    ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { lastActive = Date.now(); }, { passive: true, capture: true }));
+    setInterval(() => {
+      if (!currentReader || document.hidden || Date.now() - lastActive > 60000) return;
+      const k = dayKey(), l = currentReader.readLog || (currentReader.readLog = {});
+      l[k] = (l[k] || 0) + 5; readLogDirty = true;
+    }, 5000);
+    function flushReadLog(){ if (readLogDirty && currentReader){ readLogDirty = false; DB.put('docs', currentReader).catch(() => {}); } }
+    setInterval(flushReadLog, 30000);
     window.addEventListener('beforeunload', () => { flushLastPage(); });
 
     /* ================= Pages ================= */
@@ -2205,7 +2323,8 @@
       let s = folders.length + ':' + docs.length + ':';
       folders.forEach(f => { s += f.id + f.name + (f.updatedAt || 0) + ';'; });
       s += deletedFolderIds().length + ':';
-      docs.forEach(d => { s += d.id + (d.updatedAt || 0) + (d.pageUpdatedAt || 0) + (d.lastPage || 0) + (d.notes ? d.notes.length : 0) + ';'; });
+      s += deletedDocList().length + ':';
+      docs.forEach(d => { s += Math.floor(docSecs(d) / 600) + d.id + (d.updatedAt || 0) + (d.pageUpdatedAt || 0) + (d.lastPage || 0) + (d.notes ? d.notes.length : 0) + ';'; });
       return s;
     }
     function queueDriveSync(){
@@ -2299,7 +2418,18 @@
         if (!lf){ folders.push(rf); await DB.put('folders', rf); changed = true; }
         else if ((rf.updatedAt || 0) > (lf.updatedAt || 0)){ Object.assign(lf, rf); if (!rf.cover) delete lf.cover; await DB.put('folders', lf); changed = true; }
       }
+      // documents deleted on any device are deleted here too
+      const dtomb = new Set(deletedDocList().map(t => t.id).concat(remote.deletedDocs || []));
+      for (const id of dtomb){
+        const ld0 = docs.find(d => d.id === id);
+        if (ld0){
+          addDocTombstone(id, ld0.driveFileId);
+          await DB.del('docs', id); await DB.del('files', id); docs = docs.filter(d => d.id !== id); changed = true;
+          if (currentReader && currentReader.id === id && typeof closeReader === 'function') closeReader(true);
+        } else if (!deletedDocList().some(t => t.id === id)) addDocTombstone(id, '');
+      }
       for (const rd of remote.docs){
+        if (dtomb.has(rd.id)) continue;
         const ld = docs.find(d => d.id === rd.id);
         if (!ld || Math.max(rd.updatedAt || 0, rd.pageUpdatedAt || 0) > Math.max(ld.updatedAt || 0, ld.pageUpdatedAt || 0)){
           const merged = Object.assign({}, ld || {}, rd);
@@ -2309,6 +2439,11 @@
           await DB.put('docs', merged); changed = true; driveChangedDocs.push(rd.id);
         }
         const target = docs.find(d => d.id === rd.id);
+        if (target && rd.readLog){   // reading time: keep the larger figure per day from either device
+          const ml = Object.assign({}, target.readLog || {}); let diff = false;
+          for (const k in rd.readLog){ if ((rd.readLog[k] || 0) > (ml[k] || 0)){ ml[k] = rd.readLog[k]; diff = true; } }
+          if (diff){ target.readLog = ml; await DB.put('docs', target); changed = true; }
+        }
         const localBuf = await DB.get('files', rd.id);
         if (!localBuf && target && target.driveFileId){
           const fr = await driveFetch('https://www.googleapis.com/drive/v3/files/' + target.driveFileId + '?alt=media');
@@ -2318,7 +2453,19 @@
       if (changed){ renderLibrary(); if (typeof ensureDocThumbs === 'function') ensureDocThumbs(); }
       return true;
     }
+    async function driveDeleteTombFiles(){
+      const l = deletedDocList(); let ch = false;
+      for (const t of l){
+        if (!t.fid) continue;
+        try {
+          const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + t.fid, { method: 'DELETE' });
+          if (r.ok || r.status === 404 || r.status === 403){ t.fid = ''; ch = true; }
+        } catch (e) {}
+      }
+      if (ch) setDeletedDocList(l);
+    }
     async function drivePush(){
+      await driveDeleteTombFiles();
       for (const d of docs){
         const buf = await DB.get('files', d.id);
         if (!buf) continue;
@@ -2329,7 +2476,7 @@
         await DB.put('docs', d);
       }
       await drivePull();   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
-      const lib = { version: 1, updatedAt: Date.now(), folders: folders, deletedFolders: deletedFolderIds(), docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
+      const lib = { version: 1, updatedAt: Date.now(), folders: folders, deletedFolders: deletedFolderIds(), deletedDocs: deletedDocList().map(t => t.id), docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
       const blob = new Blob([JSON.stringify(lib)], { type: 'application/json' });
       driveLibFileId = await driveUploadMedia({ name: DRIVE_LIB_NAME, parents: [driveFolderId] }, blob, driveLibFileId);
       await driveFindLibFile();   // so our own upload is not mistaken for a change from the other device
@@ -2418,7 +2565,6 @@
       );
       $('#mCancel').addEventListener('click', closeModal);
     }
-    $('#driveHelpBtn').addEventListener('click', twoDeviceModal);
     $('#driveConnectBtn').addEventListener('click', driveConnect);
     $('#driveSyncBtn').addEventListener('click', () => driveSyncNow(true));
     $('#driveSetupBtn').addEventListener('click', () => driveSetupModal(false));
