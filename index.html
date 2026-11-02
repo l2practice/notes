@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-q" />
+    <meta name="app-build" content="2026-11-02-r" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4420,10 +4420,36 @@ function redrawInk(p){
   drawSel(ci, p, L.k);
 }
 /* the screen always catches up with what is saved: shortly after you stop writing, the page is repainted from the stored strokes */
+const recentPen = {};   // page -> last few saved pen strokes, checked on screen
+function paintedAt(p, st){   // is there ink on the canvas where this stroke is?
+  const L = inkLayers(p); if (!L || !st.pts) return null;
+  const c = L.ic.getContext('2d'), n = st.pts.length / 3, k = L.k; let hit = 0, tried = 0;
+  const idx = n <= 6 ? [...Array(n).keys()] : [0, 1, Math.floor(n / 4), Math.floor(n / 2), Math.floor(3 * n / 4), n - 2, n - 1];
+  for (const i of idx){
+    const x = Math.round(st.pts[i * 3] * k), y = Math.round(st.pts[i * 3 + 1] * k);
+    if (!(x >= 3 && y >= 3 && x < L.ic.width - 3 && y < L.ic.height - 3)) continue;
+    tried++;
+    try { const d = c.getImageData(x - 3, y - 3, 7, 7).data; for (let j = 3; j < d.length; j += 4) if (d[j] > 0){ hit++; break; } } catch (er) { return null; }
+  }
+  return tried ? hit / tried : -1;
+}
+function verifyPen(tag){
+  for (const p in recentPen){
+    recentPen[p].forEach(st => {
+      const r = paintedAt(+p, st);
+      if (r !== null && r < 0.5){
+        const xs = [], ys = [], ps = []; for (let i = 0; i < st.pts.length; i += 3){ xs.push(st.pts[i]); ys.push(st.pts[i + 1]); ps.push(st.pts[i + 2]); }
+        const L = inkLayers(+p);
+        inkLog('INVISIBLE', null, tag + ' n=' + xs.length + ' share=' + r.toFixed(2) + ' bbox=' + [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)].map(v => Math.round(v)).join(',') + ' pr=' + Math.min(...ps) + '-' + Math.max(...ps) + ' sw=' + st.sw + ' col=' + st.c + ' cv=' + (L ? L.ic.width + 'x' + L.ic.height : '-') + ' css=' + (L ? Math.round(L.ic.getBoundingClientRect().width) + 'x' + Math.round(L.ic.getBoundingClientRect().height) : '-'));
+        st.__bad = (st.__bad || 0) + 1;
+      }
+    });
+  }
+}
 const settleTimers = {};
 function settleInk(p){
   clearTimeout(settleTimers[p]);
-  settleTimers[p] = setTimeout(() => { if (G){ settleInk(p); return; } redrawInk(p); }, 400);
+  settleTimers[p] = setTimeout(() => { if (G){ settleInk(p); return; } redrawInk(p); verifyPen('after-redraw'); recentPen[p] = []; }, 400);
 }
 /* fast path while a gesture is running: committed strokes are cached, only the live object is redrawn */
 function beginInteraction(p, skipIds){
@@ -4867,7 +4893,8 @@ function inkUp(e, cv, cancelled){
       if (live) finishPenTail(p, st, g); else commitPen(st, g);
       undoAdd(p, st); inkList(p, true).push(st); scheduleSave();
       inkLog('saved', e, (st.pts ? st.pts.length / 3 + ' pts' : st.k) + (cancelled ? ' (cancelled)' : '') + ' list=' + inkList(p).length + ' cv=' + (inkLayers(p) ? inkLayers(p).W + 'x' + inkLayers(p).H : '-'));
-      endInteraction(p); if (!live) redrawInk(p); else settleInk(p);
+      if (st.t === 'pen'){ (recentPen[p] || (recentPen[p] = [])).push(st); if (recentPen[p].length > 6) recentPen[p].shift(); }
+      endInteraction(p); if (!live) redrawInk(p); else { settleInk(p); requestAnimationFrame(() => verifyPen('live')); }
     } else { endInteraction(p); redrawInk(p); }
   } else if (g.kind === 'shape'){
     let st = INK.live && INK.live.st; INK.live = null; endInteraction(p);
