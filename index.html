@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-o" />
+    <meta name="app-build" content="2026-11-02-p" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4368,7 +4368,7 @@ function drawInkOnto(ctx, p, k){
   ctx.restore();
   list.filter(s => s.t !== 'hl').forEach(s => drawStroke(ctx, s, k));
 }
-function inkRes(sz){ let r = scale * Math.min(window.devicePixelRatio || 1, 2); const px = sz.w * sz.h * r * r, cap = 16e6; if (px > cap) r *= Math.sqrt(cap / px); return r; }
+function inkRes(sz){ let r = scale * Math.min(window.devicePixelRatio || 1, 2); const px = sz.w * sz.h * r * r, cap = 7e6; if (px > cap) r *= Math.sqrt(cap / px); return r; }
 function inkLayers(p){
   const wrap = document.querySelector('.page-wrap[data-page="' + p + '"]'); if (!wrap) return null;
   const ic = wrap.querySelector('.ink-canvas'), hc = wrap.querySelector('.hl-canvas'); if (!ic) return null;
@@ -4378,7 +4378,7 @@ function inkLayers(p){
 }
 function sizeLayer(c, W, H){ if (c.width !== W || c.height !== H){ c.width = W; c.height = H; } }
 function paintCommitted(ctxI, ctxH, p, k, skip){
-  inkList(p).forEach(st => { if (skip && skip.has(st.id)) return; drawStroke(st.t === 'hl' ? ctxH : ctxI, st, k); });
+  inkList(p).forEach(st => { if (skip && skip.has(st.id)) return; try { drawStroke(st.t === 'hl' ? ctxH : ctxI, st, k); } catch (er) { inkLog('DRAWERR', null, (st.id || '?') + ' ' + (st.t || '') + (st.k || '') + ' ' + er.message); } });   // one bad stroke must never stop the ones after it
 }
 const isLine = st => st.k === 'line' || st.k === 'arrow';
 function selList(){ if (!INK.sel) return []; const l = inkList(INK.sel.p); return INK.sel.ids.map(id => l.find(s => s.id === id)).filter(Boolean); }
@@ -4411,9 +4411,10 @@ function redrawInk(p){
   const L = inkLayers(p); if (!L) return;
   const list = inkList(p);
   if (!list.length && !(INK.sel && INK.sel.p === p)){ sizeLayer(L.ic, 1, 1); sizeLayer(L.hc, 1, 1); L.ic.getContext('2d').clearRect(0, 0, 1, 1); L.hc.getContext('2d').clearRect(0, 0, 1, 1); return; }
-  sizeLayer(L.ic, L.W, L.H); sizeLayer(L.hc, L.W, L.H);
+  const needHl = list.some(x => x.t === 'hl');   // the highlighter layer only gets real size when the page has highlighter strokes
+  sizeLayer(L.ic, L.W, L.H); sizeLayer(L.hc, needHl ? L.W : 1, needHl ? L.H : 1);
   const ci = L.ic.getContext('2d'), ch = L.hc.getContext('2d');
-  ci.clearRect(0, 0, L.W, L.H); ch.clearRect(0, 0, L.W, L.H);
+  ci.clearRect(0, 0, L.W, L.H); ch.clearRect(0, 0, L.hc.width, L.hc.height);
   paintCommitted(ci, ch, p, L.k, null);
   if (G && G.kind === 'draw' && !G.snapped && INK.live && INK.live.p === p && INK.live.st.t === 'pen') drawStroke(ci, INK.live.st, L.k);   // a redraw in the middle of a stroke must not wipe it
   drawSel(ci, p, L.k);
@@ -4722,7 +4723,7 @@ function inkDown(e, cv){
   if (tool === 'pen' || tool === 'hl'){
     const st = { id: uid(), t: tool, c: INK.color[tool], sw: INK.width[tool], pts: [r1(x), r1(y), pressure(e)] };
     INK.live = { p, st }; G = { kind: 'draw', p, hx: x, hy: y, snapped: false, timer: null };
-    if (tool === 'hl'){ beginInteraction(p, null); compose(p); } else { const L = inkLayers(p); if (L){ sizeLayer(L.ic, L.W, L.H); sizeLayer(L.hc, L.W, L.H); } }
+    if (tool === 'hl'){ beginInteraction(p, null); compose(p); } else { const L = inkLayers(p); if (L){ sizeLayer(L.ic, L.W, L.H); } }
     armHold();
   } else if (tool === 'shape'){
     // touching a symbol / picture / the shape you just placed selects it (move, or drag a corner to resize); empty space places a new one
@@ -4850,7 +4851,7 @@ function inkUp(e, cv, cancelled){
       const live = st.t === 'pen' && !g.snapped;   // the pencil stroke is already on the canvas: no redraw, no copying, just remember it
       if (live) finishPenTail(p, st, g); else commitPen(st, g);
       undoAdd(p, st); inkList(p, true).push(st); scheduleSave();
-      inkLog('saved', e, (st.pts ? st.pts.length / 3 + ' pts' : st.k) + (cancelled ? ' (cancelled)' : '') + ' list=' + inkList(p).length);
+      inkLog('saved', e, (st.pts ? st.pts.length / 3 + ' pts' : st.k) + (cancelled ? ' (cancelled)' : '') + ' list=' + inkList(p).length + ' cv=' + (inkLayers(p) ? inkLayers(p).W + 'x' + inkLayers(p).H : '-'));
       endInteraction(p); if (!live) redrawInk(p); else settleInk(p);
     } else { endInteraction(p); redrawInk(p); }
   } else if (g.kind === 'shape'){
