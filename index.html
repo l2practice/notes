@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-r" />
+    <meta name="app-build" content="2026-11-02-s" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4603,6 +4603,7 @@ function pagePt(e, cv){
 }
 const pressure = e => e.pointerType === 'mouse' ? 50 : Math.max(25, Math.round((e.pressure || 0.5) * 100));   // the first pencil samples report ~0: never draw a hairline
 const INKLOG = [];
+let lastDownId = null;
 function inkLog(kind, e, note){ INKLOG.push(new Date().toISOString().slice(11, 23) + ' ' + kind + ' ' + (e ? e.pointerType + '#' + e.pointerId + ' p=' + (e.pressure !== undefined ? (+e.pressure).toFixed(2) : '-') + ' w=' + (e.width || 0) + ' h=' + (e.height || 0) + ' btn=' + e.button : '') + (note ? ' ' + note : '') + (G ? ' [G:' + G.kind + ']' : '')); if (INKLOG.length > 200) INKLOG.shift(); }
 window.addEventListener('error', e => { try { inkLog('JSERR', null, (e.message || '') + ' @' + (e.lineno || '?') + ':' + (e.colno || '?')); } catch (er) {} });   // any script error shows up in the pen log
 window.addEventListener('unhandledrejection', e => { try { inkLog('JSERR', null, 'promise: ' + ((e.reason && e.reason.message) || e.reason)); } catch (er) {} });
@@ -4653,6 +4654,7 @@ function attachInk(wrap){
   cv.addEventListener('pointermove', e => inkMove(e, cv));
   cv.addEventListener('pointerup', e => inkUp(e, cv, false));
   cv.addEventListener('pointercancel', e => inkUp(e, cv, true));
+  cv.addEventListener('touchmove', e => { if (INK.tool && e.cancelable) e.preventDefault(); }, { passive: false });   // tells iPadOS the page handles the pencil itself (keeps Scribble out)
 }
 /* A finger (or palm) moves the page; a pencil or mouse draws. With touch-action:none on the canvas the
    browser never scrolls under the pencil, so strokes can go in any direction; scrolling and pinching are done here. */
@@ -4730,6 +4732,8 @@ function abortGesture(){
 function inkDown(e, cv){
   lastInkAt = performance.now();
   if (!INK.tool || (e.pointerType === 'mouse' && e.button > 0)) return;
+  if (lastDownId !== null && e.pointerId - lastDownId > 1 && e.pointerId - lastDownId < 50) inkLog('IDGAP', e, (e.pointerId - lastDownId - 1) + ' pointer(s) never reached the page');   // a swallowed stroke would leave a hole in the ids
+  lastDownId = e.pointerId;
   inkLog('down', e);
   try { const sel = window.getSelection(); if (sel && sel.rangeCount) sel.removeAllRanges(); } catch (er) {}
   if (e.pointerType === 'pen'){
