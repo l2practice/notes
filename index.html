@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-e" />
+    <meta name="app-build" content="2026-11-02-f" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4002,6 +4002,9 @@
 const INK = { tool: null, shape: { k: 'line', o: 0 }, color: { pen: '#111111', hl: '#FFD43B' }, width: { pen: 2, hl: 16, er: 6 }, finger: false, sel: null, live: null, undo: [], redo: [], pinned: null };
 try { INK.finger = localStorage.getItem('nt-ink-finger') === '1'; } catch (e) {}
 INK.symOpen = false; INK.symDims = { ring: null, label: null };
+INK.shapeDims = {}; try { INK.shapeDims = JSON.parse(localStorage.getItem('nt-shape-dims') || '{}') || {}; } catch (e) {}
+function saveShapeDims(){ try { localStorage.setItem('nt-shape-dims', JSON.stringify(INK.shapeDims)); } catch (e) {} }
+const shapeKey = st => st.k + ((st.k === 'brkt' || st.k === 'brace') ? (st.o || 0) : '');
 try { INK.symOpen = localStorage.getItem('nt-sym-open') === '1'; } catch (e) {}
 const INK_SW = { pen: ['#111111', '#D45060', '#2D7495'], hl: ['#FFD43B', '#7ED957', '#FF8FB1'] };
 const INK_RANGE = { pen: [0.5, 14, 0.5], hl: [6, 44, 1], er: [2, 30, 1] };
@@ -4236,19 +4239,27 @@ function compose(p){
     ci.save(); ci.strokeStyle = acc; ci.lineWidth = 1.6; ci.setLineDash([6, 5]); ci.lineJoin = 'round';
     ci.beginPath(); G.pts.forEach((q, i) => i ? ci.lineTo(q[0] * L.k, q[1] * L.k) : ci.moveTo(q[0] * L.k, q[1] * L.k)); ci.closePath(); ci.stroke(); ci.restore();
   }
-  if (G && G.kind === 'shape' && INK.live && INK.live.p === p && INK.live.st.bw !== undefined){
-    const s = INK.live.st; sizeBadge(ci, L, { x: s.x, y: s.y, w: s.bw, h: s.bh }, true);
+  const ls = INK.live && INK.live.p === p ? INK.live.st : null;
+  if (ls && ls.t === 'shape' && G && (G.kind === 'shape' || G.kind === 'draw')){
+    if (ls.bw !== undefined) sizeBadge(ci, L, { x: ls.x, y: ls.y, w: ls.bw, h: ls.bh }, true);
+    else if (ls.x2 !== undefined) lineBadge(ci, L, ls);
   } else if (G && G.kind === 'resize' && G.moved){
-    const arr = selList(); if (arr.length && !(arr.length === 1 && isLine(arr[0]))) sizeBadge(ci, L, groupBox(arr), false);
+    const arr = selList();
+    if (arr.length === 1 && isLine(arr[0])) lineBadge(ci, L, arr[0]);
+    else if (arr.length) sizeBadge(ci, L, groupBox(arr), false);
   }
   drawSel(ci, p, L.k);
 }
 /* a dashed frame with "W × H pt" so identical symbols can be sized identically */
-function sizeBadge(ctx, L, b, frame){
+function lineBadge(ctx, L, st){
+  const len = Math.hypot(st.x2 - st.x, st.y2 - st.y); let deg = Math.round(Math.atan2(-(st.y2 - st.y), st.x2 - st.x) * 180 / Math.PI); if (deg < 0) deg += 360;
+  sizeBadge(ctx, L, { x: Math.min(st.x, st.x2), y: Math.min(st.y, st.y2), w: Math.abs(st.x2 - st.x), h: Math.abs(st.y2 - st.y) }, false, Math.round(len) + ' pt · ' + (deg % 360) + '°');
+}
+function sizeBadge(ctx, L, b, frame, label){
   const k = L.k, r = k / (scale || 1), acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#d4664f';
   ctx.save();
   if (frame){ ctx.strokeStyle = acc; ctx.lineWidth = 1.3 * r; ctx.setLineDash([5 * r, 4 * r]); ctx.strokeRect(b.x * k, b.y * k, b.w * k, b.h * k); ctx.setLineDash([]); }
-  const txt = Math.round(b.w) + ' × ' + Math.round(b.h) + ' pt';
+  const txt = label || (Math.round(b.w) + ' × ' + Math.round(b.h) + ' pt');
   ctx.font = '600 ' + 12 * r + 'px "Be Vietnam Pro", system-ui, sans-serif';
   const tw = ctx.measureText(txt).width, pw = tw + 16 * r, ph = 22 * r;
   let px = b.x * k + b.w * k / 2 - pw / 2, py = b.y * k - ph - 8 * r;
@@ -4352,13 +4363,25 @@ function pagePt(e, cv){
 const pressure = e => e.pointerType === 'mouse' ? 50 : Math.round((e.pressure || 0.5) * 100);
 function makeShape(x0, y0, x1, y1){
   const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen };
-  if (s.k === 'line' || s.k === 'arrow'){ s.x = r1(x0); s.y = r1(y0); s.x2 = r1(x1); s.y2 = r1(y1); return s; }
+  if (s.k === 'line' || s.k === 'arrow'){
+    let dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
+    if (len > 0){
+      const ang = Math.atan2(dy, dx), step = Math.PI / 12, sn = Math.round(ang / step) * step;
+      if (Math.abs(ang - sn) < 0.06){ dx = len * Math.cos(sn); dy = len * Math.sin(sn); }   // dead level / 15-degree steps
+      const d = INK.shapeDims.line; if (d && Math.abs(len - d[0]) < 4){ const f = d[0] / len; dx *= f; dy *= f; }   // same length as last time
+    }
+    s.x = r1(x0); s.y = r1(y0); s.x2 = r1(x0 + dx); s.y2 = r1(y0 + dy); return s;
+  }
   let w = Math.abs(x1 - x0), h = Math.abs(y1 - y0);
   if (s.k === 'sym'){
     s.txt = INK.shape.txt; s.ring = !!INK.shape.ring; s.it = !!INK.shape.it;
     const d = INK.symDims[s.ring ? 'ring' : 'label'];   // sticks to the size you used last, so symbols line up
     if (d){ if (Math.abs(w - d[0]) < 4) w = d[0]; if (Math.abs(h - d[1]) < 4) h = d[1]; }
     if (s.ring && Math.abs(w - h) < 5) h = w;
+  } else {
+    const d = INK.shapeDims[shapeKey(s)];
+    if (d){ if (Math.abs(w - d[0]) < 4) w = d[0]; if (Math.abs(h - d[1]) < 4) h = d[1]; }
+    if ((s.k === 'ellipse' || s.k === 'rect' || s.k === 'star') && Math.abs(w - h) < 5) h = w;   // a true circle / square
   }
   s.bw = r1(w); s.bh = r1(h); s.x = r1(x1 >= x0 ? x0 : x0 - w); s.y = r1(y1 >= y0 ? y0 : y0 - h);
   return s;
@@ -4532,9 +4555,15 @@ function inkUp(e, cv, cancelled){
       const tiny = !g.moved || Math.hypot(st.bw || Math.abs(st.x2 - st.x), st.bh || Math.abs(st.y2 - st.y)) < 6;
       if (tiny){ const x = g.x0, y = g.y0, v = (INK.shape.o & 1) === 0;
         if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
-        else st = (st.k === 'line' || st.k === 'arrow') ? makeShape(x, y, x + 90, y)
-          : (st.k === 'brkt' || st.k === 'brace') ? (v ? makeShape(x, y, x + 16, y + 110) : makeShape(x, y, x + 110, y + 16)) : makeShape(x, y, x + 80, y + 80); }
+        else {
+          const d = INK.shapeDims[(st.x2 !== undefined) ? 'line' : shapeKey(st)];
+          if (st.x2 !== undefined) st = makeShape(x, y, x + (d ? d[0] : 90), y);
+          else if (d) st = makeShape(x, y, x + d[0], y + d[1]);
+          else st = (st.k === 'brkt' || st.k === 'brace') ? (v ? makeShape(x, y, x + 16, y + 110) : makeShape(x, y, x + 110, y + 16)) : makeShape(x, y, x + 80, y + 80);
+        } }
       if (st.k === 'sym'){ INK.symDims[st.ring ? 'ring' : 'label'] = [st.bw, st.bh]; syncSymFields(); }
+      else if (st.x2 !== undefined){ INK.shapeDims.line = [Math.hypot(st.x2 - st.x, st.y2 - st.y)]; saveShapeDims(); }
+      else if (st.bw !== undefined){ INK.shapeDims[shapeKey(st)] = [st.bw, st.bh]; saveShapeDims(); }
       pushUndo(p); inkList(p, true).push(st); scheduleSave();   // the shape tool stays selected, ready for the next one
     }
     redrawInk(p);
