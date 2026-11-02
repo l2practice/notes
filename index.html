@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-u" />
+    <meta name="app-build" content="2026-11-02-v" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1138,6 +1138,7 @@
         <div class="bar-sep"></div>
         <button class="fmt-btn" id="inkUndo" title="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
         <button class="fmt-btn" id="inkRedo" title="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+        <button class="fmt-btn hidden" id="inkAlign" title="Level the selected handwriting onto one baseline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18"/><path d="M6 15V9M6 9l-2 2M6 9l2 2"/><path d="M12 15V5M12 5l-2 2M12 5l2 2"/><path d="M18 15v-4M18 11l-2 2M18 11l2 2" transform="rotate(180 18 13)"/></svg></button>
         <button class="fmt-btn hidden" id="inkDel" title="Delete selected"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg></button>
         <div class="bar-sep"></div>
         <button class="fmt-btn" id="inkFinger" title="Let a finger draw too (off: only Apple Pencil or mouse draws, a finger scrolls)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.9-2.4L3.4 16a2 2 0 0 1 3.2-2.4L8 15"/></svg></button>
@@ -4732,16 +4733,54 @@ function smoothStroke(st){
       xs = nx; ys = ny;
     }
   }
-  // the pencil often reports a flat pressure: then the pen gets thinner when you move fast and thicker when you slow down, like ink
-  let lo = 101, hi = -1; ps.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); });
-  if (hi - lo < 10){
-    const sp = []; for (let i = 0; i < n; i++){ const j = Math.min(n - 1, i + 1), k0 = Math.max(0, i - 1); sp.push(Math.hypot(xs[j] - xs[k0], ys[j] - ys[k0]) / 2); }
-    const typ = sp.slice().sort((a, b) => a - b)[Math.floor(n / 2)] || 1;
-    for (let i = 0; i < n; i++) ps[i] = Math.max(30, Math.min(80, 62 - 22 * Math.tanh((sp[i] / Math.max(typ, .5) - 1) * 0.9)));
-  }
-  for (let pass = 0; pass < 3; pass++){ const np = ps.slice(); for (let i = 1; i < n - 1; i++) np[i] = (ps[i - 1] + 2 * ps[i] + ps[i + 1]) / 4; ps = np; }
-  for (let i = 0; i < Math.min(4, n); i++){ const f = 0.5 + 0.125 * i; ps[i] *= f; ps[n - 1 - i] *= f; }   // soft start and end
+  // one even line weight (no thick/thin): the pressure is levelled to the stroke's typical value, only the very ends are eased
+  const srt = ps.slice().sort((a, b) => a - b), base = Math.max(35, Math.min(70, srt[Math.floor(n / 2)]));
+  ps = ps.map(() => base);
+  for (let i = 0; i < Math.min(2, n); i++){ const f = 0.7 + 0.15 * i; ps[i] *= f; ps[n - 1 - i] *= f; }
   st.pts = []; for (let i = 0; i < n; i++) st.pts.push(r1(xs[i]), r1(ys[i]), Math.max(12, Math.round(ps[i])));
+}
+/* Level handwriting: words that drifted down or up are moved so that every word sits on the same baseline.
+   The baseline of a word is where most of its letters end (the bowl of p, g, q counts - not the tail). */
+function alignBaseline(){
+  if (!INK.sel) return;
+  const p = INK.sel.p, pen = selList().filter(s => s.t === 'pen' && s.pts && s.pts.length >= 6);
+  if (pen.length < 2){ toast('Select some handwriting first (use the select tool and draw a loop around a line).'); return; }
+  const info = pen.map(st => { const b = bboxOf(st); return { st, b, cy: b.y + b.h / 2 }; });
+  const hs = info.map(i => i.b.h).filter(h => h > 2).sort((a, b) => a - b), H = hs.length ? hs[Math.floor(hs.length / 2)] : 10;
+  info.sort((a, b) => a.cy - b.cy);
+  const lines = []; let cur = [info[0]];
+  for (let i = 1; i < info.length; i++){ if (info[i].cy - info[i - 1].cy > 1.2 * H){ lines.push(cur); cur = []; } cur.push(info[i]); }
+  lines.push(cur);
+  const tails = st => {   // y of every low point (bottom of a letter) in a stroke
+    const out = [], n = st.pts.length / 3, y = i => st.pts[i * 3 + 1]; let top = 1e9, bot = -1e9;
+    for (let i = 0; i < n; i++){ top = Math.min(top, y(i)); bot = Math.max(bot, y(i)); }
+    for (let i = 1; i < n - 1; i++){
+      let ok = true; for (let d = 1; d <= 3; d++){ const a = Math.max(0, i - d), b = Math.min(n - 1, i + d); if (y(a) > y(i) || y(b) > y(i)) ok = false; }
+      if (ok && y(i) > top + 0.35 * (bot - top)) out.push(y(i));
+    }
+    if (!out.length) out.push(bot);
+    return out;
+  };
+  let words = 0, moved = 0; pushUndo(p);
+  lines.forEach(line => {
+    line.sort((a, b) => a.b.x - b.b.x);
+    const groups = []; let g = [line[0]], gx1 = line[0].b.x + line[0].b.w;
+    for (let i = 1; i < line.length; i++){ if (line[i].b.x - gx1 > 0.6 * H){ groups.push(g); g = []; gx1 = -1e9; } g.push(line[i]); gx1 = Math.max(gx1, line[i].b.x + line[i].b.w); }
+    groups.push(g);
+    const bases = groups.map(g => {
+      const v = []; g.forEach(i => tails(i.st).forEach(y => v.push(y)));
+      let best = v[0], cnt = -1; const tol = 0.25 * H;
+      v.forEach(c => { const m = v.filter(x => Math.abs(x - c) <= tol); if (m.length > cnt || (m.length === cnt && c > best)){ cnt = m.length; best = m.reduce((a, b) => a + b, 0) / m.length; } });
+      return best;
+    });
+    const sorted = bases.slice().sort((a, b) => a - b), target = sorted[Math.floor(sorted.length / 2)];
+    groups.forEach((g, gi) => {
+      words++; let dy = target - bases[gi]; if (Math.abs(dy) < 0.4) return; dy = Math.max(-3 * H, Math.min(3 * H, dy));
+      g.forEach(i => moveStroke(i.st, 0, dy)); moved++;
+    });
+  });
+  redrawInk(p); scheduleSave(); syncInkBar();
+  toast(moved ? 'Leveled ' + moved + ' of ' + words + ' word' + (words > 1 ? 's' : '') + ' onto one baseline.' : 'Already level.');
 }
 /* repaint just the part of the page a stroke touches (cheap) */
 function repaintRegion(p, st){
@@ -5087,6 +5126,7 @@ function syncInkBar(){
   sl.title = kind === 'er' ? 'Eraser size' : 'Thickness';
   buildInkSwatches(); syncUndoUI();
   $('#inkDel').classList.toggle('hidden', !(INK.sel && (INK.tool === 'select' || INK.tool === 'shape')));
+  $('#inkAlign').classList.toggle('hidden', !(INK.sel && INK.tool === 'select' && selList().filter(s => s.t === 'pen').length >= 2));
   positionInkBar();
 }
 function positionInkBar(){
@@ -5359,6 +5399,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#inkW').addEventListener('input', e => setInkWidth(+e.target.value));
   $('#inkW').addEventListener('change', () => { INK._wu = false; });
   $('#inkUndo').addEventListener('click', inkUndo);
+  $('#inkAlign').addEventListener('click', alignBaseline);
   $('#inkRedo').addEventListener('click', inkRedo);
   $('#inkDel').addEventListener('click', deleteSelected);
   $('#inkFinger').addEventListener('click', () => { INK.finger = !INK.finger; try { localStorage.setItem('nt-ink-finger', INK.finger ? '1' : '0'); } catch (e) {} syncToolUI(); toast(INK.finger ? 'Finger drawing on — pinch and two-finger scroll still work.' : 'Pencil / mouse draws; a finger scrolls the page.'); });
