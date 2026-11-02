@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-01-d" />
+    <meta name="app-build" content="2026-11-02-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -336,24 +336,44 @@
       .zoom-group{display:flex;align-items:center;gap:2px;background:var(--surface-2);border-radius:10px;padding:2px;}
       .zoom-group .icon-btn{width:32px;height:32px;}
       .zoom-label{font-size:13px;font-weight:600;min-width:52px;text-align:center;font-variant-numeric:tabular-nums;}
-      .bar-sep{width:1px;height:24px;background:var(--line);margin:0 4px;flex:none;}
+      .bar-sep{width:1px;height:22px;background:var(--line);margin:0 3px;flex:none;}
       .page-ind{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
       .add-text-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-      /* Format bar */
+      /* Format bar: a floating toolbar that sits just above the text box being edited */
       .format-bar{
-        position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:30;
-        display:flex;align-items:center;gap:6px;flex-wrap:nowrap;padding:6px 10px;
-        max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:thin;
-        background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);
-        transition:opacity .2s ease,transform .2s ease,visibility .2s;
+        position:fixed;left:0;top:0;z-index:30;
+        display:flex;align-items:center;gap:2px;flex-wrap:nowrap;padding:4px 6px;
+        max-width:calc(100vw - 16px);overflow-x:auto;scrollbar-width:thin;
+        background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);
+        transition:opacity .15s ease,visibility .15s;
       }
       .format-bar > *{flex:none;}
-      /* Hidden = invisible but still laid out (it floats, so showing/hiding never shifts the page) */
-      .format-bar.hidden{display:flex !important;opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-50%) translateY(-8px);}
-      /* While the user is typing the toolbar fades away; it returns when they pause */
-      .format-bar.typing-hidden{opacity:0;transform:translateX(-50%) translateY(-6px);pointer-events:none;visibility:hidden;}
-      .fmt-btn.move-btn,.fmt-btn.fav-btn,.fmt-btn.font-src-btn{width:auto;padding:0 10px;gap:6px;font-weight:600;font-size:13px;}
-      .fmt-btn.move-btn svg,.fmt-btn.fav-btn svg,.fmt-btn.font-src-btn svg{width:17px;height:17px;flex:none;}
+      .format-bar.hidden{display:flex !important;opacity:0;visibility:hidden;pointer-events:none;}
+      #barMove{cursor:grab;color:var(--muted);min-width:26px;padding:0 4px;touch-action:none;} #barMove:active{cursor:grabbing;}
+      .fa-glyph{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:19px;line-height:1;}
+      .align-group{display:flex;align-items:center;gap:2px;}
+      .align-group .align-ext{display:none;}
+      .align-group.expanded .align-ext{display:inline-flex;}
+      .swatch.custom{border-radius:50%;}
+      .swatch.add{background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:15px;font-weight:700;line-height:1;}
+      .sw-ico{width:16px;height:16px;color:var(--muted);flex:none;}
+      #colorSwatches .swatch{border-radius:50%;}
+      /* Popovers (font list, line spacing, bullets, add-colour) */
+      .fpop{position:fixed;z-index:90;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:6px;max-height:min(70vh,440px);overflow-y:auto;min-width:130px;}
+      .fpop .fp-row{display:block;width:100%;text-align:left;padding:6px 12px;border-radius:8px;font-weight:600;font-size:14px;}
+      .fpop .fp-row:hover,.fpop .fp-item:hover{background:var(--surface-2);}
+      .fpop .fp-row.cur,.fpop .fp-item.cur{background:var(--accent-soft);color:var(--accent);}
+      #fontPop{width:260px;padding:8px;}
+      #fontPop input[type=text]{width:100%;box-sizing:border-box;height:32px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:13.5px;background:var(--surface);color:var(--ink);margin-bottom:6px;}
+      #fpList{max-height:300px;overflow-y:auto;}
+      .fp-head{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 8px 3px;}
+      .fp-item{display:block;width:100%;text-align:left;padding:5px 10px;border-radius:8px;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;content-visibility:auto;contain-intrinsic-size:auto 30px;}
+      .fp-device{display:block;width:100%;margin-top:6px;padding:8px 10px;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--accent);text-align:left;}
+      .cp-row{display:flex;align-items:center;gap:8px;padding:2px;}
+      .cp-row input[type=color]{width:34px;height:32px;padding:0;border:1px solid var(--line);border-radius:8px;background:none;}
+      .cp-row input[type=text]{width:92px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:14px;background:var(--surface);color:var(--ink);}
+      .fmt-btn.fav-btn{padding:0 7px;}
+      .fmt-btn.fav-btn svg{width:17px;height:17px;flex:none;}
       .fav-btn{color:#9aa1ad;}
       .fav-btn svg{fill:none;stroke:currentColor;}
       .fav-btn.has-fav{color:#e11d48;}
@@ -369,7 +389,7 @@
         padding:0 8px;font-size:13.5px;max-width:170px;
       }
       .fmt-btn{
-        min-width:34px;height:34px;padding:0 7px;border-radius:8px;border:1px solid transparent;
+        min-width:30px;height:32px;padding:0 5px;border-radius:8px;border:1px solid transparent;
         display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink-2);gap:2px;
       }
       .fmt-btn:hover{background:var(--surface-2);}
@@ -377,8 +397,8 @@
       .fmt-btn svg{width:16px;height:16px;}
       .fmt-btn b{font-weight:800;} .fmt-btn i{font-style:italic;font-family:Georgia,serif;} .fmt-btn u{text-underline-offset:3px;}
       .size-val{font-size:13px;font-weight:600;min-width:34px;text-align:center;font-variant-numeric:tabular-nums;}
-      .swatches{display:flex;align-items:center;gap:5px;}
-      .swatch{width:22px;height:22px;border-radius:7px;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);flex:none;padding:0;}
+      .swatches{display:flex;align-items:center;gap:4px;}
+      .swatch{width:19px;height:19px;border-radius:7px;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);flex:none;padding:0;}
       .swatch.active{border-color:var(--ink);}
       .swatch.none{background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;}
       .color-input-wrap{position:relative;width:26px;height:26px;flex:none;}
@@ -422,19 +442,24 @@
         background:var(--surface);border:2px solid var(--accent);display:none;cursor:nwse-resize;z-index:3;
       }
       .note.sel .note-resize{display:block;}
-      .note .note-grip{position:absolute;left:6px;top:-14px;width:36px;height:13px;border-radius:7px 7px 0 0;background:var(--accent);cursor:grab;display:none;z-index:3;touch-action:none;
+      .note .note-grip{position:absolute;left:-15px;top:50%;transform:translateY(-50%);width:13px;height:36px;border-radius:7px 0 0 7px;background:var(--accent);cursor:grab;display:none;z-index:3;touch-action:none;
         background-image:radial-gradient(circle,rgba(255,255,255,.85) 1.3px,transparent 1.6px);background-size:8px 8px;background-position:center;}
       .note.sel .note-grip{display:block;}
-      .gram-btn{width:auto;padding:0 10px;gap:6px;font-weight:600;font-size:13px;}
-      .gram-btn.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
-      .gram-count{font-size:11px;font-weight:800;background:#2563eb;color:#fff;border-radius:9px;padding:0 6px;min-width:16px;text-align:center;}
-      .gram-count:empty{display:none;}
+      .gram-btn{min-width:34px;padding:0 6px;font-size:11.5px;font-weight:800;letter-spacing:.04em;color:var(--muted);background:var(--surface-2);}
+      .gram-btn.active{background:#1f9d55;color:#fff;border-color:#1f9d55;}
       ::highlight(nt-gram){text-decoration:underline wavy #2563eb;text-decoration-thickness:1.5px;text-underline-offset:3px;}
       #gramTip{position:fixed;z-index:80;max-width:300px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);padding:10px 12px;font-size:13.5px;line-height:1.4;}
       #gramTip .gt-msg{color:var(--ink-2);margin-bottom:8px;}
       #gramTip .gt-actions{display:flex;flex-wrap:wrap;gap:6px;}
       #gramTip button{border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-weight:700;background:var(--surface-2);}
       #gramTip button.fix{background:var(--accent);color:#fff;border-color:var(--accent);}
+      .note-text[data-bullet]{counter-reset:bl;}
+      .note-text[data-bullet] > div{position:relative;padding-left:1.3em;counter-increment:bl;}
+      .note-text[data-bullet] > div::before{position:absolute;left:0;top:0;}
+      .note-text[data-bullet="disc"] > div::before{content:"•";}
+      .note-text[data-bullet="dash"] > div::before{content:"–";}
+      .note-text[data-bullet="check"] > div::before{content:"✓";}
+      .note-text[data-bullet="num"] > div::before{content:counter(bl) ".";}
       .note .note-empty-hint{color:#8a919d;font-style:italic;pointer-events:none;}
 
       /* ---------- Page preview sidebar ---------- */
@@ -739,8 +764,10 @@
       </div>
       <div class="reader-main">
       <div class="format-bar hidden" id="formatBar">
-        <span class="fb-label">Font</span>
-        <select class="fmt-select" id="fmtFont">
+        <button class="fmt-btn" id="barMove" title="Drag to move the toolbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></button>
+        <button class="fmt-btn" id="barClose" title="Hide toolbar (select the text box again to bring it back)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div class="bar-sep"></div>
+        <select class="hidden" id="fmtFont">
           <option value="Nunito">Nunito (sans)</option>
           <option value="Fraunces">Fraunces (soft serif)</option>
           <option value="Patrick Hand">Patrick Hand (handwriting)</option>
@@ -750,52 +777,33 @@
           <option value="Arial">Arial</option>
           <option value="Courier New">Courier New (mono)</option>
         </select>
-        <button class="fmt-btn font-src-btn" id="deviceFontsBtn" title="Add fonts from this device — scan installed fonts, load a font file, or type a font name">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8m-4-4v4"/></svg>
-          <span>Device Fonts</span>
-        </button>
-        <span class="fb-label">Size</span>
-        <button class="fmt-btn" id="sizeMinus" title="Decrease font size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+        <button class="fmt-btn" id="fontBtn" title="Font"><span class="fa-glyph">A</span></button>
+        <button class="fmt-btn" id="sizeMinus" title="Decrease font size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
         <span class="size-val" id="sizeVal">14</span>
-        <button class="fmt-btn" id="sizePlus" title="Increase font size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="fmt-btn" id="sizePlus" title="Increase font size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <div class="bar-sep"></div>
         <button class="fmt-btn" id="fmtBold" title="Bold"><b>B</b></button>
         <button class="fmt-btn" id="fmtItalic" title="Italic"><i>I</i></button>
-        <button class="fmt-btn" id="fmtUnderline" title="Underline"><u>U</u></button>
+        <button class="fmt-btn" id="fmtStrike" title="Strikethrough"><s>S</s></button>
         <div class="bar-sep"></div>
-        <button class="fmt-btn" data-align="left" title="Align left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg></button>
-        <button class="fmt-btn" data-align="center" title="Align center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 11h10M4 16h16M7 21h10"/></svg></button>
-        <button class="fmt-btn" data-align="right" title="Align right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M10 11h10M4 16h16M10 21h10"/></svg></button>
-        <div class="bar-sep"></div>
-        <span class="fb-label">Color</span>
         <div class="swatches" id="colorSwatches"></div>
-        <div class="color-input-wrap" title="Custom color"><div class="ci-face"></div><input type="color" id="colorCustom" value="#2563eb" /></div>
         <div class="bar-sep"></div>
-        <span class="fb-label">Highlight</span>
         <div class="swatches" id="hlSwatches"></div>
         <div class="bar-sep"></div>
-        <button class="fmt-btn gram-btn" id="gramBtn" aria-pressed="false" title="Grammar check — underlines mistakes as you type (uses the free LanguageTool service)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 13 4 4L20 6"/></svg>
-          <span>Grammar</span><span class="gram-count" id="gramCount"></span>
-        </button>
-        <select class="fmt-select" id="langSel" title="Language for spelling and grammar" style="max-width:118px">
-          <option value="en-US">English (US)</option>
-          <option value="en-GB">English (UK)</option>
-          <option value="auto">Auto-detect</option>
-        </select>
+        <div class="align-group" id="alignGroup" title="Double-click to show centre and right alignment">
+          <button class="fmt-btn" data-align="left" title="Align left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg></button>
+          <button class="fmt-btn align-ext" data-align="center" title="Align centre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 11h10M4 16h16M7 21h10"/></svg></button>
+          <button class="fmt-btn align-ext" data-align="right" title="Align right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M10 11h10M4 16h16M10 21h10"/></svg></button>
+          <button class="fmt-btn" data-align="justify" title="Justify"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 11h16M4 16h16M4 21h16"/></svg></button>
+        </div>
         <div class="bar-sep"></div>
-        <button class="fmt-btn move-btn" id="moveNoteBtn" title="Move — drag the selected text box to reposition it" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18m0-18L9 6m3-3 3 3m-3 15-3-3m3 3 3-3M3 12h18M3 12l3-3m-3 3 3 3m15-3-3-3m3 3-3 3"/></svg>
-          <span>Move</span>
-        </button>
+        <button class="fmt-btn" id="spaceBtn" title="Line spacing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6h7M14 12h7M14 18h7"/><path d="M6 4v16m0 0-3-3m3 3 3-3m-3-13L3 7m3-3 3 3"/></svg></button>
+        <button class="fmt-btn" id="bulletBtn" title="Bullets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg></button>
+        <div class="bar-sep"></div>
         <button class="fmt-btn fav-btn" id="favFormatBtn" title="Save the current format as the favorite for this file">
           <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.7C6.4 17 3 13.6 3 9.9 3 7.2 5 5 7.7 5c1.7 0 3.3.9 4.3 2.4C13 5.9 14.6 5 16.3 5 19 5 21 7.2 21 9.9c0 3.7-3.4 7.1-9 10.8Z"/></svg>
-          <span>Favorite</span>
         </button>
-        <div class="bar-sep"></div>
-        <button class="btn danger" id="deleteNoteBtn" style="padding:7px 12px;font-size:13px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>
-          Delete Note
-        </button>
+        <button class="fmt-btn gram-btn" id="gramBtn" aria-pressed="false" title="Grammar check (English US) — sends the text you type to the free LanguageTool service">GR</button>
       </div>
         <aside class="thumb-side" id="thumbSide">
           <div class="thumb-side-head"><span>Pages</span>
@@ -812,6 +820,24 @@
       </div>
     </div>
 
+    <div class="fpop hidden" id="fontPop">
+      <input type="text" id="fpSearch" placeholder="Search fonts…" autocomplete="off" />
+      <div id="fpList"></div>
+      <button class="fp-device" id="deviceFontsBtn" title="Add fonts from this device — scan installed fonts, load a font file, or type a font name"><span>Device Fonts</span></button>
+    </div>
+    <div class="fpop hidden" id="spacePop">
+      <button class="fp-row" data-lh="1.0">1.0</button><button class="fp-row" data-lh="1.15">1.15</button><button class="fp-row" data-lh="1.2">1.2</button><button class="fp-row" data-lh="1.25">1.25</button><button class="fp-row" data-lh="1.27">1.27</button><button class="fp-row" data-lh="1.28">1.28</button><button class="fp-row" data-lh="1.3">1.3</button><button class="fp-row" data-lh="1.4">1.4</button><button class="fp-row" data-lh="1.5">1.5</button>
+    </div>
+    <div class="fpop hidden" id="bulletPop">
+      <button class="fp-row" data-bullet="">None</button>
+      <button class="fp-row" data-bullet="disc">•&nbsp; Dot</button>
+      <button class="fp-row" data-bullet="dash">–&nbsp; Dash</button>
+      <button class="fp-row" data-bullet="check">✓&nbsp; Check</button>
+      <button class="fp-row" data-bullet="num">1.&nbsp; Numbers</button>
+    </div>
+    <div class="fpop hidden" id="colorPop">
+      <div class="cp-row"><input type="color" id="cpPick" value="#2D7495" /><input type="text" id="cpHex" placeholder="#RRGGBB" maxlength="7" autocomplete="off" spellcheck="false" /><button class="btn primary" id="cpAdd" style="padding:6px 12px">Add</button></div>
+    </div>
     <div id="modalRoot"></div>
     <div id="menuRoot"></div>
     <div id="toast"></div>
@@ -1223,16 +1249,18 @@
     let saveTimer = null;
     let pageSaveTimer = null;
     let restoringPage = false;
-    let lastStyle = { font: 'Nunito', sizeFrac: 0.027, bold: false, italic: false, underline: false, color: '#111827', highlight: '', align: 'left' };
+    let lastStyle = { font: 'Nunito', sizeFrac: 0.027, bold: false, italic: false, underline: false, strike: false, color: '#111827', highlight: '', align: 'left', lh: 1.4, bullet: '' };
     let moveMode = false;
     let typingHideTimer = null;
+    let barDismissed = false, barPinned = null, barPosRaf = null;
 
     /* ================= Text toolbar: show / hide ================= */
-    function cloneStyle(s){ return { font: s.font, sizeFrac: s.sizeFrac, bold: !!s.bold, italic: !!s.italic, underline: !!s.underline, color: s.color, highlight: s.highlight || '', align: s.align || 'left' }; }
+    function cloneStyle(s){ return { font: s.font, sizeFrac: s.sizeFrac, bold: !!s.bold, italic: !!s.italic, underline: !!s.underline, strike: !!s.strike, color: s.color, highlight: s.highlight || '', align: s.align || 'left', lh: s.lh || 1.4, bullet: s.bullet || '' }; }
     function stylesEqual(a, b){
       if (!a || !b) return false;
       return a.font === b.font && Math.abs((a.sizeFrac || 0) - (b.sizeFrac || 0)) < 0.00001 &&
-        !!a.bold === !!b.bold && !!a.italic === !!b.italic && !!a.underline === !!b.underline &&
+        !!a.bold === !!b.bold && !!a.italic === !!b.italic && !!a.underline === !!b.underline && !!a.strike === !!b.strike &&
+        (a.lh || 1.4) === (b.lh || 1.4) && (a.bullet || '') === (b.bullet || '') &&
         String(a.color).toLowerCase() === String(b.color).toLowerCase() &&
         (a.highlight || '') === (b.highlight || '') && (a.align || 'left') === (b.align || 'left');
     }
@@ -1240,29 +1268,42 @@
       const n = selectedNoteId ? findNote(selectedNoteId) : null;
       return n ? n.style : lastStyle;
     }
-    function shouldShowToolbar(){ return !!(currentReader && (addMode || selectedNoteId || editingId)); }
+    function shouldShowToolbar(){ return !!(currentReader && !barDismissed && (addMode || selectedNoteId || editingId)); }
     function updateToolbarVisibility(){
       const bar = $('#formatBar'); if (!bar) return;
       if (shouldShowToolbar()){
         bar.classList.remove('hidden');
         if (typeof syncFormatBar === 'function') syncFormatBar();
+        positionToolbar();
       } else {
         bar.classList.add('hidden');
-        bar.classList.remove('typing-hidden');
-        clearTimeout(typingHideTimer);
+        if (typeof hidePops === 'function') hidePops();
       }
     }
-    /* Hide the toolbar while typing; bring it back after a short pause */
-    function noteTypingStarted(){
+    /* The toolbar floats ~0.5 cm above the text box being edited (below it if there is no room above).
+       Dragging its handle pins it where you put it until you select a different box. */
+    function positionToolbar(){
       const bar = $('#formatBar'); if (!bar || bar.classList.contains('hidden')) return;
-      bar.classList.add('typing-hidden');
-      clearTimeout(typingHideTimer);
-      typingHideTimer = setTimeout(() => { bar.classList.remove('typing-hidden'); }, 900);
+      const mr = document.querySelector('.reader-main').getBoundingClientRect();
+      const bw = bar.offsetWidth, bh = bar.offsetHeight;
+      let x, y;
+      if (barPinned){ x = barPinned.x; y = barPinned.y; }
+      else {
+        const id = editingId || selectedNoteId, el = id && noteEl(id);
+        if (el){
+          const r = el.getBoundingClientRect();
+          x = r.left; y = r.top - bh - 19;
+          if (y < mr.top + 6) y = r.bottom + 19;
+        } else { x = mr.left + (mr.width - bw) / 2; y = mr.top + 10; }
+      }
+      x = Math.max(8, Math.min(x, window.innerWidth - bw - 8));
+      y = Math.max(mr.top + 4, Math.min(y, mr.bottom - bh - 4));
+      bar.style.left = Math.round(x) + 'px'; bar.style.top = Math.round(y) + 'px';
     }
+    function requestToolbarPos(){ if (barPosRaf) return; barPosRaf = requestAnimationFrame(() => { barPosRaf = null; positionToolbar(); }); }
+    function noteTypingStarted(){ requestToolbarPos(); }
 
-    const TEXT_COLORS = ['#111827', '#dc2626', '#2563eb', '#059669', '#d97706', '#7c3aed', '#db2777', '#0e7490'];
-    const HL_COLORS = ['', 'rgba(250,204,21,0.45)', 'rgba(74,222,128,0.42)', 'rgba(249,168,212,0.5)', 'rgba(125,211,252,0.5)', 'rgba(253,186,116,0.55)'];
-    const HL_FACE = ['', '#facc15', '#4ade80', '#f9a8d4', '#7dd3fc', '#fdba74'];
+    const DEF_COLORS = ['#FF933E', '#359FA0', '#F2A900', '#2D7495', '#D45060'];
 
     function findNote(id){ return currentReader ? currentReader.notes.find(n => n.id === id) : null; }
     function setSaveStatus(saving, ts){
@@ -1410,6 +1451,7 @@
         });
       });
       $('#zoomLabel').textContent = Math.round(scale * 100) + '%';
+      requestToolbarPos();
     }
     const renderStamps = {};
     const renderTasks = {};
@@ -1641,6 +1683,7 @@
       $('#thumbSide').classList.toggle('hidden', !v);
       $('#thumbToggleBtn').classList.toggle('active', v);
       if (v) updateThumbActive();
+      requestToolbarPos();
       if (currentReader && fitMode) requestAnimationFrame(() => { fitScale(); setScale(scale, true); });
     }
     $('#thumbToggleBtn').addEventListener('click', () => setThumbSide(!thumbSideVisible));
@@ -1707,13 +1750,15 @@
         smoothZoomTo((zoomTargetScale || scale) * f, false);
       }
     }, { passive: false });
+    $('#pagesScroll').addEventListener('scroll', requestToolbarPos, { passive: true });
+    window.addEventListener('resize', requestToolbarPos);
     let resizeTimer = null;
     window.addEventListener('resize', () => { if (!currentReader || !fitMode) return; clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { fitScale(); setScale(scale, true); }, 200); });
 
     /* ================= Rich text runs =================
        A note keeps n.text (plain) and, when parts of it are formatted differently
        from the whole box, n.runs = [{t, s:{c,bg,b,i,u,f}}] (only the overrides). */
-    function sameRun(a, b){ return a.c === b.c && a.bg === b.bg && a.b === b.b && a.i === b.i && a.u === b.u && a.f === b.f; }
+    function sameRun(a, b){ return a.c === b.c && a.bg === b.bg && a.b === b.b && a.i === b.i && a.u === b.u && a.s === b.s && a.f === b.f; }
     function mergeRuns(runs){
       const out = [];
       runs.forEach(r => { if (!r.t) return; const l = out[out.length - 1]; if (l && sameRun(l.s, r.s)) l.t += r.t; else out.push({ t: r.t, s: r.s }); });
@@ -1724,13 +1769,16 @@
       if (tag === 'B' || tag === 'STRONG') o.b = 1;
       if (tag === 'I' || tag === 'EM') o.i = 1;
       if (tag === 'U') o.u = 1;
+      if (tag === 'S' || tag === 'STRIKE' || tag === 'DEL') o.s = 1;
       if (tag === 'FONT'){ if (el.getAttribute('color')) o.c = el.getAttribute('color'); if (el.getAttribute('face')) o.f = cleanFontName(el.getAttribute('face')); }
       if (st){
         if (st.color) o.c = st.color;
         if (st.backgroundColor) o.bg = st.backgroundColor;
         if (st.fontWeight) o.b = (st.fontWeight === 'bold' || +st.fontWeight >= 600) ? 1 : 0;
         if (st.fontStyle) o.i = st.fontStyle === 'italic' ? 1 : 0;
-        if (/underline/.test(st.textDecorationLine || st.textDecoration || '')) o.u = 1;
+        const td = st.textDecorationLine || st.textDecoration || '';
+        if (/underline/.test(td)) o.u = 1;
+        if (/line-through/.test(td)) o.s = 1;
         if (st.fontFamily) o.f = cleanFontName(st.fontFamily.split(',')[0]);
       }
       return o;
@@ -1741,6 +1789,7 @@
       if (s.f && s.f === st.font) delete s.f;
       if (s.bg === 'transparent' && !st.highlight) delete s.bg;
       if (s.u && st.underline) delete s.u;
+      if (s.s && st.strike) delete s.s;
       Object.keys(s).forEach(k => { if (s[k] === undefined) delete s[k]; });
     }
     /* Reads the editable DOM -> {text, runs|null, pieces}. pieces map text offsets to DOM text nodes. */
@@ -1792,18 +1841,28 @@
       if (s.bg) st.backgroundColor = s.bg;
       if (s.b !== undefined) st.fontWeight = s.b ? '700' : '400';
       if (s.i !== undefined) st.fontStyle = s.i ? 'italic' : 'normal';
-      if (s.u) st.textDecoration = 'underline';
+      const d = []; if (s.u) d.push('underline'); if (s.s) d.push('line-through');
+      if (d.length) st.textDecoration = d.join(' ');
       if (s.f) st.fontFamily = '"' + cleanFontName(s.f) + '", sans-serif';
     }
     function fillNoteText(t, n){
       t.textContent = '';
-      if (n.runs && n.runs.length){
-        n.runs.forEach(r => {
-          const s = r.s || {};
-          if (!Object.keys(s).length){ t.appendChild(document.createTextNode(r.t)); return; }
-          const sp = document.createElement('span'); sp.textContent = r.t; applyRunStyle(sp.style, s); t.appendChild(sp);
-        });
-      } else t.textContent = n.text;
+      const runs = (n.runs && n.runs.length) ? n.runs : [{ t: n.text || '', s: {} }];
+      const addRun = (parent, r) => {
+        if (!r.t) return;
+        const st = r.s || {};
+        if (!Object.keys(st).length){ parent.appendChild(document.createTextNode(r.t)); return; }
+        const sp = document.createElement('span'); sp.textContent = r.t; applyRunStyle(sp.style, st); parent.appendChild(sp);
+      };
+      if (n.style && n.style.bullet){
+        // one block per paragraph so each gets its own marker
+        let div = document.createElement('div'); const divs = [div];
+        runs.forEach(r => r.t.split('\n').forEach((seg, i) => {
+          if (i > 0){ div = document.createElement('div'); divs.push(div); }
+          if (seg) addRun(div, { t: seg, s: r.s || {} });
+        }));
+        divs.forEach(d => { if (!d.firstChild) d.appendChild(document.createElement('br')); t.appendChild(d); });
+      } else runs.forEach(r => addRun(t, r));
     }
     function caretRangeAt(x, y){
       try {
@@ -1823,7 +1882,10 @@
       t.style.fontFamily = '"' + n.style.font + '", sans-serif';
       t.style.fontWeight = n.style.bold ? '700' : '400';
       t.style.fontStyle = n.style.italic ? 'italic' : 'normal';
-      t.style.textDecoration = n.style.underline ? 'underline' : 'none';
+      const deco = []; if (n.style.underline) deco.push('underline'); if (n.style.strike) deco.push('line-through');
+      t.style.textDecoration = deco.length ? deco.join(' ') : 'none';
+      t.style.lineHeight = String(n.style.lh || 1.4);
+      if (n.style.bullet) t.dataset.bullet = n.style.bullet; else delete t.dataset.bullet;
       t.style.textUnderlineOffset = '3px';
       t.style.color = n.style.color;
       t.style.textAlign = n.style.align;
@@ -1856,12 +1918,14 @@
         layer.appendChild(el);
       });
       refreshThumbMeta(p);
+      requestToolbarPos();
     }
     function noteEl(id){ return document.querySelector('.note[data-nid="' + id + '"]'); }
 
     /* ================= Selection & editing ================= */
     function selectNote(id){
       if (editingId && editingId !== id) finishEdit();
+      if (id !== selectedNoteId){ barPinned = null; if (id) barDismissed = false; }
       selectedNoteId = id;
       if (!id && moveMode && typeof setMoveMode === 'function') setMoveMode(false);
       document.querySelectorAll('.note').forEach(el => el.classList.toggle('sel', el.dataset.nid === id));
@@ -1869,6 +1933,7 @@
       updateToolbarVisibility();
     }
     function startEdit(id, caret){
+      barDismissed = false;
       selectNote(id);
       editingId = id;
       const el = noteEl(id); if (!el) return;
@@ -1901,14 +1966,14 @@
     }
     document.addEventListener('focusout', e => {
       // Moving focus into the floating toolbar (font menu, colour picker…) must not end editing
-      if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('#formatBar, #gramTip')) return;
+      if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('#formatBar, #gramTip, .fpop')) return;
       if (editingId && e.target.classList && e.target.classList.contains('note-text')) finishEdit();
     });
     document.addEventListener('input', e => {
       if (editingId && e.target.classList && e.target.classList.contains('note-text')){
         noteTypingStarted();
         const n = findNote(editingId); if (n){ syncNoteFromDOM(n, e.target); scheduleSave(); }
-        clearGrammar(); scheduleGrammar();
+        clearGrammar(); scheduleGrammar(); requestToolbarPos();
       }
     });
 
@@ -1918,6 +1983,7 @@
       $('#addTextBtn').classList.toggle('active', addMode);
       document.querySelectorAll('.page-wrap').forEach(w => w.classList.toggle('add-mode', addMode));
       if (addMode){
+        barDismissed = false;
         // Show the text toolbar right away, set to the style the next box will use
         // (tap the heart with nothing selected to apply this file's favorite format)
         if (selectedNoteId) selectNote(null);
@@ -2041,6 +2107,7 @@
         n.h = Math.max(0.015, Math.min(dragCtx.oh + dy, 1 - n.y));
       }
       const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
+      requestToolbarPos();
     });
     $('#pagesCol').addEventListener('pointerup', e => {
       if (createCtx){ finishCreateDrag(e); return; }
@@ -2318,11 +2385,16 @@
     <script>
     'use strict';
     /* ================= Format bar ================= */
+    const ICON_A = '<svg class="sw-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17 12 5l6 12M8.5 12h7"/></svg>';
+    const ICON_HL = '<svg class="sw-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6-6-4-4-6 6ZM9 11l-4 4v3h4l2-2M4 21h16"/></svg>';
+    function hexToRgba(h, a){ h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')'; }
+    function customColors(kind){ try { return JSON.parse(localStorage.getItem('nt-colors-' + kind) || '[]'); } catch (e) { return []; } }
+    function saveCustomColors(kind, list){ try { localStorage.setItem('nt-colors-' + kind, JSON.stringify(list.slice(-8))); } catch (e) {} }
     function buildSwatches(){
-      $('#colorSwatches').innerHTML = TEXT_COLORS.map(c => '<button class="swatch" data-tcolor="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('');
-      $('#hlSwatches').innerHTML = HL_COLORS.map((c, i) => c === ''
-        ? '<button class="swatch none" data-hl="" title="No highlight">∅</button>'
-        : '<button class="swatch" data-hl="' + c + '" style="background:' + HL_FACE[i] + '" title="Highlight"></button>').join('');
+      const plus = k => '<button class="swatch add" data-addcolor="' + k + '" title="Add a colour">+</button>';
+      const tc = DEF_COLORS.concat(customColors('text')), hc = DEF_COLORS.concat(customColors('hl'));
+      $('#colorSwatches').innerHTML = ICON_A + tc.map((c, i) => '<button class="swatch' + (i >= DEF_COLORS.length ? ' custom' : '') + '" data-tcolor="' + c + '" style="background:' + c + '" title="' + (i >= DEF_COLORS.length ? c + ' (right-click to remove)' : c) + '"></button>').join('') + plus('text');
+      $('#hlSwatches').innerHTML = ICON_HL + hc.map((c, i) => '<button class="swatch' + (i >= DEF_COLORS.length ? ' custom' : '') + '" data-hl="' + hexToRgba(c, 0.45) + '" data-hex="' + c + '" style="background:' + c + '" title="' + (i >= DEF_COLORS.length ? c + ' (right-click to remove)' : c) + '"></button>').join('') + plus('hl');
     }
     /* ================= Fonts: built-in library + fonts from this device =================
        Three ways to get more fonts for notes:
@@ -2481,7 +2553,6 @@
         if (names.length){ saveDeviceFontNames(names); buildFontOptions(); updateDeviceFontsBtn(); }
       } catch (e) {}
     }
-    const _dfb = $('#deviceFontsBtn'); if (_dfb) _dfb.addEventListener('click', deviceFontsModal);
     buildFontOptions(); updateDeviceFontsBtn(); autoRefreshDeviceFonts();
 
     function syncFormatBar(){
@@ -2493,8 +2564,12 @@
       $('#sizeVal').textContent = sz ? Math.round(s.sizeFrac * sz.w) : Math.round(s.sizeFrac * 595);
       $('#fmtBold').classList.toggle('active', !!s.bold);
       $('#fmtItalic').classList.toggle('active', !!s.italic);
-      $('#fmtUnderline').classList.toggle('active', !!s.underline);
+      $('#fmtStrike').classList.toggle('active', !!s.strike);
       document.querySelectorAll('#formatBar [data-align]').forEach(b => b.classList.toggle('active', b.dataset.align === s.align));
+      if (s.align === 'center' || s.align === 'right') $('#alignGroup').classList.add('expanded');
+      $('#bulletBtn').classList.toggle('active', !!s.bullet);
+      document.querySelectorAll('#bulletPop [data-bullet]').forEach(b => b.classList.toggle('cur', b.dataset.bullet === (s.bullet || '')));
+      document.querySelectorAll('#spacePop [data-lh]').forEach(b => b.classList.toggle('cur', +b.dataset.lh === (s.lh || 1.4)));
       document.querySelectorAll('#colorSwatches [data-tcolor]').forEach(b => b.classList.toggle('active', b.dataset.tcolor.toLowerCase() === String(s.color).toLowerCase()));
       document.querySelectorAll('#hlSwatches [data-hl]').forEach(b => b.classList.toggle('active', b.dataset.hl === (s.highlight || '')));
       const mv = $('#moveNoteBtn'); if (mv){ mv.classList.toggle('active', !!moveMode); mv.setAttribute('aria-pressed', moveMode ? 'true' : 'false'); }
@@ -2505,14 +2580,15 @@
         try {
           $('#fmtBold').classList.toggle('active', document.queryCommandState('bold'));
           $('#fmtItalic').classList.toggle('active', document.queryCommandState('italic'));
-          $('#fmtUnderline').classList.toggle('active', document.queryCommandState('underline'));
+          $('#fmtStrike').classList.toggle('active', document.queryCommandState('strikeThrough'));
         } catch (e) {}
       }
     }
     /* ----- Formatting a selected word / phrase inside a box being edited ----- */
     let savedRange = null;
-    const RANGE_PROPS = { color: 1, highlight: 1, font: 1, bold: 1, italic: 1, underline: 1 };
-    const RUN_KEY = { color: 'c', highlight: 'bg', font: 'f', bold: 'b', italic: 'i', underline: 'u' };
+    const RANGE_PROPS = { color: 1, highlight: 1, font: 1, bold: 1, italic: 1, underline: 1, strike: 1 };
+    const RUN_KEY = { color: 'c', highlight: 'bg', font: 'f', bold: 'b', italic: 'i', underline: 'u', strike: 's' };
+    const EXEC_CMD = { bold: 'bold', italic: 'italic', underline: 'underline', strike: 'strikeThrough' };
     function editingText(){ const el = editingId && noteEl(editingId); return el ? el.querySelector('.note-text') : null; }
     function applyToSelection(prop, value){
       if (!RANGE_PROPS[prop]) return false;
@@ -2525,7 +2601,7 @@
       if (prop === 'color') document.execCommand('foreColor', false, value);
       else if (prop === 'highlight') document.execCommand('hiliteColor', false, value || 'transparent');
       else if (prop === 'font') document.execCommand('fontName', false, value);
-      else document.execCommand(prop);
+      else document.execCommand(EXEC_CMD[prop]);
       const n = findNote(editingId); if (n){ syncNoteFromDOM(n, t); scheduleSave(); }
       return true;
     }
@@ -2564,14 +2640,13 @@
        on for the box being edited, using the language chosen in the toolbar.
        Grammar: optional. After a short pause in typing, the text of the box being edited is sent to the
        free LanguageTool service; mistakes get a blue wavy underline and a small suggestion card. */
-    function langPref(){ try { return localStorage.getItem('nt-lang') || 'en-US'; } catch (e) { return 'en-US'; } }
-    function langAttr(){ const l = langPref(); return l === 'auto' ? 'en' : l; }
+    function langPref(){ return 'en-US'; }
+    function langAttr(){ return 'en-US'; }
     let gramOn = false; try { gramOn = localStorage.getItem('nt-gram') === '1'; } catch (e) {}
     let gramMatches = [], gramTimer = null, gramReq = 0, gramWarnAt = 0;
     const gramIgnore = new Set();
     function syncGramUI(){
       const b = $('#gramBtn'); if (b){ b.classList.toggle('active', gramOn); b.setAttribute('aria-pressed', gramOn ? 'true' : 'false'); }
-      const ls = $('#langSel'); if (ls) ls.value = langPref();
     }
     function setGram(v){
       gramOn = !!v; try { localStorage.setItem('nt-gram', gramOn ? '1' : '0'); } catch (e) {}
@@ -2607,7 +2682,6 @@
       const req = ++gramReq;
       try {
         const body = new URLSearchParams({ text: c.text, language: langPref(), disabledCategories: 'TYPOS' });
-        if (langPref() === 'auto') body.set('preferredVariants', 'en-US,en-GB');
         const r = await fetch('https://api.languagetool.org/v2/check', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' }, body });
         if (!r.ok) throw new Error(r.status);
         const j = await r.json();
@@ -2672,15 +2746,18 @@
       $('#mCancel').addEventListener('click', closeModal);
       $('#gramOk').addEventListener('click', () => { try { localStorage.setItem('nt-gram-consent', '1'); } catch (e) {} closeModal(); setGram(true); });
     });
-    $('#langSel').addEventListener('change', e => {
-      try { localStorage.setItem('nt-lang', e.target.value); } catch (er) {}
-      const t = editingText(); if (t) t.lang = langAttr();
-      clearGrammar(); scheduleGrammar(200);
-    });
     syncGramUI();
+    function refillNote(n){
+      const el = noteEl(n.id), t = el && el.querySelector('.note-text'); if (!t) return;
+      const editing = editingId === n.id;
+      if (editing) syncNoteFromDOM(n, t);
+      fillNoteText(t, n);
+      if (editing){ t.focus(); const rg = document.createRange(); rg.selectNodeContents(t); rg.collapse(false); const sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(rg); }
+    }
     function applyStyle(prop, value){
       // With a note selected this restyles that note; with nothing selected
       // (Add Text mode) it sets the style the next text box will be created with.
+      if (prop === 'font' && value) pushRecentFont(value);
       if (applyToSelection(prop, value)){ syncFormatBar(); return; }
       lastStyle[prop] = value;
       const n = findNote(selectedNoteId);
@@ -2688,6 +2765,7 @@
         n.style[prop] = value;
         lastStyle = cloneStyle(n.style);
         stripRunProp(n, prop);
+        if (prop === 'bullet') refillNote(n);
         const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
         scheduleSave();
       }
@@ -2701,7 +2779,7 @@
       const btn = $('#moveNoteBtn');
       if (btn){ btn.classList.toggle('active', moveMode); btn.setAttribute('aria-pressed', moveMode ? 'true' : 'false'); }
     }
-    $('#moveNoteBtn').addEventListener('click', () => {
+    if ($('#moveNoteBtn')) $('#moveNoteBtn').addEventListener('click', () => {
       if (!currentReader) return;
       setMoveMode(!moveMode);
       toast(moveMode ? 'Move mode on — drag a text box to reposition it. Tap Move again to go back to typing.' : 'Move mode off.');
@@ -2767,14 +2845,120 @@
     });
     $('#fmtBold').addEventListener('click', () => applyStyle('bold', !effectiveStyle().bold));
     $('#fmtItalic').addEventListener('click', () => applyStyle('italic', !effectiveStyle().italic));
-    $('#fmtUnderline').addEventListener('click', () => applyStyle('underline', !effectiveStyle().underline));
+    $('#fmtStrike').addEventListener('click', () => applyStyle('strike', !effectiveStyle().strike));
     $('#sizePlus').addEventListener('click', () => applyStyle('sizeFrac', Math.min(0.09, +(effectiveStyle().sizeFrac + 0.0025).toFixed(4))));
     $('#sizeMinus').addEventListener('click', () => applyStyle('sizeFrac', Math.max(0.011, +(effectiveStyle().sizeFrac - 0.0025).toFixed(4))));
     document.querySelectorAll('#formatBar [data-align]').forEach(b => b.addEventListener('click', () => applyStyle('align', b.dataset.align)));
-    $('#colorSwatches').addEventListener('click', e => { const b = e.target.closest('[data-tcolor]'); if (b) applyStyle('color', b.dataset.tcolor); });
-    $('#hlSwatches').addEventListener('click', e => { const b = e.target.closest('[data-hl]'); if (b) applyStyle('highlight', b.dataset.hl); });
-    $('#colorCustom').addEventListener('input', e => applyStyle('color', e.target.value));
-    $('#deleteNoteBtn').addEventListener('click', () => { if (selectedNoteId) deleteNote(selectedNoteId); });
+    /* ----- Colours: 5 defaults + your own (the + button) ----- */
+    let colorTarget = 'text';
+    function addCustomColor(kind, hex){
+      const list = customColors(kind), up = hex.toUpperCase();
+      if (!DEF_COLORS.includes(up) && !list.includes(up)){ list.push(up); saveCustomColors(kind, list); }
+      buildSwatches();
+    }
+    $('#colorSwatches').addEventListener('click', e => {
+      const add = e.target.closest('[data-addcolor]'); if (add){ openColorPop('text', add); return; }
+      const b = e.target.closest('[data-tcolor]'); if (!b) return;
+      const same = String(effectiveStyle().color).toLowerCase() === b.dataset.tcolor.toLowerCase();
+      applyStyle('color', same ? '#111827' : b.dataset.tcolor);   // tapping the active colour again resets it
+    });
+    $('#hlSwatches').addEventListener('click', e => {
+      const add = e.target.closest('[data-addcolor]'); if (add){ openColorPop('hl', add); return; }
+      const b = e.target.closest('[data-hl]'); if (!b) return;
+      applyStyle('highlight', (effectiveStyle().highlight || '') === b.dataset.hl ? '' : b.dataset.hl);
+    });
+    function removeCustom(kind, hex){ saveCustomColors(kind, customColors(kind).filter(c => c.toLowerCase() !== hex.toLowerCase())); buildSwatches(); syncFormatBar(); }
+    $('#colorSwatches').addEventListener('contextmenu', e => { const b = e.target.closest('.swatch.custom'); if (!b) return; e.preventDefault(); removeCustom('text', b.dataset.tcolor); });
+    $('#hlSwatches').addEventListener('contextmenu', e => { const b = e.target.closest('.swatch.custom'); if (!b) return; e.preventDefault(); removeCustom('hl', b.dataset.hex); });
+    function openColorPop(kind, anchor){
+      colorTarget = kind;
+      const pop = $('#colorPop');
+      if (!pop.classList.contains('hidden') && popAnchor === anchor){ hidePops(); return; }
+      showPop(pop, anchor);
+      $('#cpHex').value = ''; $('#cpHex').focus();
+    }
+    function submitCustomColor(){
+      let v = $('#cpHex').value.trim();
+      if (!/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)){ $('#cpHex').style.borderColor = 'var(--danger)'; return; }
+      if (v[0] !== '#') v = '#' + v;
+      if (v.length === 4) v = '#' + v.slice(1).split('').map(c => c + c).join('');
+      $('#cpHex').style.borderColor = '';
+      addCustomColor(colorTarget, v);
+      applyStyle(colorTarget === 'text' ? 'color' : 'highlight', colorTarget === 'text' ? v.toUpperCase() : hexToRgba(v, 0.45));
+      hidePops();
+    }
+    $('#cpAdd').addEventListener('click', submitCustomColor);
+    $('#cpHex').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); submitCustomColor(); } });
+    $('#cpPick').addEventListener('input', e => { $('#cpHex').value = e.target.value.toUpperCase(); });
+
+    /* ----- Popovers ----- */
+    let popAnchor = null;
+    function hidePops(){ document.querySelectorAll('.fpop').forEach(p => p.classList.add('hidden')); popAnchor = null; }
+    function showPop(pop, anchor){
+      hidePops();
+      pop.classList.remove('hidden'); popAnchor = anchor;
+      const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+      const x = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8));
+      let y = r.bottom + 6; if (y + ph > window.innerHeight - 8) y = Math.max(8, r.top - ph - 6);
+      pop.style.left = x + 'px'; pop.style.top = y + 'px';
+    }
+    function togglePop(pop, anchor, before){ if (!pop.classList.contains('hidden') && popAnchor === anchor){ hidePops(); return; } if (before) before(); showPop(pop, anchor); }
+    document.addEventListener('pointerdown', e => {
+      if (popAnchor && !e.target.closest('.fpop') && !popAnchor.contains(e.target)) hidePops();
+    }, true);
+    document.querySelectorAll('.fpop').forEach(p => p.addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }));
+    $('#spaceBtn').addEventListener('click', () => togglePop($('#spacePop'), $('#spaceBtn'), syncFormatBar));
+    $('#bulletBtn').addEventListener('click', () => togglePop($('#bulletPop'), $('#bulletBtn'), syncFormatBar));
+    $('#spacePop').addEventListener('click', e => { const b = e.target.closest('[data-lh]'); if (!b) return; applyStyle('lh', +b.dataset.lh); hidePops(); });
+    $('#bulletPop').addEventListener('click', e => { const b = e.target.closest('[data-bullet]'); if (!b) return; applyStyle('bullet', b.dataset.bullet); hidePops(); });
+    $('#alignGroup').addEventListener('dblclick', () => $('#alignGroup').classList.toggle('expanded'));
+
+    /* ----- Font menu: A button -> recent (4 latest) + all fonts ----- */
+    function recentFonts(){ try { return JSON.parse(localStorage.getItem('nt-recent-fonts') || '[]').slice(0, 4); } catch (e) { return []; } }
+    function pushRecentFont(f){
+      const l = recentFonts().filter(x => x !== f); l.unshift(f);
+      try { localStorage.setItem('nt-recent-fonts', JSON.stringify(l.slice(0, 4))); } catch (e) {}
+    }
+    function buildFontPop(){
+      const q = $('#fpSearch').value.trim().toLowerCase(), cur = effectiveStyle().font, list = $('#fpList');
+      list.textContent = '';
+      const head = t => { const h = document.createElement('div'); h.className = 'fp-head'; h.textContent = t; list.appendChild(h); };
+      const item = name => {
+        const b = document.createElement('button'); b.className = 'fp-item' + (name === cur ? ' cur' : '');
+        b.dataset.font = name; b.textContent = name; b.style.fontFamily = '"' + name + '", sans-serif'; list.appendChild(b);
+      };
+      const rec = recentFonts();
+      if (!q && rec.length){ head('Recent'); rec.forEach(item); }
+      document.querySelectorAll('#fmtFont optgroup').forEach(g => {
+        const names = Array.from(g.querySelectorAll('option')).map(o => o.value).filter(n => !q || n.toLowerCase().includes(q));
+        if (!names.length) return;
+        head(g.label); names.forEach(item);
+      });
+    }
+    $('#fontBtn').addEventListener('click', () => togglePop($('#fontPop'), $('#fontBtn'), () => { $('#fpSearch').value = ''; buildFontPop(); }));
+    $('#fpSearch').addEventListener('input', buildFontPop);
+    $('#fpList').addEventListener('click', e => {
+      const b = e.target.closest('[data-font]'); if (!b) return;
+      const f = b.dataset.font;
+      if (document.fonts && document.fonts.load) document.fonts.load('16px "' + f + '"').catch(() => {});
+      applyStyle('font', f); hidePops();
+    });
+    $('#deviceFontsBtn').addEventListener('click', () => { hidePops(); deviceFontsModal(); });
+
+    /* ----- Toolbar: move handle + hide ----- */
+    (function(){
+      const h = $('#barMove'); let d = null;
+      h.addEventListener('pointerdown', e => {
+        e.preventDefault(); hidePops();
+        const r = $('#formatBar').getBoundingClientRect(); d = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+        try { h.setPointerCapture(e.pointerId); } catch (er) {}
+      });
+      h.addEventListener('pointermove', e => { if (!d) return; barPinned = { x: e.clientX - d.dx, y: e.clientY - d.dy }; positionToolbar(); });
+      h.addEventListener('pointerup', () => { d = null; });
+      h.addEventListener('pointercancel', () => { d = null; });
+    })();
+    $('#barClose').addEventListener('click', () => { barDismissed = true; updateToolbarVisibility(); });
+    $('#deleteNoteBtn') && $('#deleteNoteBtn').addEventListener('click', () => { if (selectedNoteId) deleteNote(selectedNoteId); });
     // Keep editing alive when interacting with the format bar
     $('#formatBar').addEventListener('pointerdown', e => { if (editingId && !e.target.closest('select, input')) e.preventDefault(); }, true);
 
@@ -2823,13 +3007,13 @@
     function fontStr(s, st, px){
       return ((s.i !== undefined ? s.i : st.italic) ? 'italic ' : '') + ((s.b !== undefined ? s.b : st.bold) ? '700 ' : '400 ') + px + 'px "' + (s.f || st.font) + '", sans-serif';
     }
-    /* Word-wraps styled runs; returns [{parts:[{t,s,w}], w}] */
+    /* Word-wraps styled runs; returns lines [{parts:[{t,s,w,sp}], w, first, last, pi}] */
     function layoutRuns(ctx, runs, st, px, maxW){
       const paras = [[]];
       runs.forEach(r => r.t.split('\n').forEach((seg, i) => { if (i > 0) paras.push([]); if (seg) paras[paras.length - 1].push({ t: seg, s: r.s || {} }); }));
       const meas = (t, s) => { ctx.font = fontStr(s, st, px); return ctx.measureText(t).width; };
       const lines = [];
-      paras.forEach(frags => {
+      paras.forEach((frags, pi) => {
         const words = []; let cur = null;
         frags.forEach(f => (f.t.match(/\s+|\S+/g) || []).forEach(piece => {
           const sp = /^\s/.test(piece);
@@ -2837,17 +3021,17 @@
           if (sp) cur.sp = true;
           cur.parts.push({ t: piece, s: f.s, sp });
         }));
-        if (!words.length){ lines.push({ parts: [], w: 0 }); return; }
-        let line = { parts: [], w: 0, trail: 0 };
-        const flush = () => { line.w -= line.trail; lines.push(line); line = { parts: [], w: 0, trail: 0 }; };
+        if (!words.length){ lines.push({ parts: [], w: 0, first: true, last: true, pi }); return; }
+        let line = { parts: [], w: 0, trail: 0, first: true, pi };
+        const flush = last => { line.w -= line.trail; line.last = last; lines.push(line); line = { parts: [], w: 0, trail: 0, first: false, pi }; };
         words.forEach(wd => {
           let ww = 0, tw = 0;
           wd.parts.forEach(pt => { pt.w = meas(pt.t, pt.s); ww += pt.w; if (pt.sp) tw += pt.w; });
-          if (line.parts.length && line.w + (ww - tw) > maxW) flush();
+          if (line.parts.length && line.w + (ww - tw) > maxW) flush(false);
           wd.parts.forEach(pt => line.parts.push(pt));
           line.w += ww; line.trail = tw;
         });
-        flush();
+        flush(true);
       });
       return lines;
     }
@@ -2873,25 +3057,43 @@
             const x = n.x * canvas.width, y = n.y * canvas.height, w = n.w * canvas.width;
             const fontPx = n.style.sizeFrac * vp1.width * RS;
             const runs = (n.runs && n.runs.length) ? n.runs : [{ t: n.text, s: {} }];
-            const lines = layoutRuns(ctx, runs, n.style, fontPx, w - 10);
+            const lhPx = fontPx * (n.style.lh || 1.4);
+            const indent = n.style.bullet ? fontPx * 1.3 : 0;
+            const areaL = x + 5 + indent, areaW = w - 10 - indent;
+            const lines = layoutRuns(ctx, runs, n.style, fontPx, areaW);
             if (n.style.highlight){
               ctx.fillStyle = n.style.highlight;
               const minH = n.h ? n.h * canvas.height : 0;
-              ctx.fillRect(x, y, w, Math.max(fontPx * 1.5, lines.length * fontPx * 1.4 + 8, minH));
+              ctx.fillRect(x, y, w, Math.max(fontPx * 1.5, lines.length * lhPx + 8, minH));
             }
             ctx.textBaseline = 'top';
             lines.forEach((line, li) => {
-              let lx = x + 5;
-              if (n.style.align === 'center') lx = x + (w - line.w) / 2;
-              else if (n.style.align === 'right') lx = x + w - 5 - line.w;
-              const ly = y + 4 + li * fontPx * 1.4;
-              line.parts.forEach(pt => {
+              let lx = areaL, extra = 0, gapIdx = new Set();
+              if (n.style.align === 'center') lx = areaL + (areaW - line.w) / 2;
+              else if (n.style.align === 'right') lx = areaL + areaW - line.w;
+              else if (n.style.align === 'justify' && !line.last){
+                const ns = line.parts.map((pt, i) => pt.sp ? -1 : i).filter(i => i >= 0);
+                if (ns.length > 1){
+                  line.parts.forEach((pt, i) => { if (pt.sp && i > ns[0] && i < ns[ns.length - 1]) gapIdx.add(i); });
+                  if (gapIdx.size) extra = Math.max(0, (areaW - line.w) / gapIdx.size);
+                }
+              }
+              const ly = y + 4 + li * lhPx + (lhPx - fontPx * 1.4) / 2;
+              if (n.style.bullet && line.first){
+                ctx.font = fontStr({}, n.style, fontPx); ctx.fillStyle = n.style.color;
+                ctx.fillText(({ disc: '•', dash: '–', check: '✓' })[n.style.bullet] || ((line.pi + 1) + '.'), x + 5, ly);
+              }
+              line.parts.forEach((pt, i) => {
+                const pw = pt.w + (gapIdx.has(i) ? extra : 0);
                 ctx.font = fontStr(pt.s, n.style, fontPx);
-                if (pt.s.bg && pt.s.bg !== 'transparent'){ ctx.fillStyle = pt.s.bg; ctx.fillRect(lx, ly - fontPx * 0.12, pt.w, fontPx * 1.3); }
+                if (pt.s.bg && pt.s.bg !== 'transparent'){ ctx.fillStyle = pt.s.bg; ctx.fillRect(lx, ly - fontPx * 0.12, pw, fontPx * 1.3); }
                 ctx.fillStyle = pt.s.c || n.style.color;
                 ctx.fillText(pt.t, lx, ly);
-                if ((pt.s.u || n.style.underline) && pt.t.trim()) ctx.fillRect(lx, ly + fontPx * 1.14, pt.w, Math.max(1, fontPx * 0.055));
-                lx += pt.w;
+                if (pt.t.trim()){
+                  if (pt.s.u || n.style.underline) ctx.fillRect(lx, ly + fontPx * 1.14, pw, Math.max(1, fontPx * 0.055));
+                  if (pt.s.s || n.style.strike) ctx.fillRect(lx, ly + fontPx * 0.56, pw, Math.max(1, fontPx * 0.055));
+                }
+                lx += pw;
               });
             });
           });
