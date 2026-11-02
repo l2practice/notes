@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-v" />
+    <meta name="app-build" content="2026-11-02-w" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4972,6 +4972,12 @@ function inkUp(e, cv, cancelled){
     let st = INK.live && INK.live.st; INK.live = null; endInteraction(p);
     if (st && (!cancelled || g.moved)){
       const tiny = !g.moved || Math.hypot(st.bw || Math.abs(st.x2 - st.x), st.bh || Math.abs(st.y2 - st.y)) < 6;
+      if (tiny && INK.lastPlacedId){
+        // something is already placed: one tap elsewhere only deselects it; a quick double tap puts down another copy
+        const now = performance.now(), lt = INK.lastTap, dbl = lt && now - lt.t < 450 && Math.hypot(g.x0 - lt.x, g.y0 - lt.y) * scale < 40;
+        if (!dbl){ INK.lastTap = { t: now, x: g.x0, y: g.y0 }; INK.sel = null; redrawInk(p); setTimeout(syncInkBar, 0); return; }
+        INK.lastTap = null;
+      }
       if (tiny){ const x = g.x0, y = g.y0, v = (INK.shape.o & 1) === 0;
         if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
         else {
@@ -5181,7 +5187,7 @@ function syncSymFields(){
 function markSymCur(){
   document.querySelectorAll('#spBody .sym-chip').forEach(c => c.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === 'sym' && INK.shape.txt === c.dataset.t && !!INK.shape.ring === !!c.dataset.ring && !!INK.shape.it === !!c.dataset.it));
 }
-function pickSymbol(txt, ring, it){ if (!txt) return; INK.shape = { k: 'sym', o: 0, txt, ring: !!ring, it: !!it }; setInkTool('shape'); markSymCur(); syncSymFields(); }
+function pickSymbol(txt, ring, it){ if (!txt) return; INK.shape = { k: 'sym', o: 0, txt, ring: !!ring, it: !!it }; INK.lastPlacedId = null; INK.lastTap = null; setInkTool('shape'); markSymCur(); syncSymFields(); }
 /* floating, movable, resizable panel that stays open until you close it */
 function symGeo(){
   let g = null; try { g = JSON.parse(localStorage.getItem('nt-sym-geo') || 'null'); } catch (e) {}
@@ -5390,7 +5396,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   document.addEventListener('gesturestart', e => { if (INK.tool) e.preventDefault(); });
   $('#shapePop').addEventListener('click', e => {
     const b = e.target.closest('.shape-btn'); if (!b) return;
-    INK.shape = { k: b.dataset.k, o: +b.dataset.o }; hidePops(); setInkTool('shape');
+    INK.shape = { k: b.dataset.k, o: +b.dataset.o }; INK.lastPlacedId = null; INK.lastTap = null; hidePops(); setInkTool('shape');
   });
   $('#inkSwatches').addEventListener('click', e => {
     const add = e.target.closest('[data-addcolor]'); if (add){ openColorPop('ink', add); return; }
