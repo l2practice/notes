@@ -325,7 +325,9 @@
       .align-group .align-ext{display:none;}
       .align-group.expanded .align-ext{display:inline-flex;}
       .swatch.custom{border-radius:50%;}
-      .swatch.add{background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-2);font-size:15px;font-weight:700;line-height:1;}
+      .swatch.add{background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--ink-2);padding:0;box-shadow:inset 0 0 0 1px var(--control);}
+      .swatch.add svg{width:11px;height:11px;}
+      #hlSwatches .swatch.add{border-radius:7px;}
       .sw-ico{width:16px;height:16px;color:var(--muted);flex:none;}
       #colorSwatches .swatch{border-radius:50%;}
       /* Popovers (font list, line spacing, bullets, add-colour) */
@@ -1282,6 +1284,11 @@
     const MORE_COLORS = ['#FF933E', '#359FA0', '#5B8C5A'];      // shown under +, together with your own
     const DEF_COLORS = PRIMARY_COLORS.concat(MORE_COLORS);
 
+    /* The favourite format's font and size are the document's default for every new text box */
+    function overlayFav(){
+      const f = currentReader && currentReader.favoriteStyle;
+      if (f){ lastStyle.font = f.font; lastStyle.sizeFrac = f.sizeFrac; }
+    }
     function findNote(id){ return currentReader ? currentReader.notes.find(n => n.id === id) : null; }
     function setSaveStatus(saving, ts){
       const el = $('#saveStatus');
@@ -1344,6 +1351,7 @@
           pageSizes.push({ w: vp.width, h: vp.height });
         }
         cancelSmoothZoom();
+        overlayFav();
         fitScale();
         buildPages();
         buildThumbs();
@@ -1447,7 +1455,7 @@
         if (renderStamps[p] !== stamp) return;
         let dpr = Math.min(window.devicePixelRatio || 1, 2);
         const sz1 = pageSizes[p - 1];
-        if (sz1){ const px = sz1.w * sz1.h * Math.pow(scale * dpr, 2), cap = 25e6; if (px > cap) dpr *= Math.sqrt(cap / px); }
+        if (sz1){ const px = sz1.w * sz1.h * Math.pow(scale * dpr, 2), cap = 36e6; if (px > cap) dpr *= Math.sqrt(cap / px); }
         const vp = page.getViewport({ scale: scale * dpr });
         // Draw into an off-screen canvas, then swap it in: the visible page is never blank while re-rendering
         const buf = document.createElement('canvas');
@@ -1669,7 +1677,7 @@
     function setScale(s, fit){
       cancelSmoothZoom();
       const anchor = captureAnchor();
-      scale = Math.max(0.2, Math.min(5, s)); fitMode = !!fit;
+      scale = Math.max(0.2, Math.min(8, s)); fitMode = !!fit;
       Object.keys(renderStamps).forEach(k => delete renderStamps[k]);
       sizeAllPages();
       lockPageTracking(400);
@@ -1690,7 +1698,7 @@
       clearTimeout(zoomCommitTimer);
     }
     function smoothZoomTo(s, fit){
-      const target = Math.max(0.2, Math.min(5, s));
+      const target = Math.max(0.2, Math.min(8, s));
       if (fit !== undefined) fitMode = !!fit;
       if (zoomReducedMotion || !currentReader){ setScale(target, fitMode); return; }
       if (zoomTargetScale === null){ zoomAnchor = captureAnchor(); }
@@ -1906,7 +1914,7 @@
       selectedNoteId = id;
       if (!id && moveMode && typeof setMoveMode === 'function') setMoveMode(false);
       document.querySelectorAll('.note').forEach(el => el.classList.toggle('sel', el.dataset.nid === id));
-      if (id){ const n = findNote(id); if (n){ lastStyle = cloneStyle(n.style); } }
+      if (id){ const n = findNote(id); if (n){ lastStyle = cloneStyle(n.style); overlayFav(); } }
       updateToolbarVisibility();
     }
     function startEdit(id, caret){
@@ -2362,15 +2370,13 @@
     <script>
     'use strict';
     /* ================= Format bar ================= */
-    const ICON_A = '<svg class="sw-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17 12 5l6 12M8.5 12h7"/></svg>';
-    const ICON_HL = '<svg class="sw-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6-6-4-4-6 6ZM9 11l-4 4v3h4l2-2M4 21h16"/></svg>';
     function hexToRgba(h, a){ h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')'; }
     function customColors(kind){ try { return JSON.parse(localStorage.getItem('nt-colors-' + kind) || '[]'); } catch (e) { return []; } }
     function saveCustomColors(kind, list){ try { localStorage.setItem('nt-colors-' + kind, JSON.stringify(list.slice(-8))); } catch (e) {} }
     function buildSwatches(){
-      const plus = k => '<button class="swatch add" data-addcolor="' + k + '" title="More colours">+</button>';
-      $('#colorSwatches').innerHTML = ICON_A + PRIMARY_COLORS.map(c => '<button class="swatch" data-tcolor="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('') + plus('text');
-      $('#hlSwatches').innerHTML = ICON_HL + PRIMARY_COLORS.map(c => '<button class="swatch" data-hl="' + hexToRgba(c, 0.45) + '" data-hex="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('') + plus('hl');
+      const plus = k => '<button class="swatch add" data-addcolor="' + k + '" title="More colours"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>';
+      $('#colorSwatches').innerHTML = PRIMARY_COLORS.map(c => '<button class="swatch" data-tcolor="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('') + plus('text');
+      $('#hlSwatches').innerHTML = PRIMARY_COLORS.map(c => '<button class="swatch" data-hl="' + hexToRgba(c, 0.45) + '" data-hex="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('') + plus('hl');
     }
     /* ================= Fonts: built-in library + fonts from this device =================
        Three ways to get more fonts for notes:
@@ -2739,7 +2745,7 @@
       const n = findNote(selectedNoteId);
       if (n){
         n.style[prop] = value;
-        lastStyle = cloneStyle(n.style);
+        lastStyle = cloneStyle(n.style); overlayFav();
         stripRunProp(n, prop);
         if (prop === 'bullet') refillNote(n);
         const el = noteEl(n.id); if (el) applyNoteStyle(el, n);
@@ -2787,6 +2793,7 @@
       if (!currentReader) return;
       const eff = effectiveStyle(); if (!eff) return;
       currentReader.favoriteStyle = cloneStyle(eff);
+      overlayFav();
       currentReader.favoriteSavedAt = Date.now();
       persistFavorite();
       syncFormatBar();
@@ -2796,7 +2803,7 @@
       if (!currentReader) return;
       const fav = currentReader.favoriteStyle;
       if (!fav){ toast('No favorite format saved for this file yet. Format a text box, select it, then tap the heart to save it.'); return; }
-      lastStyle = cloneStyle(fav);
+      lastStyle = cloneStyle(fav); overlayFav();
       const n = findNote(selectedNoteId);
       if (n){
         n.style = cloneStyle(fav);
