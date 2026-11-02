@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-a" />
+    <meta name="app-build" content="2026-11-02-b" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -189,6 +189,18 @@
       .shelf-head{display:flex;align-items:baseline;gap:12px;margin:4px 0 0;flex-wrap:wrap;}
       .shelf-head h2{font-size:16px;font-weight:600;letter-spacing:-.01em;margin:0;color:var(--ink);}
       .shelf-head .hint{color:var(--muted);font-size:13px;}
+      .sync-prog{margin:8px 0 6px;}
+      .sp-bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;}
+      .sp-bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .25s var(--ease);}
+      .sp-txt{font-size:12.5px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums;}
+      .bin-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;justify-content:space-between;margin-bottom:18px;}
+      .bin-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--radius);}
+      .bin-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--line);}
+      .bin-row:first-child{border-top:0;}
+      .bin-row .bin-cover{width:36px;height:50px;border-radius:4px;border:1px solid var(--line);background:var(--surface-2) center/cover no-repeat;flex:none;}
+      .bin-row .bin-main{flex:1;min-width:0;}
+      .bin-row .bin-name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .bin-row .bin-meta{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;}
       .sort-sel{margin-left:auto;height:30px;border:1px solid var(--control);border-radius:var(--radius-control);background:var(--surface);color:var(--ink);padding:0 8px;font-size:13px;}
       .drop-ico{display:inline-flex;align-items:center;color:var(--muted);vertical-align:-3px;margin-left:6px;cursor:help;}
       .drop-ico svg{width:17px;height:17px;}
@@ -458,8 +470,7 @@
       .page-wrap canvas.hl-canvas,.page-wrap canvas.ink-canvas{position:absolute;inset:0;pointer-events:none;}
       .page-wrap canvas.hl-canvas{mix-blend-mode:multiply;}
       .page-wrap.paper-dark canvas.hl-canvas{mix-blend-mode:screen;}
-      #pagesCol.ink-on .ink-canvas{pointer-events:auto;touch-action:pan-x pan-y pinch-zoom;cursor:crosshair;}
-      #pagesCol.ink-on.finger .ink-canvas{touch-action:none;}
+      #pagesCol.ink-on .ink-canvas{pointer-events:auto;touch-action:none;cursor:crosshair;}
       #pagesCol.ink-on.tool-select .ink-canvas{cursor:default;}
       #pagesCol.ink-on .notes-layer{pointer-events:none;}
       .ink-range{width:92px;accent-color:var(--ink);}
@@ -677,6 +688,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
             Settings
           </button>
+          <button class="side-nav-item" id="navBinBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>
+            Recycle Bin <span class="count" id="binCount" style="margin-left:auto"></span>
+          </button>
           <p class="side-title">Subjects</p>
           <div class="folder-list" id="folderList"></div>
           <button class="new-folder-btn" id="newFolderBtn">
@@ -728,6 +743,7 @@
           <div id="docsArea"></div>
           </div>
           <div id="homeView" class="hidden"></div>
+          <div id="binView" class="hidden"></div>
           <div id="settingsView" class="hidden">
             <h2 class="page-title">Settings</h2>
             <p class="page-sub">Sync your library across devices.</p>
@@ -736,6 +752,7 @@
               <div class="drive-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg></div>
               <div class="drive-main">
                 <div class="drive-title">Google Drive Sync <span class="drive-badge" id="driveBadge">Not connected</span></div>
+                <div class="sync-prog hidden" id="syncProg"><div class="sp-bar"><i id="spFill"></i></div><div class="sp-txt" id="spTxt"></div></div>
                 <div class="drive-sub" id="driveSub">Connect Drive to keep your PDFs and notes on your Drive — open them on your phone, computer, or any other device and see the same library. Until you connect, the app saves on this device only.</div>
               </div>
               <div class="drive-actions">
@@ -746,6 +763,7 @@
               </div>
             </div>
           </div>
+            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Recycle Bin</div><div class="drive-sub">Deleted documents wait here for 90 days before they are removed everywhere.</div></div><div class="drive-actions"><button class="btn" id="settingsBinBtn">Open Recycle Bin</button></div></div>
             <p class="page-sub" style="margin-top:14px">On another device: open this app, tap <b>Connect Google Drive</b> and sign in with the same Google account. Folders, documents and notes stay in step, and deleting a document here removes it everywhere.</p>
           </div>
         </section>
@@ -1030,7 +1048,10 @@
     }
 
     /* ================= Library ================= */
-    function folderDocs(fid){ return docs.filter(d => (fid === 'none' ? !d.folderId : d.folderId === fid)); }
+    const BIN_DAYS = 90, DAY_MS = 864e5;
+    function liveDocs(){ return docs.filter(d => !d.deletedAt); }
+    function binDocsList(){ return docs.filter(d => d.deletedAt).sort((a, b) => b.deletedAt - a.deletedAt); }
+    function folderDocs(fid){ return docs.filter(d => !d.deletedAt && (fid === 'none' ? !d.folderId : d.folderId === fid)); }
     function sortDocs(list){
       const m = sortMode;
       return list.sort((a, b) => m === 'alpha' ? a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
@@ -1038,7 +1059,7 @@
         : (b.lastOpenedAt || b.updatedAt || 0) - (a.lastOpenedAt || a.updatedAt || 0));
     }
     function visibleDocs(){
-      let list = currentFolderId === 'all' ? docs.slice() : folderDocs(currentFolderId);
+      let list = currentFolderId === 'all' ? liveDocs() : folderDocs(currentFolderId);
       if (searchText) list = list.filter(d => d.name.toLowerCase().includes(searchText));
       return sortDocs(list);
     }
@@ -1072,7 +1093,7 @@
     let thumbEnsuring = false;
     async function ensureDocThumbs(){
       if (thumbEnsuring || !window.pdfjsLib) return;
-      const missing = docs.filter(d => !d.thumb);
+      const missing = docs.filter(d => !d.thumb && !d.deletedAt);
       if (!missing.length) return;
       thumbEnsuring = true;
       for (const d of missing){
@@ -1094,7 +1115,7 @@
     }
     function renderContinue(){
       const area = $('#continueArea'); if (!area) return;
-      const cand = docs.filter(d => isReadingDoc(d)).sort((a, b) => (b.lastOpenedAt || b.updatedAt) - (a.lastOpenedAt || a.updatedAt))[0];
+      const cand = liveDocs().filter(d => isReadingDoc(d)).sort((a, b) => (b.lastOpenedAt || b.updatedAt) - (a.lastOpenedAt || a.updatedAt))[0];
       if (!cand){
         area.innerHTML = '<div class="continue-empty">No document in progress yet. Open a PDF and the app will remember exactly where you left off.</div>';
         return;
@@ -1121,7 +1142,7 @@
     }
     function renderLibrary(){
       // Folder lists (sidebar desktop + hang mon hoc mobile)
-      const items = [folderItemHTML('all', 'All Documents', 'var(--ink-2)', docs.length, false, currentFolderId === 'all')];
+      const items = [folderItemHTML('all', 'All Documents', 'var(--ink-2)', liveDocs().length, false, currentFolderId === 'all')];
       folders.forEach(f => items.push(folderItemHTML(f.id, f.name, f.color, folderDocs(f.id).length, true, currentFolderId === f.id)));
       const noneCount = folderDocs('none').length;
       if (noneCount > 0) items.push(folderItemHTML('none', 'Uncategorized', 'var(--muted)', noneCount, false, currentFolderId === 'none'));
@@ -1137,8 +1158,11 @@
       $('#libraryPane').classList.toggle('hidden', libView !== 'library');
       $('#homeView').classList.toggle('hidden', libView !== 'home');
       $('#settingsView').classList.toggle('hidden', libView !== 'settings');
-      [['navHomeBtn', 'home'], ['navLibBtn', 'library'], ['navSettingsBtn', 'settings']].forEach(([id, v]) => { const b = document.getElementById(id); if (b) b.classList.toggle('active', libView === v); });
+      $('#binView').classList.toggle('hidden', libView !== 'bin');
+      { const bc = $('#binCount'); if (bc) bc.textContent = binDocsList().length || ''; }
+      [['navHomeBtn', 'home'], ['navLibBtn', 'library'], ['navSettingsBtn', 'settings'], ['navBinBtn', 'bin']].forEach(([id, v]) => { const b = document.getElementById(id); if (b) b.classList.toggle('active', libView === v); });
       if (libView === 'home'){ renderHome(); return; }
+      if (libView === 'bin'){ renderBin(); return; }
       if (libView !== 'library') return;
       $('#sortSel').value = sortMode;
       // Docs head
@@ -1189,12 +1213,12 @@
     function niceMax(v){ const steps = [10, 20, 30, 60, 90, 120, 180, 240, 360, 480]; return steps.find(x => x >= v) || Math.ceil(v / 60) * 60; }
     function renderHome(){
       const el = $('#homeView');
-      const totalPages = docs.reduce((a, d) => a + (d.pages || 0), 0);
-      const pagesRead = docs.reduce((a, d) => a + (d.lastOpenedAt ? Math.min(d.lastPage || 1, d.pages || 1) : 0), 0);
-      const secs = docs.reduce((a, d) => a + docSecs(d), 0);
-      const marks = docs.reduce((a, d) => a + (d.notes ? d.notes.length : 0) + inkCount(d), 0);
+      const totalPages = liveDocs().reduce((a, d) => a + (d.pages || 0), 0);
+      const pagesRead = liveDocs().reduce((a, d) => a + (d.lastOpenedAt ? Math.min(d.lastPage || 1, d.pages || 1) : 0), 0);
+      const secs = liveDocs().reduce((a, d) => a + docSecs(d), 0);
+      const marks = liveDocs().reduce((a, d) => a + (d.notes ? d.notes.length : 0) + inkCount(d), 0);
       const days = []; const now = new Date();
-      for (let i = 13; i >= 0; i--){ const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); const k = dayKey(t); days.push({ k, d: t.getDate(), label: t.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }), m: docs.reduce((a, x) => a + ((x.readLog || {})[k] || 0), 0) / 60 }); }
+      for (let i = 13; i >= 0; i--){ const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); const k = dayKey(t); days.push({ k, d: t.getDate(), label: t.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }), m: liveDocs().reduce((a, x) => a + ((x.readLog || {})[k] || 0), 0) / 60 }); }
       const week = days.slice(7).reduce((a, x) => a + x.m, 0) * 60;
       // bar chart
       const mx = niceMax(Math.max.apply(null, days.map(x => x.m).concat([5])));
@@ -1212,12 +1236,12 @@
       if (folderDocs('none').length) groups.push({ name: 'Uncategorized', docs: folderDocs('none') });
       const gmax = Math.max.apply(null, groups.map(g => g.docs.reduce((a, d) => a + (d.pages || 0), 0)).concat([1]));
       const folderRows = groups.length ? groups.map(g => { const pg = g.docs.reduce((a, d) => a + (d.pages || 0), 0); return '<div class="hbar-row"><span class="nm" title="' + esc(g.name) + '">' + esc(g.name) + '</span><span class="hbar"><i style="width:' + (pg / gmax * 100) + '%"></i></span><span class="vl">' + g.docs.length + (g.docs.length === 1 ? ' doc' : ' docs') + ' · ' + pg + ' pp</span></div>'; }).join('') : '<div class="chart-empty">No folders yet.</div>';
-      const top = docs.filter(d => docSecs(d) > 0).sort((a, b) => docSecs(b) - docSecs(a)).slice(0, 5);
+      const top = liveDocs().filter(d => docSecs(d) > 0).sort((a, b) => docSecs(b) - docSecs(a)).slice(0, 5);
       const tmax = top.length ? docSecs(top[0]) : 1;
       const topRows = top.length ? top.map(d => '<div class="hbar-row"><span class="nm" title="' + esc(d.name) + '">' + esc(d.name) + '</span><span class="hbar"><i style="width:' + (docSecs(d) / tmax * 100) + '%"></i></span><span class="vl">' + fmtDur(docSecs(d)) + '</span></div>').join('') : '<div class="chart-empty">Time is counted while a document is open and you are working in it.</div>';
       el.innerHTML = '<h2 class="page-title">Home</h2><p class="page-sub">Your library and study time at a glance.</p>' +
         '<div class="kpis">' +
-          '<div class="kpi"><div class="k-l">Documents</div><div class="k-v">' + docs.length + '</div><div class="k-s">' + folders.length + (folders.length === 1 ? ' folder' : ' folders') + '</div></div>' +
+          '<div class="kpi"><div class="k-l">Documents</div><div class="k-v">' + liveDocs().length + '</div><div class="k-s">' + folders.length + (folders.length === 1 ? ' folder' : ' folders') + '</div></div>' +
           '<div class="kpi"><div class="k-l">Pages</div><div class="k-v">' + totalPages.toLocaleString('en-US') + '</div><div class="k-s">' + pagesRead.toLocaleString('en-US') + ' reached' + (totalPages ? ' (' + Math.round(pagesRead / totalPages * 100) + '%)' : '') + '</div></div>' +
           '<div class="kpi"><div class="k-l">Time spent</div><div class="k-v">' + fmtDur(secs) + '</div><div class="k-s">' + fmtDur(week) + ' in the last 7 days</div></div>' +
           '<div class="kpi"><div class="k-l">Notes and drawings</div><div class="k-v">' + marks.toLocaleString('en-US') + '</div><div class="k-s">across all documents</div></div>' +
@@ -1238,11 +1262,40 @@
       if (t){ if (fid && !t.fid) t.fid = fid; } else l.push({ id, fid: fid || '' });
       setDeletedDocList(l);
     }
+    /* Delete = move to the Recycle Bin (a field on the document, so every device sees it). After 90 days, or
+       "Delete forever", the document is removed for good everywhere, including its file on Google Drive. */
     async function removeDoc(doc){
+      doc.deletedAt = Date.now(); doc.updatedAt = Date.now();
+      await DB.put('docs', doc);
+      if (typeof queueDriveSync === 'function') queueDriveSync();
+    }
+    async function restoreDoc(doc){
+      doc.deletedAt = null; doc.updatedAt = Date.now();
+      if (doc.folderId && !folders.some(f => f.id === doc.folderId)) doc.folderId = null;
+      await DB.put('docs', doc);
+      if (typeof queueDriveSync === 'function') queueDriveSync();
+    }
+    async function purgeDoc(doc){
       await DB.del('docs', doc.id); await DB.del('files', doc.id);
       docs = docs.filter(x => x.id !== doc.id);
       addDocTombstone(doc.id, doc.driveFileId);
       if (typeof queueDriveSync === 'function') queueDriveSync();
+    }
+    async function purgeExpired(){
+      const cut = Date.now() - BIN_DAYS * DAY_MS;
+      for (const d of docs.slice()) if (d.deletedAt && d.deletedAt < cut) await purgeDoc(d);
+    }
+    function renderBin(){
+      const list = binDocsList(), el = $('#binView');
+      const rows = list.map(d => {
+        const f = d.folderId ? folders.find(x => x.id === d.folderId) : null, left = Math.max(0, Math.ceil((d.deletedAt + BIN_DAYS * DAY_MS - Date.now()) / DAY_MS));
+        return '<div class="bin-row"><span class="bin-cover"' + (d.thumb ? ' style="background-image:url(' + d.thumb + ')"' : '') + '></span><div class="bin-main"><div class="bin-name" title="' + esc(d.name) + '">' + esc(d.name) + '</div>' +
+          '<div class="bin-meta">' + esc(f ? f.name : 'Uncategorized') + ' · ' + (d.pages || 0) + ' pages · deleted ' + fmtDate(d.deletedAt) + ' · ' + left + (left === 1 ? ' day' : ' days') + ' left</div></div>' +
+          '<button class="btn" data-restore="' + d.id + '">Restore</button><button class="btn danger" data-purge="' + d.id + '">Delete forever</button></div>';
+      }).join('');
+      el.innerHTML = '<div class="bin-head"><div><h2 class="page-title">Recycle Bin</h2><p class="page-sub">Deleted documents stay here for ' + BIN_DAYS + ' days, then are removed for good — from every device and from Google Drive.</p></div>' +
+        (list.length ? '<button class="btn danger" id="binEmpty">Empty Recycle Bin</button>' : '') + '</div>' +
+        (list.length ? '<div class="bin-list">' + rows + '</div>' : '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg><span class="t">The Recycle Bin is empty</span><p>Documents you delete wait here for ' + BIN_DAYS + ' days in case you change your mind.</p></div>');
     }
     function folderDeleteFlow(f){
       const n = folderDocs(f.id).length;
@@ -1319,7 +1372,7 @@
         const act = b.dataset.m; closeMenu();
         if (act === 'open') openReader(doc.id);
         else if (act === 'rename') renameDocModal(doc);
-        else if (act === 'del') confirmModal('Delete document "' + doc.name + '"?', 'The document and all its notes will be deleted from every connected device and from Google Drive.', 'Delete Document', async () => { await removeDoc(doc); renderLibrary(); }, true);
+        else if (act === 'del') confirmModal('Delete document "' + doc.name + '"?', 'It moves to the Recycle Bin on every connected device and is removed for good after 90 days.', 'Move to Recycle Bin', async () => { await removeDoc(doc); renderLibrary(); toast('Moved to the Recycle Bin.'); }, true);
       });
     }
     $('#newFolderBtn').addEventListener('click', () => folderForm(null));
@@ -1332,7 +1385,7 @@
     const _sa = $('#sideAccountBtn'); if (_sa) _sa.addEventListener('click', scrollToDrive);
     const _gd = $('#greetDriveBtn'); if (_gd) _gd.addEventListener('click', scrollToDrive);
     function newsModal(){
-      const recent = docs.slice().sort((a, b) => (b.lastOpenedAt || b.updatedAt) - (a.lastOpenedAt || a.updatedAt)).slice(0, 6);
+      const recent = liveDocs().sort((a, b) => (b.lastOpenedAt || b.updatedAt) - (a.lastOpenedAt || a.updatedAt)).slice(0, 6);
       const rows = recent.length ? recent.map(d =>
         '<button class="page-pick" data-news-open="' + d.id + '" style="width:100%;text-align:left"><span>' + esc(d.name) + '</span><span class="cnt">' + ((d.lastPage || 1) > 1 ? 'Reading · page ' + d.lastPage + ' · ' : '') + fmtDate(d.lastOpenedAt || d.updatedAt) + '</span></button>').join('')
         : '<p>No activity yet — open a document to read, and library updates will appear here.</p>';
@@ -1341,6 +1394,15 @@
       $('#mCancel').addEventListener('click', closeModal);
       document.querySelectorAll('[data-news-open]').forEach(b => b.addEventListener('click', () => { closeModal(); openReader(b.dataset.newsOpen); }));
     }
+    const goBin = () => { libView = 'bin'; renderLibrary(); window.scrollTo({ top: 0 }); };
+    $('#navBinBtn').addEventListener('click', goBin);
+    $('#settingsBinBtn').addEventListener('click', goBin);
+    $('#binView').addEventListener('click', e => {
+      const r = e.target.closest('[data-restore]'), pu = e.target.closest('[data-purge]');
+      if (r){ const d = docs.find(x => x.id === r.dataset.restore); if (d) restoreDoc(d).then(() => { renderLibrary(); toast('Restored.'); }); }
+      else if (pu){ const d = docs.find(x => x.id === pu.dataset.purge); if (d) confirmModal('Delete "' + d.name + '" forever?', 'This removes it from every device and from Google Drive. It cannot be undone.', 'Delete forever', async () => { await purgeDoc(d); renderLibrary(); }, true); }
+      else if (e.target.closest('#binEmpty')) confirmModal('Empty the Recycle Bin?', binDocsList().length + ' document(s) will be removed forever, from every device and from Google Drive.', 'Empty Recycle Bin', async () => { for (const d of binDocsList()) await purgeDoc(d); renderLibrary(); }, true);
+    });
     const _nst = $('#navSettingsBtn'); if (_nst) _nst.addEventListener('click', scrollToDrive);
     const _nnw = $('#navNewsBtn'); if (_nnw) _nnw.addEventListener('click', newsModal);
     const _nh = $('#navHomeBtn'); if (_nh) _nh.addEventListener('click', () => { libView = 'home'; renderLibrary(); window.scrollTo({ top: 0 }); });
@@ -1355,7 +1417,7 @@
       else if (act === 'folder'){ folderForm(null); }
       else if (act === 'drive'){ scrollToDrive(); }
       else if (act === 'continue'){
-        const cand = docs.filter(d => isReadingDoc(d)).sort((a, bb) => (bb.lastOpenedAt || bb.updatedAt) - (a.lastOpenedAt || a.updatedAt))[0];
+        const cand = liveDocs().filter(d => isReadingDoc(d)).sort((a, bb) => (bb.lastOpenedAt || bb.updatedAt) - (a.lastOpenedAt || a.updatedAt))[0];
         if (cand) openReader(cand.id); else toast('No document in progress yet.');
       }
     });
@@ -2345,7 +2407,21 @@
     const DRIVE_LIB_NAME = 'ghichu-library.json';
     let driveToken = null, driveTokenExp = 0, driveFolderId = null, driveLibFileId = null;
     let driveSyncing = false, driveSyncTimer = null, driveLastFingerprint = '';
-    let driveLibModified = '', driveChangedDocs = [];
+    let driveLibModified = '', driveChangedDocs = [], driveProgOn = false;
+    /* Progress: the first half of the bar is "download from Drive", the second half is "upload to Drive" */
+    function syncProgress(phase, done, total, label){
+      if (!driveProgOn) return;
+      const pct = Math.min(100, Math.round((phase === 0 ? 0 : 50) + 50 * (total ? done / total : 1)));
+      const box = $('#syncProg'); if (!box) return;
+      box.classList.remove('hidden'); $('#spFill').style.width = pct + '%'; $('#spTxt').textContent = pct + '% · ' + label;
+      const acc = document.getElementById('sideAccountSub'); if (acc) acc.textContent = 'Syncing ' + pct + '%';
+    }
+    function syncProgressEnd(ok){
+      driveProgOn = false; const box = $('#syncProg'); if (!box) return;
+      $('#spFill').style.width = ok ? '100%' : $('#spFill').style.width;
+      $('#spTxt').textContent = ok ? '100% · Up to date — ' + liveDocs().length + (liveDocs().length === 1 ? ' document' : ' documents') : 'Sync did not finish';
+      setTimeout(() => { if (!driveProgOn) box.classList.add('hidden'); }, ok ? 2500 : 6000);
+    }
     /* An OAuth Web Client ID is a public identifier (not a secret), so it can ship inside the app.
        Put it here once and every device only needs "Connect Google Drive" + the Google sign-in. */
     const DRIVE_CLIENT_ID = '539803784966-ursojfntraafa9r87p44a91qp6oprhm3.apps.googleusercontent.com';
@@ -2383,7 +2459,7 @@
       folders.forEach(f => { s += f.id + f.name + (f.updatedAt || 0) + ';'; });
       s += deletedFolderIds().length + ':';
       s += deletedDocList().length + ':';
-      docs.forEach(d => { s += Math.floor(docSecs(d) / 600) + d.id + (d.updatedAt || 0) + (d.pageUpdatedAt || 0) + (d.lastPage || 0) + (d.notes ? d.notes.length : 0) + ';'; });
+      docs.forEach(d => { s += Math.floor(docSecs(d) / 600) + d.id + (d.updatedAt || 0) + (d.deletedAt || 0) + (d.pageUpdatedAt || 0) + (d.lastPage || 0) + (d.notes ? d.notes.length : 0) + ';'; });
       return s;
     }
     function queueDriveSync(){
@@ -2426,21 +2502,40 @@
     async function driveEnsureFolder(){
       if (driveFolderId) return driveFolderId;
       const q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
-      const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)');
+      const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&orderBy=createdTime&fields=files(id,name)');
       const j = await r.json();
-      if (j.files && j.files.length){ driveFolderId = j.files[0].id; return driveFolderId; }
+      if (j.files && j.files.length){ driveFolderId = j.files[0].id; return driveFolderId; }   // always the oldest, so every device agrees
       const cr = await driveFetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }) });
       const cj = await cr.json();
       driveFolderId = cj.id;
       return driveFolderId;
     }
+    /* Two devices syncing for the first time at once can each create their own library file. Every device now
+       uses the OLDEST copy, merges the others into it, and deletes the extras, so they can never drift apart. */
+    let driveLibExtra = [];
     async function driveFindLibFile(){
-      const q = encodeURIComponent("name='" + DRIVE_LIB_NAME + "' and '" + driveFolderId + "' in parents and trashed=false");
-      const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,modifiedTime)');
-      const j = await r.json();
-      driveLibFileId = (j.files && j.files.length) ? j.files[0].id : null;
-      driveLibModified = (j.files && j.files.length) ? (j.files[0].modifiedTime || '') : '';
+      const q = encodeURIComponent("name='" + DRIVE_LIB_NAME + "' and trashed=false");
+      const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&orderBy=createdTime&fields=files(id,name,modifiedTime)');
+      const j = await r.json(), files = j.files || [];
+      driveLibFileId = files.length ? files[0].id : null;
+      driveLibExtra = files.slice(1).map(f => f.id);
+      driveLibModified = files.map(f => f.modifiedTime || '').sort().pop() || '';
       return driveLibFileId;
+    }
+    function mergeLogs(a, b){ const m = Object.assign({}, a || {}); for (const k in (b || {})) if ((b[k] || 0) > (m[k] || 0)) m[k] = b[k]; return m; }
+    function combineRemotes(list){
+      if (list.length === 1) return list[0];
+      const fm = new Map(), dm = new Map(), tf = new Set(), td = new Set(), ts = x => Math.max(x.updatedAt || 0, x.pageUpdatedAt || 0);
+      list.forEach(r => {
+        (r.folders || []).forEach(f => { const o = fm.get(f.id); if (!o || (f.updatedAt || 0) > (o.updatedAt || 0)) fm.set(f.id, f); });
+        (r.deletedFolders || []).forEach(x => tf.add(x)); (r.deletedDocs || []).forEach(x => td.add(x));
+        (r.docs || []).forEach(d => {
+          const o = dm.get(d.id); if (!o){ dm.set(d.id, d); return; }
+          const win = ts(d) > ts(o) ? d : o, lose = win === d ? o : d, m = Object.assign({}, win);
+          m.readLog = mergeLogs(o.readLog, d.readLog); if (!m.driveFileId && lose.driveFileId) m.driveFileId = lose.driveFileId; dm.set(d.id, m);
+        });
+      });
+      return { folders: [...fm.values()], deletedFolders: [...tf], deletedDocs: [...td], docs: [...dm.values()] };
     }
     async function driveUploadMedia(metadata, blob, existingId){
       let id = existingId;
@@ -2453,14 +2548,19 @@
       if (!up.ok) throw new Error('upload-failed');
       return id;
     }
-    async function drivePull(){
+    async function drivePull(noProg){
       await driveFindLibFile();
       if (!driveLibFileId) return false;
-      const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + driveLibFileId + '?alt=media');
-      if (!r.ok) return false;
-      const remote = await r.json();
-      if (!remote || !Array.isArray(remote.docs)) return false;
+      const remotes = [];
+      for (const fid of [driveLibFileId].concat(driveLibExtra)){
+        const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + fid + '?alt=media');
+        if (!r.ok) continue;
+        try { const j = await r.json(); if (j && Array.isArray(j.docs)) remotes.push(j); } catch (e) {}
+      }
+      if (!remotes.length) return false;
+      const remote = combineRemotes(remotes);
       let changed = false;
+      const toDl = [];
       // folders deleted on any device stay deleted everywhere
       const tomb = new Set(deletedFolderIds().concat(remote.deletedFolders || []));
       if (tomb.size !== deletedFolderIds().length) setDeletedFolderIds(Array.from(tomb));
@@ -2504,11 +2604,16 @@
           if (diff){ target.readLog = ml; await DB.put('docs', target); changed = true; }
         }
         const localBuf = await DB.get('files', rd.id);
-        if (!localBuf && target && target.driveFileId){
-          const fr = await driveFetch('https://www.googleapis.com/drive/v3/files/' + target.driveFileId + '?alt=media');
-          if (fr.ok){ const buf = await fr.arrayBuffer(); await DB.put('files', buf, rd.id); changed = true; }
-        }
+        if (!localBuf && target && target.driveFileId && target.kind !== 'blank') toDl.push(target);
       }
+      if (!noProg) syncProgress(0, 1, 1 + toDl.length, toDl.length ? 'Library loaded — ' + toDl.length + (toDl.length === 1 ? ' document to download' : ' documents to download') : 'Library loaded');
+      for (let i = 0; i < toDl.length; i++){
+        const t = toDl[i];
+        if (!noProg) syncProgress(0, 1 + i, 1 + toDl.length, 'Downloading ' + (i + 1) + ' / ' + toDl.length + ' documents — ' + t.name);
+        const fr = await driveFetch('https://www.googleapis.com/drive/v3/files/' + t.driveFileId + '?alt=media');
+        if (fr.ok){ const buf = await fr.arrayBuffer(); await DB.put('files', buf, t.id); changed = true; if (!noProg) renderLibrary(); }
+      }
+      if (!noProg) syncProgress(0, 1 + toDl.length, 1 + toDl.length, 'Download complete');
       if (changed){ renderLibrary(); if (typeof ensureDocThumbs === 'function') ensureDocThumbs(); }
       return true;
     }
@@ -2525,35 +2630,47 @@
     }
     async function drivePush(){
       await driveDeleteTombFiles();
-      for (const d of docs){
+      const need = d => d.kind !== 'blank' && !d.deletedAt && !(d.driveFileId && d.drivePushedAt && d.drivePushedAt >= (d.createdAt || 0) && !d.pdfDirty);
+      const todo = docs.filter(need), total = todo.length + 1;
+      syncProgress(1, 0, total, todo.length ? 'Uploading 0 / ' + todo.length + ' documents' : 'Nothing new to upload');
+      let n = 0;
+      for (const d of todo){
         const buf = await DB.get('files', d.id);
-        if (!buf) continue;
-        if (d.driveFileId && d.drivePushedAt && d.drivePushedAt >= (d.createdAt || 0) && !d.pdfDirty) continue;
+        n++; if (!buf) continue;
+        syncProgress(1, n - 1, total, 'Uploading ' + n + ' / ' + todo.length + ' documents — ' + d.name);
         const blob = new Blob([buf], { type: 'application/pdf' });
         d.driveFileId = await driveUploadMedia({ name: d.id + '.pdf', parents: [driveFolderId] }, blob, d.driveFileId || null);
         d.drivePushedAt = Date.now(); d.pdfDirty = false;
         await DB.put('docs', d);
       }
-      await drivePull();   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
+      syncProgress(1, todo.length, total, 'Saving library');
+      await drivePull(true);   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
       const lib = { version: 1, updatedAt: Date.now(), folders: folders, deletedFolders: deletedFolderIds(), deletedDocs: deletedDocList().map(t => t.id), docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
       const blob = new Blob([JSON.stringify(lib)], { type: 'application/json' });
       driveLibFileId = await driveUploadMedia({ name: DRIVE_LIB_NAME, parents: [driveFolderId] }, blob, driveLibFileId);
+      for (const id of driveLibExtra){ try { await driveFetch('https://www.googleapis.com/drive/v3/files/' + id, { method: 'DELETE' }); } catch (e) {} }   // duplicate copies are merged into the main one now
+      driveLibExtra = [];
       await driveFindLibFile();   // so our own upload is not mistaken for a change from the other device
+      syncProgress(1, total, total, 'Library saved');
     }
     async function driveSyncNow(manual){
       if (driveSyncing) return;
       if (!driveToken){ if (manual) await driveConnect(); return; }
-      driveSyncing = true;
+      driveSyncing = true; driveProgOn = true;
+      syncProgress(0, 0, 1, 'Connecting to Google Drive…');
       setDriveUI('busy', 'Syncing with Google Drive…');
       try {
         await driveEnsureFolder();
         await drivePull();
+        await purgeExpired();
         await drivePush();
         driveLastFingerprint = driveFingerprint();
         const t = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         setDriveUI('on', 'Synced at ' + t + ' — the "' + DRIVE_FOLDER_NAME + '" folder on your Drive holds your PDFs and notes file. Open the app on another device and connect the same Google account to see the same library.');
         if (manual) toast('Google Drive sync complete.');
+        syncProgressEnd(true);
       } catch (e) {
+        syncProgressEnd(false);
         setDriveUI('err', 'Sync failed. Check your connection, then tap "Sync Now" to try again.');
         if (manual) toast('Drive sync failed. Please try again later.');
       }
@@ -3425,6 +3542,7 @@
         await DB.open();
         folders = await DB.getAll('folders');
         docs = await DB.getAll('docs');
+        await purgeExpired();
         // One-time cleanup: older versions auto-created sample folders on every device (and Drive copied them
         // around). Remove the empty ones with those names; the library now starts empty.
         try {
@@ -3462,10 +3580,10 @@
    sync with the document and export into the PDF.
      pen / hl : { id, t:'pen'|'hl', c, sw, pts:[x,y,pressure*100, …] }
      shape    : { id, t:'shape', k, c, sw, x,y,bw,bh | x,y,x2,y2, o } */
-const INK = { tool: null, shape: { k: 'line', o: 0 }, color: { pen: '#111111', hl: '#FFD43B' }, width: { pen: 2, hl: 16 }, finger: false, sel: null, live: null, undo: [], redo: [], pinned: null };
+const INK = { tool: null, shape: { k: 'line', o: 0 }, color: { pen: '#111111', hl: '#FFD43B' }, width: { pen: 2, hl: 16, er: 6 }, finger: false, sel: null, live: null, undo: [], redo: [], pinned: null };
 try { INK.finger = localStorage.getItem('nt-ink-finger') === '1'; } catch (e) {}
 const INK_SW = { pen: ['#111111', '#D45060', '#2D7495'], hl: ['#FFD43B', '#7ED957', '#FF8FB1'] };
-const INK_RANGE = { pen: [0.5, 14, 0.5], hl: [6, 44, 1] };
+const INK_RANGE = { pen: [0.5, 14, 0.5], hl: [6, 44, 1], er: [2, 30, 1] };
 let G = null;                  // the gesture in progress
 const INKCACHE = {};           // page -> { ink, hl } off-screen layers while interacting
 
@@ -3493,16 +3611,9 @@ function bez(p0, p1, p2, p3, n){
     out.push([u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0], u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]]); }
   return out;
 }
-function braceLocal(w, h){
-  const P = (a, b) => [w * a, h * b];
-  let pts = [P(1, 0)];
-  pts = pts.concat(bez(P(1, 0), P(.55, 0), P(.5, .05), P(.5, .16), 10));
-  pts.push(P(.5, .38));
-  pts = pts.concat(bez(P(.5, .38), P(.5, .46), P(.35, .5), P(0, .5), 10));
-  pts = pts.concat(bez(P(0, .5), P(.35, .5), P(.5, .54), P(.5, .62), 10));
-  pts.push(P(.5, .84));
-  pts = pts.concat(bez(P(.5, .84), P(.5, .95), P(.55, 1), P(1, 1), 10));
-  return pts;
+function braceLocal(w, h){   // squared "{": short arms, straight spine, angular notch in the middle
+  const s = 0.55, d = Math.min(h * 0.08, w * 0.5), m = h / 2;
+  return [[w, 0], [w * s, 0], [w * s, m - d], [0, m], [w * s, m + d], [w * s, h], [w, h]];
 }
 const bracketLocal = (w, h) => [[w, 0], [0, 0], [0, h], [w, h]];
 /* returns polylines (arrays of [x,y]) in page units */
@@ -3602,19 +3713,33 @@ function inkLayers(p){
   return { wrap, ic, hc, W, H, k: W / sz.w };
 }
 function sizeLayer(c, W, H){ if (c.width !== W || c.height !== H){ c.width = W; c.height = H; } }
-function paintCommitted(ctxI, ctxH, p, k, skipId){
-  inkList(p).forEach(st => { if (st.id === skipId) return; drawStroke(st.t === 'hl' ? ctxH : ctxI, st, k); });
+function paintCommitted(ctxI, ctxH, p, k, skip){
+  inkList(p).forEach(st => { if (skip && skip.has(st.id)) return; drawStroke(st.t === 'hl' ? ctxH : ctxI, st, k); });
+}
+const isLine = st => st.k === 'line' || st.k === 'arrow';
+function selList(){ if (!INK.sel) return []; const l = inkList(INK.sel.p); return INK.sel.ids.map(id => l.find(s => s.id === id)).filter(Boolean); }
+function groupBox(arr){
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  arr.forEach(st => { const b = bboxOf(st); x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.w); y1 = Math.max(y1, b.y + b.h); });
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+function pointInPoly(x, y, poly){
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++){
+    const a = poly[i], b = poly[j];
+    if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c;
+  }
+  return c;
 }
 function drawSel(ctx, p, k){
   if (INK.tool !== 'select' || !INK.sel || INK.sel.p !== p) return;
-  const st = inkList(p).find(s => s.id === INK.sel.id); if (!st) return;
-  const b = bboxOf(st), m = 5 / k * k, acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d7a64';
-  ctx.save(); ctx.strokeStyle = acc; ctx.fillStyle = '#fff'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
-  const pad = 4 / (scale || 1);
-  if (st.k !== 'line' && st.k !== 'arrow') ctx.strokeRect((b.x - pad) * k, (b.y - pad) * k, (b.w + 2 * pad) * k, (b.h + 2 * pad) * k);
-  ctx.setLineDash([]);
-  const hs = 5.5, pts = (st.k === 'line' || st.k === 'arrow') ? [[st.x, st.y], [st.x2, st.y2]] : [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]];
-  pts.forEach(q => { ctx.beginPath(); ctx.arc(q[0] * k, q[1] * k, hs, 0, 7); ctx.fill(); ctx.stroke(); });
+  const arr = selList(); if (!arr.length) return;
+  const single = arr.length === 1 && isLine(arr[0]), b = groupBox(arr), pad = 4 / (scale || 1);
+  const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d7a64';
+  ctx.save(); ctx.strokeStyle = acc; ctx.fillStyle = '#fff'; ctx.lineWidth = 1.5;
+  if (!single){ ctx.setLineDash([5, 4]); ctx.strokeRect((b.x - pad) * k, (b.y - pad) * k, (b.w + 2 * pad) * k, (b.h + 2 * pad) * k); ctx.setLineDash([]); }
+  const pts = single ? [[arr[0].x, arr[0].y], [arr[0].x2, arr[0].y2]] : [[b.x - pad, b.y - pad], [b.x + b.w + pad, b.y - pad], [b.x - pad, b.y + b.h + pad], [b.x + b.w + pad, b.y + b.h + pad]];
+  pts.forEach(q => { ctx.beginPath(); ctx.arc(q[0] * k, q[1] * k, 5.5, 0, 7); ctx.fill(); ctx.stroke(); });
   ctx.restore();
 }
 /* full redraw of one page's ink (no interaction in progress) */
@@ -3629,12 +3754,13 @@ function redrawInk(p){
   drawSel(ci, p, L.k);
 }
 /* fast path while a gesture is running: committed strokes are cached, only the live object is redrawn */
-function beginInteraction(p, skipId){
+function beginInteraction(p, skipIds){
   const L = inkLayers(p); if (!L) return;
+  const skip = skipIds && skipIds.length ? new Set(skipIds) : null;
   const ci = document.createElement('canvas'), ch = document.createElement('canvas');
   ci.width = ch.width = L.W; ci.height = ch.height = L.H;
-  paintCommitted(ci.getContext('2d'), ch.getContext('2d'), p, L.k, skipId);
-  INKCACHE[p] = { ink: ci, hl: ch };
+  paintCommitted(ci.getContext('2d'), ch.getContext('2d'), p, L.k, skip);
+  INKCACHE[p] = { ink: ci, hl: ch, skip };
   sizeLayer(L.ic, L.W, L.H); sizeLayer(L.hc, L.W, L.H);
 }
 function endInteraction(p){ delete INKCACHE[p]; }
@@ -3643,8 +3769,14 @@ function compose(p){
   const ci = L.ic.getContext('2d'), ch = L.hc.getContext('2d');
   ci.clearRect(0, 0, L.W, L.H); ch.clearRect(0, 0, L.W, L.H);
   ci.drawImage(C.ink, 0, 0); ch.drawImage(C.hl, 0, 0);
+  if (C.skip) inkList(p).forEach(st => { if (C.skip.has(st.id)) drawStroke(st.t === 'hl' ? ch : ci, st, L.k); });
   const live = INK.live && INK.live.p === p ? INK.live.st : null;
   if (live) drawStroke(live.t === 'hl' ? ch : ci, live, L.k);
+  if (G && G.kind === 'lasso' && G.p === p && G.pts.length > 1){
+    const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d7a64';
+    ci.save(); ci.strokeStyle = acc; ci.lineWidth = 1.6; ci.setLineDash([6, 5]); ci.lineJoin = 'round';
+    ci.beginPath(); G.pts.forEach((q, i) => i ? ci.lineTo(q[0] * L.k, q[1] * L.k) : ci.moveTo(q[0] * L.k, q[1] * L.k)); ci.closePath(); ci.stroke(); ci.restore();
+  }
   drawSel(ci, p, L.k);
 }
 
@@ -3752,8 +3884,39 @@ function attachInk(wrap){
   cv.addEventListener('pointerup', e => inkUp(e, cv, false));
   cv.addEventListener('pointercancel', e => inkUp(e, cv, true));
 }
+/* A finger (or palm) moves the page; a pencil or mouse draws. With touch-action:none on the canvas the
+   browser never scrolls under the pencil, so strokes can go in any direction; scrolling and pinching are done here. */
+const TP = new Map(); let pinch = null, navVel = null, inertia = 0;
+function navActive(){ return TP.size >= 2 || !INK.finger; }
+function cancelInertia(){ cancelAnimationFrame(inertia); inertia = 0; }
+function navStart(){
+  cancelInertia(); navVel = { x: 0, y: 0, t: performance.now() };
+  if (TP.size === 2){ const [a, b] = [...TP.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s: zoomTargetScale || scale }; }
+}
+function navMove(e, t){
+  const dx = e.clientX - t.x, dy = e.clientY - t.y, sc = $('#pagesScroll'), now = performance.now(), dt = Math.max(1, now - navVel.t);
+  t.x = e.clientX; t.y = e.clientY;
+  if (TP.size === 1){ sc.scrollTop -= dy; sc.scrollLeft -= dx; navVel.x = 0.7 * navVel.x + 0.3 * dx / dt; navVel.y = 0.7 * navVel.y + 0.3 * dy / dt; navVel.t = now; }
+  else if (pinch){ const [a, b] = [...TP.values()]; smoothZoomTo(pinch.s * (Math.hypot(a.x - b.x, a.y - b.y) / pinch.d), false); sc.scrollTop -= dy / 2; sc.scrollLeft -= dx / 2; }
+}
+function startInertia(){
+  let vx = navVel ? navVel.x : 0, vy = navVel ? navVel.y : 0; const sc = $('#pagesScroll');
+  if (Math.hypot(vx, vy) < 0.25) return;
+  const step = () => { sc.scrollTop -= vy * 16; sc.scrollLeft -= vx * 16; vx *= 0.95; vy *= 0.95; if (Math.hypot(vx, vy) > 0.02) inertia = requestAnimationFrame(step); };
+  inertia = requestAnimationFrame(step);
+}
+function abortGesture(){
+  if (!G) return; clearTimeout(G.timer); const p = G.p; INK.live = null; G = null; endInteraction(p); redrawInk(p);
+}
 function inkDown(e, cv){
-  if (!INK.tool || (e.pointerType === 'touch' && !INK.finger) || e.button > 0) return;
+  if (!INK.tool || e.button > 0) return;
+  if (e.pointerType === 'touch'){
+    if (G && !G.touch) return;   // palm resting while the pencil draws
+    TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { cv.setPointerCapture(e.pointerId); } catch (er) {}
+    if (TP.size >= 2 && G && G.touch) abortGesture();
+    if (navActive()){ e.preventDefault(); navStart(); return; }
+  }
   e.preventDefault();
   const p = +cv.parentNode.dataset.page, [x, y] = pagePt(e, cv), tool = INK.tool;
   try { cv.setPointerCapture(e.pointerId); } catch (er) {}
@@ -3767,6 +3930,7 @@ function inkDown(e, cv){
   } else if (tool === 'eraser'){
     G = { kind: 'erase', p, changed: false }; eraseAt(p, x, y);
   } else if (tool === 'select'){ selectDown(p, x, y); }
+  if (G){ G.touch = e.pointerType === 'touch'; G.pid = e.pointerId; }
 }
 function armHold(){
   if (!G || G.kind !== 'draw' || G.snapped || !INK.live || INK.live.st.t !== 'pen') return;
@@ -3778,13 +3942,17 @@ function snapNow(){
   const st = INK.live.st, P = []; for (let i = 0; i < st.pts.length; i += 3) P.push([st.pts[i], st.pts[i + 1]]);
   const sh = recognize(P); if (!sh) return;
   sh.id = st.id; sh.c = st.c; sh.sw = st.sw; sh.o = sh.o || 0;
-  if (sh.x !== undefined) { for (const kk of ['x', 'y', 'x2', 'y2', 'bw', 'bh']) if (sh[kk] !== undefined) sh[kk] = r1(sh[kk]); }
+  for (const kk of ['x', 'y', 'x2', 'y2', 'bw', 'bh']) if (sh[kk] !== undefined) sh[kk] = r1(sh[kk]);
   INK.live.st = sh; G.snapped = true; G.line = sh.k === 'line';
   beginInteraction(G.p, null); compose(G.p);
   try { navigator.vibrate && navigator.vibrate(12); } catch (er) {}
 }
 function inkMove(e, cv){
-  if (!G || +cv.parentNode.dataset.page !== G.p) return;
+  if (e.pointerType === 'touch'){
+    const t = TP.get(e.pointerId); if (!t) return;
+    if (navActive()){ navMove(e, t); return; }
+  }
+  if (!G || +cv.parentNode.dataset.page !== G.p || (G.pid !== undefined && G.pid !== e.pointerId)) return;
   const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
   for (const ev of (evs.length ? evs : [e])){ const [x, y] = pagePt(ev, cv); inkStep(ev, x, y, cv); }
 }
@@ -3810,26 +3978,35 @@ function inkStep(e, x, y, cv){
   } else if (G.kind === 'shape'){
     G.moved = true; INK.live.st = makeShape(G.x0, G.y0, x, y); compose(p);
   } else if (G.kind === 'erase'){ eraseAt(p, x, y); }
-  else if (G.kind === 'move'){
-    const st = inkList(p).find(s => s.id === INK.sel.id); if (!st) return;
+  else if (G.kind === 'lasso'){
+    const l = G.pts[G.pts.length - 1]; if (Math.hypot(x - l[0], y - l[1]) * scale > 3){ G.pts.push([x, y]); compose(p); }
+  } else if (G.kind === 'move'){
+    const arr = selList(); if (!arr.length) return;
     if (!G.moved && Math.hypot(x - G.x0, y - G.y0) * scale < 3) return;
     if (!G.moved){ G.moved = true; pushUndo(p); }
-    const base = clone(G.orig); moveStroke(base, x - G.x0, y - G.y0); copyInto(st, base); compose(p);
+    arr.forEach((st, i) => { const base = clone(G.origs[i]); moveStroke(base, x - G.x0, y - G.y0); copyInto(st, base); }); compose(p);
   } else if (G.kind === 'resize'){
-    const st = inkList(p).find(s => s.id === INK.sel.id); if (!st) return;
+    const arr = selList(); if (!arr.length) return;
     if (!G.moved){ G.moved = true; pushUndo(p); }
-    const base = clone(G.orig), ob = G.ob;
-    if (G.h === 'p1'){ base.x = r1(x); base.y = r1(y); }
-    else if (G.h === 'p2'){ base.x2 = r1(x); base.y2 = r1(y); }
-    else {
+    const ob = G.ob;
+    if (G.h === 'p1' || G.h === 'p2'){
+      const base = clone(G.origs[0]);
+      if (G.h === 'p1'){ base.x = r1(x); base.y = r1(y); } else { base.x2 = r1(x); base.y2 = r1(y); }
+      copyInto(arr[0], base);
+    } else {
       const ox = (G.h === 'nw' || G.h === 'sw') ? ob.x + ob.w : ob.x, oy = (G.h === 'nw' || G.h === 'ne') ? ob.y + ob.h : ob.y;
-      fitStroke(base, ob, { x: Math.min(x, ox), y: Math.min(y, oy), w: Math.max(4, Math.abs(x - ox)), h: Math.max(4, Math.abs(y - oy)) });
+      const nb = { x: Math.min(x, ox), y: Math.min(y, oy), w: Math.max(4, Math.abs(x - ox)), h: Math.max(4, Math.abs(y - oy)) };
+      arr.forEach((st, i) => { const base = clone(G.origs[i]); fitStroke(base, ob, nb); copyInto(st, base); });
     }
-    copyInto(st, base); compose(p);
+    compose(p);
   }
 }
 function inkUp(e, cv, cancelled){
-  if (!G) return;
+  if (e.pointerType === 'touch'){
+    const nav = navActive(), had = TP.delete(e.pointerId);
+    if (had && nav){ if (TP.size < 2) pinch = null; if (TP.size === 0) startInertia(); return; }
+  }
+  if (!G || (G.pid !== undefined && G.pid !== e.pointerId)) return;
   const g = G, p = g.p; G = null; clearTimeout(g.timer);
   if (g.kind === 'draw'){
     const st = INK.live && INK.live.st; INK.live = null;
@@ -3842,60 +4019,115 @@ function inkUp(e, cv, cancelled){
       if (tiny){ const x = g.x0, y = g.y0, v = (INK.shape.o & 1) === 0;
         st = (st.k === 'line' || st.k === 'arrow') ? makeShape(x, y, x + 90, y)
           : (st.k === 'brkt' || st.k === 'brace') ? (v ? makeShape(x, y, x + 16, y + 110) : makeShape(x, y, x + 110, y + 16)) : makeShape(x, y, x + 80, y + 80); }
-      pushUndo(p); inkList(p, true).push(st); INK.sel = { p, id: st.id }; scheduleSave();
-      INK.tool = 'select'; syncToolUI();
+      pushUndo(p); inkList(p, true).push(st); scheduleSave();   // the shape tool stays selected, ready for the next one
     }
     redrawInk(p);
   } else if (g.kind === 'erase'){ if (g.changed) scheduleSave(); redrawInk(p); }
-  else if (g.kind === 'move' || g.kind === 'resize'){ endInteraction(p); if (g.moved) scheduleSave(); redrawInk(p); syncInkBar(); }
+  else if (g.kind === 'lasso'){
+    endInteraction(p);
+    if (!cancelled && g.pts.length > 4){
+      const poly = g.pts, ids = inkList(p).filter(st => {
+        const pts = strokePolys(st).reduce((a, q) => a.concat(q), []); if (!pts.length) return false;
+        return pts.filter(q => pointInPoly(q[0], q[1], poly)).length >= pts.length * 0.5;
+      }).map(s => s.id);
+      INK.sel = ids.length ? { p, ids } : null;
+    }
+    redrawInk(p); syncInkBar();
+  } else if (g.kind === 'move' || g.kind === 'resize'){ endInteraction(p); if (g.moved) scheduleSave(); redrawInk(p); syncInkBar(); }
+}
+/* eraser: removes only the part under the eraser — strokes (and shapes, turned into strokes) are cut into pieces */
+function flatPts(poly){ const a = []; poly.forEach(q => a.push(r1(q[0]), r1(q[1]), 50)); return a; }
+function densify(pts, step){
+  const out = [];
+  for (let i = 0; i < pts.length; i += 3){
+    out.push(pts[i], pts[i + 1], pts[i + 2]);
+    if (i + 3 < pts.length){
+      const x0 = pts[i], y0 = pts[i + 1], x1 = pts[i + 3], y1 = pts[i + 4], d = Math.hypot(x1 - x0, y1 - y0), n = Math.floor(d / step);
+      for (let j = 1; j <= n; j++){ const f = j / (n + 1); out.push(r1(x0 + (x1 - x0) * f), r1(y0 + (y1 - y0) * f), pts[i + 2]); }
+    }
+  }
+  return out;
+}
+function erasePieces(st, cs, r){
+  const out = [], src = st.pts ? [st] : shapePaths(st).map(poly => ({ t: 'pen', c: st.c, sw: st.sw, pts: flatPts(poly) }));
+  src.forEach(fs => {
+    const pts = densify(fs.pts, Math.max(0.6, r * 0.5)), rr = r + (fs.t === 'hl' ? fs.sw / 2 : 0);
+    let cur = [];
+    const flush = () => { if (cur.length >= 6) out.push({ id: uid(), t: fs.t, c: fs.c, sw: fs.sw, pts: cur }); cur = []; };
+    for (let i = 0; i < pts.length; i += 3){
+      const x = pts[i], y = pts[i + 1];
+      if (cs.some(c => Math.hypot(x - c[0], y - c[1]) <= rr)) flush(); else cur.push(pts[i], pts[i + 1], pts[i + 2]);
+    }
+    flush();
+  });
+  return out;
 }
 function eraseAt(p, x, y){
-  const list = inkList(p), tol = 8 / scale, keep = list.filter(s => !strokeHit(s, x, y, tol));
-  if (keep.length === list.length) return;
+  const r = INK.width.er, lx = G.lx === undefined ? x : G.lx, ly = G.ly === undefined ? y : G.ly;
+  G.lx = x; G.ly = y;
+  const n = Math.max(1, Math.ceil(Math.hypot(x - lx, y - ly) / (r * 0.6))), cs = [];
+  for (let i = 1; i <= n; i++) cs.push([lx + (x - lx) * i / n, ly + (y - ly) * i / n]);
+  const list = inkList(p), out = []; let changed = false;
+  list.forEach(st => {
+    if (!cs.some(c => strokeHit(st, c[0], c[1], r))){ out.push(st); return; }
+    changed = true; erasePieces(st, cs, r).forEach(pc => out.push(pc));
+  });
+  if (!changed) return;
   if (!G.changed){ G.changed = true; pushUndo(p); }
-  setInkList(p, keep); redrawInk(p);
+  setInkList(p, out); redrawInk(p);
 }
-function hitHandle(st, x, y, tol){
-  if (st.k === 'line' || st.k === 'arrow'){
+function hitHandle(arr, x, y, tol){
+  if (arr.length === 1 && isLine(arr[0])){
+    const st = arr[0];
     if (Math.hypot(x - st.x, y - st.y) <= tol) return 'p1';
     if (Math.hypot(x - st.x2, y - st.y2) <= tol) return 'p2'; return null;
   }
-  const b = bboxOf(st);
-  for (const [h, hx, hy] of [['nw', b.x, b.y], ['ne', b.x + b.w, b.y], ['sw', b.x, b.y + b.h], ['se', b.x + b.w, b.y + b.h]]) if (Math.hypot(x - hx, y - hy) <= tol) return h;
+  const b = groupBox(arr), pad = 4 / scale;
+  for (const [h, hx, hy] of [['nw', b.x - pad, b.y - pad], ['ne', b.x + b.w + pad, b.y - pad], ['sw', b.x - pad, b.y + b.h + pad], ['se', b.x + b.w + pad, b.y + b.h + pad]]) if (Math.hypot(x - hx, y - hy) <= tol) return h;
   return null;
 }
+/* Select tool: tap something to pick it, drag a loop around an area to pick everything inside, drag inside the box to move */
 function selectDown(p, x, y){
-  const list = inkList(p), tol = 10 / scale, prev = INK.sel;
-  if (prev && prev.p === p){
-    const st = list.find(s => s.id === prev.id);
-    if (st){ const h = hitHandle(st, x, y, tol * 1.3);
-      if (h){ G = { kind: 'resize', p, h, orig: clone(st), ob: bboxOf(st), moved: false }; beginInteraction(p, st.id); return; } }
+  const list = inkList(p), tol = 10 / scale, prev = INK.sel, pad = 6 / scale;
+  const arr = prev && prev.p === p ? selList() : [];
+  if (arr.length){
+    const h = hitHandle(arr, x, y, tol * 1.3);
+    if (h){ G = { kind: 'resize', p, h, ob: groupBox(arr), origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return; }
+    const b = groupBox(arr), single = arr.length === 1 && isLine(arr[0]);
+    if ((!single && x >= b.x - pad && x <= b.x + b.w + pad && y >= b.y - pad && y <= b.y + b.h + pad) || arr.some(s => strokeHit(s, x, y, tol))){
+      G = { kind: 'move', p, x0: x, y0: y, origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return;
+    }
   }
   for (let i = list.length - 1; i >= 0; i--){
     if (strokeHit(list[i], x, y, tol)){
-      INK.sel = { p, id: list[i].id };
-      G = { kind: 'move', p, x0: x, y0: y, orig: clone(list[i]), moved: false };
-      beginInteraction(p, list[i].id); compose(p); syncInkBar();
+      INK.sel = { p, ids: [list[i].id] };
+      G = { kind: 'move', p, x0: x, y0: y, origs: [clone(list[i])], moved: false };
+      beginInteraction(p, [list[i].id]); compose(p); syncInkBar();
       if (prev && prev.p !== p) redrawInk(prev.p);
       return;
     }
   }
-  INK.sel = null; redrawInk(p); if (prev && prev.p !== p) redrawInk(prev.p); syncInkBar();
+  INK.sel = null; G = { kind: 'lasso', p, pts: [[x, y]] };
+  if (prev && prev.p !== p) redrawInk(prev.p);
+  beginInteraction(p, null); compose(p); syncInkBar();
 }
 function deleteSelected(){
   if (!INK.sel) return;
-  const p = INK.sel.p; pushUndo(p);
-  setInkList(p, inkList(p).filter(s => s.id !== INK.sel.id)); INK.sel = null; redrawInk(p); scheduleSave(); syncInkBar();
+  const p = INK.sel.p, ids = new Set(INK.sel.ids); pushUndo(p);
+  setInkList(p, inkList(p).filter(s => !ids.has(s.id))); INK.sel = null; redrawInk(p); scheduleSave(); syncInkBar();
 }
 
 /* ---------- toolbar ---------- */
 function inkKind(){
+  if (INK.tool === 'eraser') return 'er';
   if (INK.tool === 'hl') return 'hl';
-  if (INK.tool === 'select' && INK.sel){ const st = inkList(INK.sel.p).find(s => s.id === INK.sel.id); if (st && st.t === 'hl') return 'hl'; }
+  if (INK.tool === 'select'){ const a = selList(); if (a.length && a.every(s => s.t === 'hl')) return 'hl'; }
   return 'pen';
 }
 function buildInkSwatches(){
-  const kind = inkKind(), cur = String(INK.color[kind]).toLowerCase();
+  const kind = inkKind();
+  if (kind === 'er'){ $('#inkSwatches').innerHTML = ''; return; }
+  const cur = String(INK.color[kind]).toLowerCase();
   const plus = '<button class="swatch add" data-addcolor="ink" title="More colours"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>';
   $('#inkSwatches').innerHTML = INK_SW[kind].map(c => '<button class="swatch' + (c.toLowerCase() === cur ? ' active' : '') + '" data-ink-color="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('') + plus;
 }
@@ -3914,8 +4146,9 @@ function syncToolUI(){
 function syncInkBar(){
   const kind = inkKind(), rg = INK_RANGE[kind], sl = $('#inkW');
   let w = INK.width[kind];
-  if (INK.tool === 'select' && INK.sel){ const st = inkList(INK.sel.p).find(s => s.id === INK.sel.id); if (st) w = st.sw; }
+  if (INK.tool === 'select'){ const a = selList(); if (a.length) w = a[0].sw; }
   sl.min = rg[0]; sl.max = rg[1]; sl.step = rg[2]; sl.value = w; $('#inkWVal').textContent = w;
+  sl.title = kind === 'er' ? 'Eraser size' : 'Thickness';
   buildInkSwatches(); syncUndoUI();
   $('#inkDel').classList.toggle('hidden', !(INK.tool === 'select' && INK.sel));
   positionInkBar();
@@ -3942,12 +4175,15 @@ function setInkTool(t){
 }
 function setInkWidth(v){
   const kind = inkKind(); INK.width[kind] = v;
-  if (INK.tool === 'select' && INK.sel){ const st = inkList(INK.sel.p).find(s => s.id === INK.sel.id); if (st){ if (!G) pushUndo(INK.sel.p); st.sw = v; redrawInk(INK.sel.p); scheduleSave(); } }
+  if (INK.tool === 'select' && INK.sel){
+    const arr = selList();
+    if (arr.length){ if (!INK._wu){ pushUndo(INK.sel.p); INK._wu = true; } arr.forEach(st => { st.sw = v; }); redrawInk(INK.sel.p); scheduleSave(); }
+  }
   $('#inkWVal').textContent = v;
 }
 function setInkColor(hex){
-  const kind = inkKind(); INK.color[kind] = hex;
-  if (INK.tool === 'select' && INK.sel){ const st = inkList(INK.sel.p).find(s => s.id === INK.sel.id); if (st){ pushUndo(INK.sel.p); st.c = hex; redrawInk(INK.sel.p); scheduleSave(); } }
+  const kind = inkKind(); if (kind === 'er') return; INK.color[kind] = hex;
+  if (INK.tool === 'select' && INK.sel){ const arr = selList(); if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.c = hex; }); redrawInk(INK.sel.p); scheduleSave(); } }
   buildInkSwatches();
 }
 function shapeIconSVG(k, o){
@@ -3958,8 +4194,8 @@ function shapeIconSVG(k, o){
   return '<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>';
 }
 const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['ellipse', 0, 'Circle / oval'], ['rect', 0, 'Rectangle'], ['tri', 0, 'Triangle'], ['star', 0, 'Star'],
-  ['brkt', 0, 'Bracket ['], ['brkt', 2, 'Bracket ]'], ['brkt', 1, 'Bracket, top'], ['brkt', 3, 'Bracket, bottom'],
-  ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 1, 'Brace, top'], ['brace', 3, 'Brace, bottom']];
+  ['brkt', 0, 'Bracket ['], ['brkt', 2, 'Bracket ]'], ['brkt', 1, 'Bracket, lying, open down'], ['brkt', 3, 'Bracket, lying, open up'],
+  ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up']];
 function buildShapePop(){
   $('#shapePop').innerHTML = '<div class="shape-grid">' + SHAPES.map(([k, o, label]) => '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>').join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
 }
@@ -4065,6 +4301,7 @@ function newDocModal(){
     const b = e.target.closest('[data-ink-color]'); if (b) setInkColor(b.dataset.inkColor);
   });
   $('#inkW').addEventListener('input', e => setInkWidth(+e.target.value));
+  $('#inkW').addEventListener('change', () => { INK._wu = false; });
   $('#inkUndo').addEventListener('click', inkUndo);
   $('#inkRedo').addEventListener('click', inkRedo);
   $('#inkDel').addEventListener('click', deleteSelected);
