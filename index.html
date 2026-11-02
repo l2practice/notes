@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-l" />
+    <meta name="app-build" content="2026-11-02-m" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -365,6 +365,9 @@
       @media (prefers-contrast: more){ .format-bar,.fpop{background:var(--surface);border-color:var(--ink-2);-webkit-backdrop-filter:none;backdrop-filter:none;} }
       .format-bar > *{flex:none;}
       .format-bar.hidden{display:flex !important;opacity:0;visibility:hidden;pointer-events:none;}
+      #inkBar{max-width:calc(100vw - 16px);flex-wrap:wrap !important;overflow:visible !important;row-gap:6px;justify-content:center;}
+      #inkBar .ink-grip{touch-action:none;}
+      .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:5px 12px;min-height:32px;font-size:13px;}
       #barMove{cursor:grab;color:var(--muted);min-width:26px;padding:0 4px;touch-action:none;} #barMove:active{cursor:grabbing;}
       .fa-glyph{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:19px;line-height:1;}
       .align-group{display:flex;align-items:center;gap:2px;}
@@ -639,6 +642,7 @@
         .reader-bar::-webkit-scrollbar{display:none;}
         .reader-bar .doc-title{max-width:110px;font-size:13.5px;}
         .save-status .txt{display:none;}
+        .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:6px 10px;min-height:34px;}
         .zoom-group .icon-btn{width:38px;height:38px;}
         .zoom-label{min-width:44px;font-size:12.5px;}
         .reader-bar .btn{padding:9px 11px;font-size:13.5px;min-height:42px;}
@@ -4617,6 +4621,22 @@ function startInertia(){
   const step = () => { sc.scrollTop -= vy * 16; sc.scrollLeft -= vx * 16; vx *= 0.95; vy *= 0.95; if (Math.hypot(vx, vy) > 0.02) inertia = requestAnimationFrame(step); };
   inertia = requestAnimationFrame(step);
 }
+/* two fingers on the page (when no drawing tool is on) zoom it; the pointer handlers above do the same while drawing */
+(function(){
+  const sc = document.querySelector('#pagesScroll'); if (!sc) return;
+  let z = null;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY) || 1;
+  sc.addEventListener('touchstart', e => { if (e.touches.length === 2 && !INK.tool){ z = { d: dist(e.touches), s: zoomTargetScale || scale, x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 }; } else z = null; }, { passive: true });
+  sc.addEventListener('touchmove', e => {
+    if (!z || e.touches.length !== 2 || INK.tool) return;
+    e.preventDefault();
+    const nx = (e.touches[0].clientX + e.touches[1].clientX) / 2, ny = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    smoothZoomTo(z.s * dist(e.touches) / z.d, false);
+    sc.scrollLeft -= (nx - z.x) / 2; sc.scrollTop -= (ny - z.y) / 2; z.x = nx; z.y = ny;
+  }, { passive: false });
+  const end = e => { if (e.touches.length < 2) z = null; };
+  sc.addEventListener('touchend', end, { passive: true }); sc.addEventListener('touchcancel', end, { passive: true });
+})();
 let lastInkAt = 0;
 /* the last point the pencil reported may be ahead of the stabilised stroke: draw that last bit straight onto the canvas */
 function finishPenTail(p, st, g){
