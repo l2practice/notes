@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-t" />
+    <meta name="app-build" content="2026-11-02-u" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4714,17 +4714,43 @@ function finishStale(){
   endInteraction(g.p); redrawInk(g.p);
 }
 /* handwriting smoothing: light / strong (smooths wobble and tapers the ends like a real pen) */
+/* Tidy a finished pencil stroke: round off the jitter (corners stay sharp), give it a natural thick/thin rhythm and tapered ends */
 function smoothStroke(st){
-  const lv = INK.smooth, n = st.pts.length / 3; if (!lv || st.t !== 'pen' || n < 5) return;
+  const lv = INK.smooth, n = st.pts.length / 3; if (st.t !== 'pen' || n < 5) return;
   let xs = [], ys = [], ps = [];
   for (let i = 0; i < n; i++){ xs.push(st.pts[i * 3]); ys.push(st.pts[i * 3 + 1]); ps.push(st.pts[i * 3 + 2]); }
-  for (let pass = 0; pass < lv + 1; pass++){
-    const nx = xs.slice(), ny = ys.slice(), np = ps.slice();
-    for (let i = 1; i < n - 1; i++){ nx[i] = (xs[i - 1] + 2 * xs[i] + xs[i + 1]) / 4; ny[i] = (ys[i - 1] + 2 * ys[i] + ys[i + 1]) / 4; np[i] = (ps[i - 1] + 2 * ps[i] + ps[i + 1]) / 4; }
-    xs = nx; ys = ny; ps = np;
+  if (lv){
+    // where the writing turns sharply (the point of a "v", the foot of an "L") the point is pinned
+    const pin = new Array(n).fill(false);
+    for (let i = 2; i < n - 2; i++){
+      const ax = xs[i] - xs[i - 2], ay = ys[i] - ys[i - 2], bx = xs[i + 2] - xs[i], by = ys[i + 2] - ys[i], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+      if (la > 1.2 && lb > 1.2 && (ax * bx + ay * by) / (la * lb) < -0.2) pin[i] = true;   // turns by more than ~100 degrees
+    }
+    for (let pass = 0; pass < lv * 3; pass++){
+      const nx = xs.slice(), ny = ys.slice();
+      for (let i = 1; i < n - 1; i++) if (!pin[i]){ nx[i] = (xs[i - 1] + 2 * xs[i] + xs[i + 1]) / 4; ny[i] = (ys[i - 1] + 2 * ys[i] + ys[i + 1]) / 4; }
+      xs = nx; ys = ny;
+    }
   }
-  for (let i = 0; i < Math.min(3, n); i++){ const f = 0.55 + 0.15 * i; ps[i] *= f; ps[n - 1 - i] *= f; }
-  st.pts = []; for (let i = 0; i < n; i++) st.pts.push(r1(xs[i]), r1(ys[i]), Math.round(ps[i]));
+  // the pencil often reports a flat pressure: then the pen gets thinner when you move fast and thicker when you slow down, like ink
+  let lo = 101, hi = -1; ps.forEach(v => { lo = Math.min(lo, v); hi = Math.max(hi, v); });
+  if (hi - lo < 10){
+    const sp = []; for (let i = 0; i < n; i++){ const j = Math.min(n - 1, i + 1), k0 = Math.max(0, i - 1); sp.push(Math.hypot(xs[j] - xs[k0], ys[j] - ys[k0]) / 2); }
+    const typ = sp.slice().sort((a, b) => a - b)[Math.floor(n / 2)] || 1;
+    for (let i = 0; i < n; i++) ps[i] = Math.max(30, Math.min(80, 62 - 22 * Math.tanh((sp[i] / Math.max(typ, .5) - 1) * 0.9)));
+  }
+  for (let pass = 0; pass < 3; pass++){ const np = ps.slice(); for (let i = 1; i < n - 1; i++) np[i] = (ps[i - 1] + 2 * ps[i] + ps[i + 1]) / 4; ps = np; }
+  for (let i = 0; i < Math.min(4, n); i++){ const f = 0.5 + 0.125 * i; ps[i] *= f; ps[n - 1 - i] *= f; }   // soft start and end
+  st.pts = []; for (let i = 0; i < n; i++) st.pts.push(r1(xs[i]), r1(ys[i]), Math.max(12, Math.round(ps[i])));
+}
+/* repaint just the part of the page a stroke touches (cheap) */
+function repaintRegion(p, st){
+  const L = inkLayers(p); if (!L) return;
+  const b = bboxOf(st), pad = st.sw + 6, k = L.k, c = L.ic.getContext('2d');
+  const x = Math.max(0, (b.x - pad) * k), y = Math.max(0, (b.y - pad) * k), w = Math.min(L.ic.width - x, (b.w + 2 * pad) * k), h = Math.min(L.ic.height - y, (b.h + 2 * pad) * k);
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip(); c.clearRect(x, y, w, h);
+  inkList(p).forEach(o => { if (o.t === 'hl') return; const q = bboxOf(o); if (q.x - pad > b.x + b.w + pad || q.x + q.w + pad < b.x - pad || q.y - pad > b.y + b.h + pad || q.y + q.h + pad < b.y - pad) return; try { drawStroke(c, o, k); } catch (er) {} });
+  c.restore();
 }
 function abortGesture(){
   if (!G) return; clearTimeout(G.timer); const p = G.p; INK.live = null; G = null; endInteraction(p); redrawInk(p);
@@ -4818,7 +4844,6 @@ function usableSamples(e, cv){
   const r = cv.getBoundingClientRect(), tol = 24;
   const ok = ev => Number.isFinite(ev.clientX) && Number.isFinite(ev.clientY) && !(ev.clientX === 0 && ev.clientY === 0 && (e.clientX !== 0 || e.clientY !== 0)) &&
     ev.clientX >= r.left - tol && ev.clientX <= r.right + tol && ev.clientY >= r.top - tol && ev.clientY <= r.bottom + tol;
-  if (e.pointerType === 'pen' && IOS_WK) return ok(e) ? [e] : [];   // on iPad the main event is the reliable one
   const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
   const good = evs.filter(ok);
   if (good.length !== evs.length) inkLog('BADSAMPLE', e, (evs.length - good.length) + ' of ' + evs.length + ' dropped');
@@ -4895,8 +4920,11 @@ function inkUp(e, cv, cancelled){
     lastInkAt = performance.now();
     if (st){
       const live = st.t === 'pen' && !g.snapped;   // the pencil stroke is already on the canvas: no redraw, no copying, just remember it
-      if (live) finishPenTail(p, st, g); else commitPen(st, g);
+      if (live){ finishPenTail(p, st, g); }
+      else commitPen(st, g);
+      if (live){ try { smoothStroke(st); } catch (er) { inkLog('JSERR', null, 'smooth ' + er.message); } }
       undoAdd(p, st); inkList(p, true).push(st); scheduleSave();
+      if (live) repaintRegion(p, st);
       inkLog('saved', e, (st.pts ? st.pts.length / 3 + ' pts' : st.k) + (cancelled ? ' (cancelled)' : '') + ' list=' + inkList(p).length + ' cv=' + (inkLayers(p) ? inkLayers(p).W + 'x' + inkLayers(p).H : '-'));
       if (st.t === 'pen'){ (recentPen[p] || (recentPen[p] = [])).push(st); if (recentPen[p].length > 6) recentPen[p].shift(); }
       endInteraction(p); if (!live) redrawInk(p); else { settleInk(p); requestAnimationFrame(() => verifyPen('live')); }
