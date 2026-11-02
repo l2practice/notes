@@ -2135,9 +2135,10 @@
     const DRIVE_LIB_NAME = 'ghichu-library.json';
     let driveToken = null, driveTokenExp = 0, driveFolderId = null, driveLibFileId = null;
     let driveSyncing = false, driveSyncTimer = null, driveLastFingerprint = '';
+    let driveLibModified = '', driveChangedDocs = [];
     /* An OAuth Web Client ID is a public identifier (not a secret), so it can ship inside the app.
        Put it here once and every device only needs "Connect Google Drive" + the Google sign-in. */
-    const DRIVE_CLIENT_ID = '';
+    const DRIVE_CLIENT_ID = '539803784966-ursojfntraafa9r87p44a91qp6oprhm3.apps.googleusercontent.com';
     const CID_RE = /^[\w.-]+\.apps\.googleusercontent\.com$/;
     function driveClientId(){ try { return localStorage.getItem('ghichu-drive-client-id') || DRIVE_CLIENT_ID; } catch (e) { return DRIVE_CLIENT_ID; } }
     // A setup link (…/notes/#cid=…) hands the Client ID to a new device in one tap
@@ -2226,6 +2227,7 @@
       const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,modifiedTime)');
       const j = await r.json();
       driveLibFileId = (j.files && j.files.length) ? j.files[0].id : null;
+      driveLibModified = (j.files && j.files.length) ? (j.files[0].modifiedTime || '') : '';
       return driveLibFileId;
     }
     async function driveUploadMedia(metadata, blob, existingId){
@@ -2259,7 +2261,7 @@
           if (ld && ld.thumb) merged.thumb = ld.thumb;
           if (ld && (ld.pageUpdatedAt || 0) > (rd.pageUpdatedAt || 0) && ld.lastPage){ merged.lastPage = ld.lastPage; merged.pageUpdatedAt = ld.pageUpdatedAt; }
           if (!ld) docs.push(merged); else Object.assign(ld, merged);
-          await DB.put('docs', merged); changed = true;
+          await DB.put('docs', merged); changed = true; driveChangedDocs.push(rd.id);
         }
         const target = docs.find(d => d.id === rd.id);
         const localBuf = await DB.get('files', rd.id);
@@ -2281,9 +2283,11 @@
         d.drivePushedAt = Date.now(); d.pdfDirty = false;
         await DB.put('docs', d);
       }
+      await drivePull();   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
       const lib = { version: 1, updatedAt: Date.now(), folders: folders, docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
       const blob = new Blob([JSON.stringify(lib)], { type: 'application/json' });
       driveLibFileId = await driveUploadMedia({ name: DRIVE_LIB_NAME, parents: [driveFolderId] }, blob, driveLibFileId);
+      await driveFindLibFile();   // so our own upload is not mistaken for a change from the other device
     }
     async function driveSyncNow(manual){
       if (driveSyncing) return;
@@ -2378,6 +2382,30 @@
       driveToken = null; driveTokenExp = 0;
       setDriveUI('', 'Disconnected on this device. Your Drive files are untouched — reconnect with the same Google account to see your library again.');
     });
+    /* Live updates: while connected, check every 20 s (and when the tab comes back to the front) whether the
+       other device saved something; if so pull it and refresh the open document, unless you are typing/dragging. */
+    function refreshOpenDoc(){
+      if (!currentReader || !driveChangedDocs.includes(currentReader.id)) return;
+      for (let p = 1; p <= pageSizes.length; p++) renderNotesForPage(p);
+      if (selectedNoteId && !findNote(selectedNoteId)) selectNote(null);
+      toast('Updated from your other device.');
+    }
+    async function drivePoll(){
+      if (!driveTokenValid() || driveSyncing || document.hidden || !driveFolderId) return;
+      if (editingId || dragCtx || createCtx) return;
+      try {
+        const prev = driveLibModified;
+        await driveFindLibFile();
+        if (driveLibModified && prev && driveLibModified !== prev){
+          driveChangedDocs = [];
+          await drivePull();
+          refreshOpenDoc();
+          driveLastFingerprint = driveFingerprint();
+        }
+      } catch (e) {}
+    }
+    setInterval(drivePoll, 20000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) drivePoll(); });
     // Tu dong nhan thay doi thu vien (folder / tai lieu / ghi chu) de day len Drive
     setInterval(() => {
       if (!driveToken || driveSyncing) return;
