@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-p" />
+    <meta name="app-build" content="2026-11-02-q" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4578,6 +4578,8 @@ function pagePt(e, cv){
 const pressure = e => e.pointerType === 'mouse' ? 50 : Math.max(25, Math.round((e.pressure || 0.5) * 100));   // the first pencil samples report ~0: never draw a hairline
 const INKLOG = [];
 function inkLog(kind, e, note){ INKLOG.push(new Date().toISOString().slice(11, 23) + ' ' + kind + ' ' + (e ? e.pointerType + '#' + e.pointerId + ' p=' + (e.pressure !== undefined ? (+e.pressure).toFixed(2) : '-') + ' w=' + (e.width || 0) + ' h=' + (e.height || 0) + ' btn=' + e.button : '') + (note ? ' ' + note : '') + (G ? ' [G:' + G.kind + ']' : '')); if (INKLOG.length > 200) INKLOG.shift(); }
+window.addEventListener('error', e => { try { inkLog('JSERR', null, (e.message || '') + ' @' + (e.lineno || '?') + ':' + (e.colno || '?')); } catch (er) {} });   // any script error shows up in the pen log
+window.addEventListener('unhandledrejection', e => { try { inkLog('JSERR', null, 'promise: ' + ((e.reason && e.reason.message) || e.reason)); } catch (er) {} });
 const INKAUDIT = {};   // page -> { arr, ids }: watches the stored strokes and logs when one disappears that the user did not remove
 let legitUntil = 0;
 setInterval(() => {
@@ -4776,8 +4778,21 @@ function inkMove(e, cv){
     if (navActive()){ navMove(e, t); return; }
   }
   if (!G || +cv.parentNode.dataset.page !== G.p || (G.pid !== undefined && G.pid !== e.pointerId && e.pointerType === 'touch')) return;
-  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-  for (const ev of (evs.length ? evs : [e])){ const [x, y] = pagePt(ev, cv); inkStep(ev, x, y, cv); }
+  for (const ev of usableSamples(e, cv)){ const [x, y] = pagePt(ev, cv); inkStep(ev, x, y, cv); }
+}
+/* Safari / WebKit (every browser on iPad) sometimes reports coalesced pen samples at (0,0) or far outside the page.
+   Taken as points they drag the stroke to a corner, so only plausible samples are kept (idea from the HandLayers project). */
+const IOS_WK = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function usableSamples(e, cv){
+  const r = cv.getBoundingClientRect(), tol = 24;
+  const ok = ev => Number.isFinite(ev.clientX) && Number.isFinite(ev.clientY) && !(ev.clientX === 0 && ev.clientY === 0 && (e.clientX !== 0 || e.clientY !== 0)) &&
+    ev.clientX >= r.left - tol && ev.clientX <= r.right + tol && ev.clientY >= r.top - tol && ev.clientY <= r.bottom + tol;
+  if (e.pointerType === 'pen' && IOS_WK) return ok(e) ? [e] : [];   // on iPad the main event is the reliable one
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+  const good = evs.filter(ok);
+  if (good.length !== evs.length) inkLog('BADSAMPLE', e, (evs.length - good.length) + ' of ' + evs.length + ' dropped');
+  if (ok(e) && (!good.length || good[good.length - 1].clientX !== e.clientX || good[good.length - 1].clientY !== e.clientY)) good.push(e);
+  return good;
 }
 function inkStep(e, x, y, cv){
   const p = G.p;
