@@ -2135,7 +2135,22 @@
     const DRIVE_LIB_NAME = 'ghichu-library.json';
     let driveToken = null, driveTokenExp = 0, driveFolderId = null, driveLibFileId = null;
     let driveSyncing = false, driveSyncTimer = null, driveLastFingerprint = '';
-    function driveClientId(){ try { return localStorage.getItem('ghichu-drive-client-id') || ''; } catch (e) { return ''; } }
+    /* An OAuth Web Client ID is a public identifier (not a secret), so it can ship inside the app.
+       Put it here once and every device only needs "Connect Google Drive" + the Google sign-in. */
+    const DRIVE_CLIENT_ID = '';
+    const CID_RE = /^[\w.-]+\.apps\.googleusercontent\.com$/;
+    function driveClientId(){ try { return localStorage.getItem('ghichu-drive-client-id') || DRIVE_CLIENT_ID; } catch (e) { return DRIVE_CLIENT_ID; } }
+    // A setup link (…/notes/#cid=…) hands the Client ID to a new device in one tap
+    (function(){
+      try {
+        const m = location.hash.match(/[#&]cid=([^&]+)/);
+        if (m){
+          const v = decodeURIComponent(m[1]);
+          if (CID_RE.test(v)) localStorage.setItem('ghichu-drive-client-id', v);
+          history.replaceState(null, '', location.pathname + location.search);
+        }
+      } catch (e) {}
+    })();
     function driveIsConnected(){ return !!driveToken; }
     function driveTokenValid(){ return !!driveToken && Date.now() < driveTokenExp; }
     function setDriveUI(state, sub){
@@ -2316,12 +2331,18 @@
         '<label for="driveClientIdInput">Google OAuth Client ID</label>' +
         '<input type="text" class="mono" id="driveClientIdInput" placeholder="xxxxx.apps.googleusercontent.com" value="' + esc(cid) + '" />' +
         '<ul class="sync-check"><li>PDFs are uploaded to the "GhiChuPDF" folder on your Drive</li><li>Notes live in the ghichu-library.json file in the same folder</li><li>The app can only access files it creates itself (drive.file)</li></ul>' +
-        '<div class="modal-actions"><button class="btn" id="mCancel">Close</button><button class="btn primary" id="mSaveDrive">Save &amp; Connect</button></div>'
+        '<div class="modal-actions">' + (cid ? '<button class="btn" id="mCopyLink" style="margin-right:auto">Copy setup link for another device</button>' : '') + '<button class="btn" id="mCancel">Close</button><button class="btn primary" id="mSaveDrive">Save &amp; Connect</button></div>'
       );
       $('#mCancel').addEventListener('click', closeModal);
+      const cl = $('#mCopyLink');
+      if (cl) cl.addEventListener('click', async () => {
+        const link = location.origin + location.pathname + '#cid=' + encodeURIComponent(driveClientId());
+        try { await navigator.clipboard.writeText(link); toast('Link copied. Open it on the other device, then tap Connect Google Drive.'); }
+        catch (e) { window.prompt('Copy this link and open it on the other device:', link); }
+      });
       $('#mSaveDrive').addEventListener('click', async () => {
         const v = $('#driveClientIdInput').value.trim();
-        if (!v){ $('#driveClientIdInput').focus(); return; }
+        if (!CID_RE.test(v)){ $('#driveClientIdInput').focus(); toast('That does not look like a Client ID (it ends with .apps.googleusercontent.com).'); return; }
         try { localStorage.setItem('ghichu-drive-client-id', v); } catch (e) {}
         closeModal();
         await driveConnect();
@@ -2364,7 +2385,7 @@
       if (driveLastFingerprint && fp !== driveLastFingerprint) queueDriveSync();
       else if (!driveLastFingerprint) driveLastFingerprint = fp;
     }, 4000);
-    if (driveClientId()) setDriveUI('', 'Client ID saved — tap "Connect Google Drive" and sign in with the same Google account on every device to sync.');
+    if (driveClientId()) setDriveUI('', 'Tap "Connect Google Drive" and sign in with the same Google account on every device to sync.');
     </script>
 
     <script>
