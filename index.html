@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-x" />
+    <meta name="app-build" content="2026-11-02-y" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -239,6 +239,10 @@
       .shelf-books,.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:28px 20px;padding:16px 0 4px;align-items:start;}
       .shelf-plank{display:none;}
       .book-wrap{position:relative;min-width:0;}
+      .book .stat-badges{position:absolute;left:8px;top:8px;display:flex;gap:4px;z-index:3;pointer-events:none;}
+      .book .sb{width:24px;height:24px;border-radius:12px;display:grid;place-items:center;background:rgba(120,120,120,.55);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+      .book .sb.on{background:#2f9e63;}
+      .book .sb svg{width:14px;height:14px;}
       .book{display:block;width:100%;text-align:left;cursor:pointer;padding:0;background:none;}
       .book-cover{
         position:relative;display:block;aspect-ratio:1/1.35;border-radius:6px;overflow:hidden;background:#fff;
@@ -1062,7 +1066,7 @@
           </div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Pen diagnostics</div><div class="drive-sub">If a stroke ever goes missing, open this right after and send me the text — it shows what the pencil reported and why a touch was ignored.</div></div><div class="drive-actions"><button class="btn" id="penLogBtn">Show pen log</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">App password</div><div class="drive-sub">The app asks for a password each time it is opened in a new tab. Changing it applies to this browser.</div></div><div class="drive-actions"><button class="btn" id="pwChangeBtn">Change password</button><button class="btn" id="pwLockBtn">Lock now</button></div></div>
-            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Device storage</div><div class="drive-sub" id="storInfo">Checking…</div></div><div class="drive-actions"><button class="btn" id="storFreeBtn">Free up space</button></div></div>
+            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Device storage</div><div class="drive-sub" id="storInfo">Checking…</div></div><div class="drive-actions"><button class="btn" id="storFreeBtn">Move all to Drive</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Recycle Bin</div><div class="drive-sub">Deleted documents wait here for 90 days before they are removed everywhere.</div></div><div class="drive-actions"><button class="btn" id="settingsBinBtn">Open Recycle Bin</button></div></div>
             <p class="page-sub" style="margin-top:14px">On another device: open this app, tap <b>Connect Google Drive</b> and sign in with the same Google account. Folders, documents and notes stay in step, and deleting a document here removes it everywhere.</p>
           </div>
@@ -1315,10 +1319,34 @@
       _store(name, mode){ return DB.db.transaction(name, mode).objectStore(name); },
       getAll(name){ return new Promise((res, rej) => { const q = DB._store(name, 'readonly').getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); },
       get(name, key){ return new Promise((res, rej) => { const q = DB._store(name, 'readonly').get(key); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
-      put(name, val, key){ return new Promise((res, rej) => { const q = key === undefined ? DB._store(name, 'readwrite').put(val) : DB._store(name, 'readwrite').put(val, key); q.onsuccess = () => res(); q.onerror = () => rej(q.error); }); },
-      del(name, key){ return new Promise((res, rej) => { const q = DB._store(name, 'readwrite').delete(key); q.onsuccess = () => res(); q.onerror = () => rej(q.error); }); }
+      put(name, val, key){ if (name === 'files' && typeof key === 'string' && key.slice(0, 4) !== 'img:') LOCAL.add(key); return new Promise((res, rej) => { const q = key === undefined ? DB._store(name, 'readwrite').put(val) : DB._store(name, 'readwrite').put(val, key); q.onsuccess = () => res(); q.onerror = () => rej(q.error); }); },
+      del(name, key){ return new Promise((res, rej) => { const q = DB._store(name, 'readwrite').delete(key); q.onsuccess = () => { if (name === 'files' && typeof key === 'string' && key.slice(0, 4) !== 'img:') LOCAL.delete(key); res(); }; q.onerror = () => rej(q.error); }); },
+      keys(name){ return new Promise((res, rej) => { const q = DB._store(name, 'readonly').getAllKeys(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); }
     };
+    /* OneDrive-style files: which PDFs are on THIS device, and which this device always keeps */
+    const LOCAL = new Set();
+    const KEEP = new Set(); try { JSON.parse(localStorage.getItem('nt-keep') || '[]').forEach(k => KEEP.add(k)); } catch (e) {}
+    const saveKeep = () => { try { localStorage.setItem('nt-keep', JSON.stringify([...KEEP])); } catch (e) {} };
+    const inCloud = d => d.kind === 'blank' ? (typeof driveLinked !== 'undefined' && !!driveLinked) : !!(d.driveFileId && d.drivePushedAt && d.drivePushedAt >= (d.createdAt || 0) && !d.pdfDirty);
+    const onDevice = d => d.kind === 'blank' || LOCAL.has(d.id);
 
+    /* Download one PDF from Google Drive into this device's storage (progress callback gets 0-100, or null when the size is unknown) */
+    async function fetchPdfToDevice(doc, onPct){
+      const fail = m => { const e = new Error(m); e.userMsg = m; return e; };
+      if (!doc.driveFileId) throw fail('This PDF is not on Google Drive and not on this device, so it cannot be opened.');
+      if (typeof driveLinked === 'undefined' || !driveLinked) throw fail('This PDF is only on Google Drive. Connect Google Drive in Settings to download it.');
+      if (!driveTokenValid()){ try { driveReconnect(); } catch (e) {} throw fail('Google Drive needs to reconnect first — tap Reconnect at the top, then open the file again.'); }
+      let r; try { r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + doc.driveFileId + '?alt=media'); } catch (e) { throw fail('Could not reach Google Drive. Check the internet connection and try again.'); }
+      if (!r.ok) throw fail(r.status === 404 ? 'This PDF is no longer on Google Drive.' : 'Google Drive refused the download (' + r.status + ').');
+      const total = +r.headers.get('content-length') || doc.size || 0; let buf;
+      if (r.body && r.body.getReader){
+        const rd = r.body.getReader(), parts = []; let got = 0, lastPct = -1;
+        for (;;){ const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; if (onPct){ const pct = total ? Math.min(99, Math.floor(got / total * 100)) : null; if (pct !== lastPct){ lastPct = pct; onPct(pct, got); } } }
+        const all = new Uint8Array(got); let o = 0; parts.forEach(c => { all.set(c, o); o += c.length; }); buf = all.buffer;
+      } else buf = await r.arrayBuffer();
+      await DB.put('files', buf, doc.id);
+      return buf;
+    }
     /* ================= State ================= */
     const FOLDER_COLORS = ['#0e7c66','#b45309','#2563eb','#be3455','#6d5bd0','#0e7490','#7c4a21','#4d7c0f'];
     let folders = [];
@@ -1439,7 +1467,10 @@
       const cover = d.thumb
         ? '<img class="cover-img" src="' + d.thumb + '" alt="Cover — first page of ' + esc(d.name) + '" />'
         : '<span class="book-fallback" style="background:' + spine + '"><span class="bf-title">' + esc(d.name) + '</span><span class="bf-pages">' + d.pages + ' pages</span></span>';
-      return '<div class="book-wrap"><button class="book" data-open="' + d.id + '" style="--spine:' + spine + '">' +
+      const cl = inCloud(d), dv = onDevice(d);
+      const badges = '<span class="stat-badges"><span class="sb' + (cl ? ' on' : '') + '" title="' + (cl ? 'Saved on Google Drive' : 'Not on Google Drive yet') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4.2 4.2 0 0 1-.5 8.5Z"/></svg></span>' +
+        '<span class="sb' + (dv ? ' on' : '') + '" title="' + (dv ? (KEEP.has(d.id) ? 'Always kept on this device' : 'Stored on this device') : 'Only on Google Drive — tap to download and open') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span></span>';
+      return '<div class="book-wrap"><button class="book" data-open="' + d.id + '" style="--spine:' + spine + '">' + badges +
         '<span class="book-cover">' + cover + '</span>' +
         '<span class="book-info"><span class="book-name">' + esc(d.name) + '</span>' +
         '<span class="book-folder">' + esc(fname) + '</span>' +
@@ -1841,6 +1872,8 @@
       $('#menuRoot').innerHTML = '<div class="menu" style="top:' + (r.bottom + 6) + 'px;left:' + Math.max(8, Math.min(r.left - 140, window.innerWidth - 210)) + 'px">' +
         '<button data-m="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H11v18H4.5A2.5 2.5 0 0 0 2 23.5Z"/><path d="M22 5.5A2.5 2.5 0 0 0 19.5 3H13v18h6.5a2.5 2.5 0 0 1 2.5 2.5Z" transform="translate(0,-2.5)"/></svg>Open Document</button>' +
         '<button data-m="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Rename</button>' +
+        ((doc.kind !== 'blank') ? ((onDevice(doc) && inCloud(doc) && !KEEP.has(doc.id) ? '<button data-m="free"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4.2 4.2 0 0 1-.5 8.5Z"/></svg>Free up space</button>' : '') +
+          (KEEP.has(doc.id) ? '<button data-m="unkeep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M8 10l3 3 5-5"/></svg>Always kept on this device ✓</button>' : '<button data-m="keep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Always keep on this device</button>')) : '') +
         moveItems +
         (doc.folderId ? '<button data-move=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Move to Uncategorized</button>' : '') +
         '<button data-m="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Delete Document</button></div>';
@@ -1853,6 +1886,13 @@
         const act = b.dataset.m; closeMenu();
         if (act === 'open') openReader(doc.id);
         else if (act === 'rename') renameDocModal(doc);
+        else if (act === 'free'){ if (currentReader && currentReader.id === doc.id) return; await DB.del('files', doc.id); renderLibrary(); toast('Freed up space. The PDF stays on Google Drive.'); }
+        else if (act === 'unkeep'){ KEEP.delete(doc.id); saveKeep(); renderLibrary(); toast('This file can be removed from this device when you free up space.'); }
+        else if (act === 'keep'){
+          KEEP.add(doc.id); saveKeep(); renderLibrary();
+          if (!onDevice(doc)){ toast('Downloading “' + doc.name + '”…'); try { await fetchPdfToDevice(doc, pct => { if (pct !== null && pct % 20 === 0) toast('Downloading… ' + pct + '%'); }); renderLibrary(); toast('Downloaded. It stays on this device.'); } catch (er) { toast(er.userMsg || 'Could not download this file.'); } }
+          else toast('This file will always stay on this device.');
+        }
         else if (act === 'del') confirmModal('Delete document "' + doc.name + '"?', 'It moves to the Recycle Bin on every connected device and is removed for good after 90 days.', 'Move to Recycle Bin', async () => { await removeDoc(doc); renderLibrary(); toast('Moved to the Recycle Bin.'); }, true);
       });
     }
@@ -1918,25 +1958,28 @@
     const goBin = () => { libView = 'bin'; renderLibrary(); window.scrollTo({ top: 0 }); };
     $('#navBinBtn').addEventListener('click', goBin);
     $('#settingsBinBtn').addEventListener('click', goBin);
-    /* Device storage: PDFs live in this browser's storage; the copies already safe on Google Drive can be removed here and come back when opened */
-    const evictable = d => d.kind !== 'blank' && !d.deletedAt && d.driveFileId && d.drivePushedAt && d.drivePushedAt >= (d.createdAt || 0) && !d.pdfDirty;
+    /* Device storage: PDFs live in this browser's storage; copies already safe on Google Drive can be removed here and come back when opened */
+    const evictable = d => d.kind !== 'blank' && !d.deletedAt && !KEEP.has(d.id) && inCloud(d) && LOCAL.has(d.id) && !(currentReader && currentReader.id === d.id);
     const fmtMB = n => n >= 1073741824 ? (n / 1073741824).toFixed(2) + ' GB' : (n / 1048576).toFixed(n < 10485760 ? 1 : 0) + ' MB';
     async function storRefresh(){
       const el = $('#storInfo'); if (!el) return;
       try {
-        let used = 0, n = 0; const cand = [];
-        for (const d of docs){ if (d.kind === 'blank' || d.deletedAt) continue; const b = await DB.get('files', d.id); if (b){ used += b.byteLength || 0; n++; if (evictable(d)) cand.push({ d, size: b.byteLength || 0 }); } }
-        const free = cand.reduce((a, c) => a + c.size, 0);
+        let used = 0, n = 0, kept = 0;
+        for (const d of docs){ if (d.kind === 'blank' || d.deletedAt) continue; const b = await DB.get('files', d.id); if (b){ used += b.byteLength || 0; n++; if (KEEP.has(d.id)) kept++; } }
         let est = ''; if (navigator.storage && navigator.storage.estimate){ const e = await navigator.storage.estimate(); est = ' This site uses ' + fmtMB(e.usage || 0) + ' in total.'; }
-        el.textContent = n + ' PDF' + (n === 1 ? '' : 's') + ' stored here (' + fmtMB(used) + ').' + est + (cand.length ? ' ' + cand.length + ' can be removed from this device (' + fmtMB(free) + ') because they are safe on Google Drive.' : ' Nothing to remove yet' + (driveLinked ? '.' : ' — connect Google Drive first.'));
-        $('#storFreeBtn').disabled = !cand.length; $('#storFreeBtn')._cand = cand;
+        el.textContent = n + ' PDF' + (n === 1 ? '' : 's') + ' stored on this device (' + fmtMB(used) + ').' + est + (kept ? ' ' + kept + ' marked “Always keep on this device”.' : '') + (driveLinked ? '' : ' Connect Google Drive to store files in the cloud.');
+        $('#storFreeBtn').disabled = !driveLinked;
       } catch (e) { el.textContent = 'Could not read the storage figures.'; }
     }
     $('#storFreeBtn').addEventListener('click', () => {
-      const cand = $('#storFreeBtn')._cand || []; if (!cand.length) return;
-      confirmModal('Free up space on this device?', 'The PDF files of ' + cand.length + ' document' + (cand.length === 1 ? '' : 's') + ' (' + fmtMB(cand.reduce((a, c) => a + c.size, 0)) + ') are removed from this device. Your notes and drawings stay, and each PDF is downloaded from Google Drive again the next time you open it (internet needed).', 'Free up space', async () => {
-        for (const c of cand) { try { await DB.del('files', c.d.id); } catch (e) {} }
-        toast('Freed ' + fmtMB(cand.reduce((a, c) => a + c.size, 0)) + '.'); storRefresh(); renderLibrary();
+      if (!driveLinked){ toast('Connect Google Drive first.'); return; }
+      confirmModal('Keep everything on Google Drive only?', 'Every PDF is uploaded to Google Drive first, then removed from this device (files marked “Always keep on this device” stay). Notes and drawings are kept. Each PDF is downloaded again when you open it, so you need internet for that.', 'Upload and free up space', async () => {
+        toast('Uploading to Google Drive…');
+        try { await driveSyncNow(true); } catch (e) {}
+        const cand = []; for (const d of docs){ if (evictable(d)){ const b = await DB.get('files', d.id); cand.push({ d, size: b ? b.byteLength : 0 }); } }
+        for (const c of cand){ try { await DB.del('files', c.d.id); } catch (e) {} }
+        const waiting = docs.filter(d => d.kind !== 'blank' && !d.deletedAt && LOCAL.has(d.id) && !KEEP.has(d.id) && !inCloud(d)).length;
+        toast('Freed ' + fmtMB(cand.reduce((a, c) => a + c.size, 0)) + (waiting ? '. ' + waiting + ' file(s) are still uploading and stay on this device for now.' : '.')); storRefresh(); renderLibrary();
       });
     });
     window.storRefresh = storRefresh;
@@ -1995,7 +2038,7 @@
           docs.push(doc); okCount++;
         } catch (err) { toast('Could not read the file "' + file.name + '".'); }
       }
-      if (okCount) { renderLibrary(); toast('Imported ' + okCount + ' PDF document(s).'); }
+      if (okCount) { renderLibrary(); toast('Imported ' + okCount + ' PDF document(s).'); if (typeof queueDriveSync === 'function') queueDriveSync(); }
     }
 </script>
 
@@ -2122,6 +2165,7 @@
       $('#addTextBtn').classList.remove('active');
       $('#formatBar').classList.add('hidden');
       $('#formatBar').classList.remove('typing-hidden');
+      $('#readerLoading').innerHTML = '<div class="spinner"></div><span>Opening document…</span>';
       $('#readerLoading').classList.remove('hidden');
       $('#pagesCol').innerHTML = '';
       setSaveStatus(false, doc.updatedAt);
@@ -2130,7 +2174,7 @@
       $('#thumbToggleBtn').classList.toggle('active', thumbSideVisible);
       // Neu dang ket noi Drive va token con han: tai ban moi nhat ve truoc khi mo,
       // de ghi chu vua sua tren thiet bi khac khong bi ban cu tren may nay de len
-      if (typeof driveTokenValid === 'function' && driveTokenValid() && typeof driveSyncNow === 'function'){
+      if (typeof driveTokenValid === 'function' && driveTokenValid() && typeof driveSyncNow === 'function' && (doc.kind === 'blank' || LOCAL.has(doc.id))){
         try {
           await driveSyncNow(false, true);   // opening a file: fetch the newest version (and the PDF itself if this device no longer holds it)
           const fresh = docs.find(d => d.id === docId);
@@ -2141,8 +2185,12 @@
         pageSizes = [];
         if (currentReader.kind === 'blank'){ pdfDoc = null; pageSizes = blankPageSizes(currentReader); }
         else {
-          const buf = await DB.get('files', docId);
-          if (!buf) throw new Error('missing file');
+          let buf = await DB.get('files', docId);
+          if (!buf){
+            const lbl = $('#readerLoading span'); const base = 'Downloading from Google Drive';
+            if (lbl) lbl.textContent = base + '…';
+            buf = await fetchPdfToDevice(currentReader, (pct, got) => { if (lbl) lbl.textContent = base + (pct !== null ? ' — ' + pct + '%' : ' — ' + Math.round(got / 1048576 * 10) / 10 + ' MB'); });
+          }
           pdfDoc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
           for (let i = 1; i <= pdfDoc.numPages; i++){
             const p = await pdfDoc.getPage(i);
@@ -2177,8 +2225,9 @@
         updatePageInd();
       } catch (e) {
         restoringPage = false;
-        $('#readerLoading').innerHTML = '<span>Could not open this document.</span>';
-        toast('Could not open the PDF document.');
+        const um = e && e.userMsg;
+        $('#readerLoading').innerHTML = '<span>' + esc(um || 'Could not open this document.') + '</span>';
+        toast(um || 'Could not open the PDF document.');
       }
     }
     function closeReader(fromPop){
@@ -3205,7 +3254,7 @@
           if (diff){ target.readLog = ml; await DB.put('docs', target); changed = true; }
         }
         const localBuf = await DB.get('files', rd.id);
-        if (!localBuf && target && target.driveFileId && target.kind !== 'blank') toDl.push(target);
+        if (!localBuf && target && target.driveFileId && target.kind !== 'blank' && KEEP.has(target.id)) toDl.push(target);   // PDFs come down on demand (or when marked Always keep)
       }
       if (!noProg) syncProgress(0, 1, 1 + toDl.length, toDl.length ? 'Library loaded — ' + toDl.length + (toDl.length === 1 ? ' document to download' : ' documents to download') : 'Library loaded');
       for (let i = 0; i < toDl.length; i++){
@@ -4179,6 +4228,7 @@
         await DB.open();
         folders = await DB.getAll('folders');
         docs = await DB.getAll('docs');
+        try { (await DB.keys('files')).forEach(k => { if (typeof k === 'string' && k.slice(0, 4) !== 'img:') LOCAL.add(k); }); } catch (e) {}
         await purgeExpired();
         // One-time cleanup: older versions auto-created sample folders on every device (and Drive copied them
         // around). Remove the empty ones with those names; the library now starts empty.
