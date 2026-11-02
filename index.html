@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script>try { if (sessionStorage.getItem('nt-unlocked') !== '1') document.documentElement.classList.add('locked'); } catch (e) { document.documentElement.classList.add('locked'); }</script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="icon.svg" />
@@ -10,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-h" />
+    <meta name="app-build" content="2026-11-02-i" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -916,9 +917,42 @@
       .db-x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex:none;} .db-x:hover{background:var(--surface-2);} .db-x svg{width:15px;height:15px;}
       .drive-banner .btn{height:38px;padding:0 16px;flex:none;}
       @media (max-width:560px){ .drive-banner{border-radius:22px;top:10px;} .db-txt span{display:none;} }
+      /* password gate */
+      .lock{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(60% 50% at 20% 15%,rgba(212,102,79,.22),transparent 70%),var(--bg);}
+      html.locked .lock{display:flex;}
+      html.locked body > :not(.lock):not(script){display:none !important;}
+      .lock-card{width:100%;max-width:400px;background:var(--surface);border-radius:30px;padding:34px 30px 30px;box-shadow:var(--shadow-lg);text-align:center;}
+      .lock-mark{width:60px;height:60px;border-radius:20px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;margin:0 auto 18px;}
+      .lock-mark svg{width:28px;height:28px;}
+      .lock-card h1{margin:0 0 4px;font-size:25px;font-weight:800;letter-spacing:-.03em;}
+      .lock-card p{margin:0 0 22px;color:var(--muted);font-size:14.5px;}
+      .lock-field{position:relative;}
+      .lock-field input{width:100%;box-sizing:border-box;height:52px;border:1.5px solid transparent;border-radius:999px;background:var(--surface-2);padding:0 52px 0 22px;font-size:16px;color:var(--ink);outline:none;}
+      .lock-field input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(212,102,79,.25);}
+      .lock-field button{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--muted);}
+      .lock-field button:hover{background:var(--active);color:var(--ink);} .lock-field button svg{width:19px;height:19px;}
+      .lock-err{min-height:22px;margin:10px 0 6px;color:var(--danger);font-size:13.5px;font-weight:600;}
+      .lock-go{width:100%;height:52px;font-size:16px;position:relative;}
+      .lock-go .go{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;}
+      .lock-go .go svg{width:17px;height:17px;}
+      .lock-card.shake{animation:lock-shake .35s;}
+      @keyframes lock-shake{20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+      .modal input[type=password]{width:100%;box-sizing:border-box;height:40px;border:1px solid var(--control);border-radius:12px;padding:0 14px;background:var(--surface);font-size:14.5px;outline:none;}
+      .modal input[type=password]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+      .pw-msg{min-height:20px;margin-top:10px;color:var(--danger);font-size:13px;font-weight:600;}
     </style>
   </head>
   <body>
+    <div class="lock" id="lockScreen" role="dialog" aria-modal="true" aria-label="Enter password">
+      <form class="lock-card" id="lockForm" autocomplete="on">
+        <div class="lock-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h1>Note-taking App</h1>
+        <p>Enter the password to open your notes.</p>
+        <div class="lock-field"><input type="password" id="lockInput" placeholder="Password" autocomplete="current-password" autocapitalize="off" spellcheck="false" aria-label="Password" /><button type="button" id="lockEye" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+        <div class="lock-err" id="lockErr" role="alert"></div>
+        <button class="btn primary lock-go" type="submit" id="lockGo">Unlock<span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
+      </form>
+    </div>
     <!-- ================= LIBRARY ================= -->
     <div id="libraryView">
       <div class="lib-frame">
@@ -1022,6 +1056,7 @@
               </div>
             </div>
           </div>
+            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">App password</div><div class="drive-sub">The app asks for a password each time it is opened in a new tab. Changing it applies to this browser.</div></div><div class="drive-actions"><button class="btn" id="pwChangeBtn">Change password</button><button class="btn" id="pwLockBtn">Lock now</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Recycle Bin</div><div class="drive-sub">Deleted documents wait here for 90 days before they are removed everywhere.</div></div><div class="drive-actions"><button class="btn" id="settingsBinBtn">Open Recycle Bin</button></div></div>
             <p class="page-sub" style="margin-top:14px">On another device: open this app, tap <b>Connect Google Drive</b> and sign in with the same Google account. Folders, documents and notes stay in step, and deleting a document here removes it everywhere.</p>
           </div>
@@ -1194,6 +1229,51 @@
     <div id="toast"></div>
     <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple class="hidden" />
 
+    <script>
+    'use strict';
+    /* ================= App password =================
+       A gate in front of the app. Only a salted PBKDF2 hash of the password is kept (the default one in this file,
+       a changed one in this browser). It keeps casual visitors out; it is not a substitute for protecting the
+       Google account or the device. */
+    const PW_DEFAULT = { salt: 'VJTaxD/sPgEzMJdPGNhSHQ==', iter: 150000, hash: '9aSp/rXliULGtwQAkHAHjugevPAAgAwYHdiopcnGvjs=' };
+    let appReady = false;
+    const b64ToBytes = b => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+    const bytesToB64 = a => btoa(String.fromCharCode.apply(null, Array.from(a)));
+    async function pwHash(pw, saltB64, iter){
+      const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+      return bytesToB64(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: b64ToBytes(saltB64), iterations: iter }, key, 256)));
+    }
+    function pwRecord(){ try { const r = JSON.parse(localStorage.getItem('nt-pw') || 'null'); if (r && r.salt && r.hash && r.iter) return r; } catch (e) {} return PW_DEFAULT; }
+    async function pwCheck(pw){ const r = pwRecord(); return (await pwHash(pw, r.salt, r.iter)) === r.hash; }
+    async function pwSet(pw){
+      const salt = bytesToB64(crypto.getRandomValues(new Uint8Array(16))), iter = 150000;
+      localStorage.setItem('nt-pw', JSON.stringify({ salt, iter, hash: await pwHash(pw, salt, iter) }));
+    }
+    function whenUnlocked(fn){ if (!document.documentElement.classList.contains('locked')) fn(); else window.__afterUnlock = fn; }
+    (function(){
+      const form = document.getElementById('lockForm'), input = document.getElementById('lockInput'), err = document.getElementById('lockErr'), go = document.getElementById('lockGo');
+      let fails = 0, until = 0;
+      const focus = () => { try { input.focus(); } catch (e) {} };
+      if (document.documentElement.classList.contains('locked')) setTimeout(focus, 50);
+      document.getElementById('lockEye').addEventListener('click', () => { input.type = input.type === 'password' ? 'text' : 'password'; focus(); });
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const wait = Math.ceil((until - Date.now()) / 1000);
+        if (wait > 0){ err.textContent = 'Too many attempts. Try again in ' + wait + ' s.'; return; }
+        go.disabled = true; err.textContent = '';
+        let ok = false; try { ok = await pwCheck(input.value); } catch (er) { err.textContent = 'This browser cannot check passwords here (it needs a secure https page).'; go.disabled = false; return; }
+        go.disabled = false;
+        if (ok){
+          try { sessionStorage.setItem('nt-unlocked', '1'); } catch (er) {}
+          input.value = ''; document.documentElement.classList.remove('locked');
+          const f = window.__afterUnlock; window.__afterUnlock = null; if (f) f();
+        } else {
+          fails++; if (fails >= 3) until = Date.now() + Math.min(30, Math.pow(2, fails - 2)) * 1000;
+          err.textContent = 'Wrong password.'; form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake'); input.select(); focus();
+        }
+      });
+    })();
+    </script>
     <script>
     'use strict';
     if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -1804,6 +1884,27 @@
       $('#mCancel').addEventListener('click', closeModal);
       document.querySelectorAll('[data-news-open]').forEach(b => b.addEventListener('click', () => { closeModal(); openReader(b.dataset.newsOpen); }));
     }
+    function pwModal(){
+      openModal('<h3>Change password</h3><p>This password protects the app on this browser. Use at least 8 characters.</p>' +
+        '<label for="pwCur">Current password</label><input type="password" id="pwCur" autocomplete="current-password" />' +
+        '<label for="pwNew">New password</label><input type="password" id="pwNew" autocomplete="new-password" />' +
+        '<label for="pwNew2">Repeat new password</label><input type="password" id="pwNew2" autocomplete="new-password" />' +
+        '<div class="pw-msg" id="pwMsg" role="alert"></div>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="pwSave">Save password</button></div>');
+      $('#mCancel').addEventListener('click', closeModal); $('#pwCur').focus();
+      const save = async () => {
+        const msg = t => { $('#pwMsg').textContent = t; };
+        const cur = $('#pwCur').value, n1 = $('#pwNew').value, n2 = $('#pwNew2').value;
+        if (!(await pwCheck(cur))) return msg('The current password is not right.');
+        if (n1.length < 8) return msg('Use at least 8 characters for the new password.');
+        if (n1 !== n2) return msg('The two new passwords do not match.');
+        await pwSet(n1); closeModal(); toast('Password changed. Use the new one next time you open the app.');
+      };
+      $('#pwSave').addEventListener('click', save);
+      ['pwCur', 'pwNew', 'pwNew2'].forEach(id => $('#' + id).addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); save(); } }));
+    }
+    $('#pwChangeBtn').addEventListener('click', pwModal);
+    $('#pwLockBtn').addEventListener('click', () => { try { sessionStorage.removeItem('nt-unlocked'); } catch (e) {} location.reload(); });
     const goBin = () => { libView = 'bin'; renderLibrary(); window.scrollTo({ top: 0 }); };
     $('#navBinBtn').addEventListener('click', goBin);
     $('#settingsBinBtn').addEventListener('click', goBin);
@@ -3119,7 +3220,7 @@
       syncProgress(1, total, total, 'Library saved');
     }
     async function driveSyncNow(manual){
-      if (driveSyncing) return;
+      if (driveSyncing || !appReady) return;
       if (!driveLinked){ if (manual) await driveConnect(); return; }
       if (!driveTokenValid()){
         if (!manual){ driveLost(); return; }
@@ -4015,7 +4116,7 @@
     $('#exportPagesBtn').addEventListener('click', exportPagesModal);
 
     /* ================= Init ================= */
-    (async function init(){
+    async function initApp(){
       buildSwatches();
       try {
         await DB.open();
@@ -4050,7 +4151,10 @@
       } catch (e) {
         document.querySelector('#docsArea').innerHTML = '<div class="empty"><span class="t">Could Not Open Storage</span><p>Your browser is blocking IndexedDB (for example, in private browsing). Open the page in a regular window so your notes can be saved.</p></div>';
       }
-    })();
+      appReady = true;
+      if (typeof driveLinked !== 'undefined' && driveLinked && driveTokenValid()) queueDriveSync();
+    }
+    whenUnlocked(initApp);
     </script>
     <script>
 'use strict';
