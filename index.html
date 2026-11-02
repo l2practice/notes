@@ -124,6 +124,9 @@
       .folder-item:hover{background:var(--surface-2);}
       .folder-item.active{background:var(--active);color:var(--ink);font-weight:600;}
       .folder-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+      .folder-dot.has-cover{width:22px;height:22px;border-radius:6px;background-size:cover;background-position:center;border:1px solid var(--line);}
+      .cover-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+      .cover-prev{width:44px;height:44px;border-radius:8px;border:1px dashed var(--control);background:var(--surface-2) center/cover no-repeat;flex:none;}
       .folder-item .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .folder-item .count{font-size:12px;color:var(--muted);flex:none;padding-right:4px;}
       .folder-item .f-actions{display:none;gap:1px;}
@@ -868,11 +871,28 @@
     /* ================= Modal ================= */
     function closeModal(){ $('#modalRoot').innerHTML = ''; }
     function openModal(html){ $('#modalRoot').innerHTML = '<div class="modal-back"><div class="modal">' + html + '</div></div>'; $('.modal-back').addEventListener('pointerdown', e => { if (e.target.classList.contains('modal-back')) closeModal(); }); }
+    /* Deleted folders are remembered ("tombstones") so Drive sync cannot bring them back from another device */
+    function deletedFolderIds(){ try { return JSON.parse(localStorage.getItem('nt-deleted-folders') || '[]'); } catch (e) { return []; } }
+    function setDeletedFolderIds(list){ try { localStorage.setItem('nt-deleted-folders', JSON.stringify(Array.from(new Set(list)).slice(-500))); } catch (e) {} }
+    async function removeFolder(id){ await DB.del('folders', id); setDeletedFolderIds(deletedFolderIds().concat(id)); }
+    function coverFromFile(file){
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file), img = new Image();
+        img.onload = () => {
+          const S = 192, c = document.createElement('canvas'); c.width = S; c.height = S;
+          const m = Math.min(img.width, img.height), sx = (img.width - m) / 2, sy = (img.height - m) / 2;
+          c.getContext('2d').drawImage(img, sx, sy, m, m, 0, 0, S, S);
+          URL.revokeObjectURL(url); resolve(c.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('img')); };
+        img.src = url;
+      });
+    }
     function folderForm(folder){
       const isNew = !folder;
       const f = folder || { name: '', color: FOLDER_COLORS[folders.length % FOLDER_COLORS.length] };
       openModal(
-        '<h3>' + (isNew ? 'New Subject Folder' : 'Rename Folder') + '</h3>' +
+        '<h3>' + (isNew ? 'New Subject Folder' : 'Edit Folder') + '</h3>' +
         '<p>Each folder is a subject — your PDF documents are filed inside it.</p>' +
         '<label for="folderName">Folder name</label>' +
         '<input type="text" id="folderName" placeholder="e.g. Mathematics" value="' + esc(f.name) + '" />' +
@@ -880,10 +900,21 @@
         '<div class="color-row" id="folderColors">' +
           FOLDER_COLORS.map(c => '<button class="color-choice' + (c === f.color ? ' active' : '') + '" data-color="' + c + '" style="background:' + c + '" aria-label="Color ' + c + '"></button>').join('') +
         '</div>' +
+        '<label>Cover image (optional)</label>' +
+        '<div class="cover-row"><span class="cover-prev" id="coverPrev"></span><button class="btn" id="coverPick" type="button">Choose image…</button><button class="btn" id="coverClear" type="button">Remove</button></div>' +
+        '<input type="file" id="coverFile" accept="image/*" class="hidden" />' +
         '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button>' +
         '<button class="btn primary" id="mSave">' + (isNew ? 'Create Folder' : 'Save') + '</button></div>'
       );
-      let color = f.color;
+      let color = f.color, cover = f.cover || '';
+      const paintCover = () => { $('#coverPrev').style.backgroundImage = cover ? 'url(' + cover + ')' : ''; $('#coverClear').classList.toggle('hidden', !cover); };
+      paintCover();
+      $('#coverPick').addEventListener('click', () => $('#coverFile').click());
+      $('#coverClear').addEventListener('click', () => { cover = ''; paintCover(); });
+      $('#coverFile').addEventListener('change', async e => {
+        const file = (e.target.files || [])[0]; e.target.value = ''; if (!file) return;
+        try { cover = await coverFromFile(file); paintCover(); } catch (er) { toast('Could not read that image.'); }
+      });
       $('#folderColors').addEventListener('click', e => {
         const b = e.target.closest('[data-color]'); if (!b) return;
         color = b.dataset.color;
@@ -894,8 +925,8 @@
       const save = async () => {
         const name = input.value.trim();
         if (!name){ input.focus(); return; }
-        if (isNew){ const nf = { id: uid(), name, color, createdAt: Date.now() }; await DB.put('folders', nf); folders.push(nf); currentFolderId = nf.id; }
-        else { f.name = name; f.color = color; await DB.put('folders', f); }
+        if (isNew){ const nf = { id: uid(), name, color, createdAt: Date.now(), updatedAt: Date.now() }; if (cover) nf.cover = cover; await DB.put('folders', nf); folders.push(nf); currentFolderId = nf.id; }
+        else { f.name = name; f.color = color; if (cover) f.cover = cover; else delete f.cover; f.updatedAt = Date.now(); await DB.put('folders', f); }
         closeModal(); renderLibrary();
       };
       $('#mSave').addEventListener('click', save);
@@ -992,8 +1023,10 @@
       $('#continueCardBtn').addEventListener('click', () => openReader(cand.id));
     }
     function folderItemHTML(fid, label, color, count, isFolder, active){
+      const fo = isFolder ? folders.find(x => x.id === fid) : null;
+      const dot = fo && fo.cover ? '<span class="folder-dot has-cover" style="background-image:url(' + fo.cover + ')"></span>' : '<span class="folder-dot" style="background:' + color + '"></span>';
       return '<div class="folder-item' + (active ? ' active' : '') + '" data-fid="' + fid + '" role="button" tabindex="0">' +
-        '<span class="folder-dot" style="background:' + color + '"></span><span class="fname">' + esc(label) + '</span>' +
+        dot + '<span class="fname">' + esc(label) + '</span>' +
         '<span class="count">' + count + '</span>' +
         (isFolder ? '<button class="chip-menu-btn" data-chipmenu="' + fid + '" title="Folder options" aria-label="Folder options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>' +
         '<span class="f-actions">' +
@@ -1056,14 +1089,14 @@
     }
     function folderDeleteFlow(f){
       const n = folderDocs(f.id).length;
-      if (n === 0){ confirmModal('Delete folder "' + f.name + '"?', 'The folder is empty.', 'Delete Folder', async () => { await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; renderLibrary(); }, true); return; }
+      if (n === 0){ confirmModal('Delete folder "' + f.name + '"?', 'The folder is empty.', 'Delete Folder', async () => { await removeFolder(f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; renderLibrary(); }, true); return; }
       openModal('<h3>Delete folder "' + esc(f.name) + '"?</h3><p>This folder contains ' + n + ' document(s). What would you like to do with them?</p>' +
         '<div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" id="mCancel">Cancel</button>' +
         '<button class="btn" id="mMove">Move to Uncategorized</button>' +
         '<button class="btn danger" id="mDelAll">Delete documents too</button></div>');
       $('#mCancel').addEventListener('click', closeModal);
-      $('#mMove').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ d.folderId = null; await DB.put('docs', d); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
-      $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ await DB.del('docs', d.id); await DB.del('files', d.id); docs = docs.filter(x => x.id !== d.id); } await DB.del('folders', f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
+      $('#mMove').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ d.folderId = null; await DB.put('docs', d); } await removeFolder(f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
+      $('#mDelAll').addEventListener('click', async () => { for (const d of folderDocs(f.id)){ await DB.del('docs', d.id); await DB.del('files', d.id); docs = docs.filter(x => x.id !== d.id); } await removeFolder(f.id); folders = folders.filter(x => x.id !== f.id); if (currentFolderId === f.id) currentFolderId = 'all'; closeModal(); renderLibrary(); });
     }
     function openFolderMenu(f, anchor){
       closeMenu();
@@ -2170,7 +2203,8 @@
     }
     function driveFingerprint(){
       let s = folders.length + ':' + docs.length + ':';
-      folders.forEach(f => { s += f.id + f.name + ';'; });
+      folders.forEach(f => { s += f.id + f.name + (f.updatedAt || 0) + ';'; });
+      s += deletedFolderIds().length + ':';
       docs.forEach(d => { s += d.id + (d.updatedAt || 0) + (d.pageUpdatedAt || 0) + (d.lastPage || 0) + (d.notes ? d.notes.length : 0) + ';'; });
       return s;
     }
@@ -2249,10 +2283,21 @@
       const remote = await r.json();
       if (!remote || !Array.isArray(remote.docs)) return false;
       let changed = false;
+      // folders deleted on any device stay deleted everywhere
+      const tomb = new Set(deletedFolderIds().concat(remote.deletedFolders || []));
+      if (tomb.size !== deletedFolderIds().length) setDeletedFolderIds(Array.from(tomb));
+      for (const id of tomb){
+        if (folders.some(f => f.id === id)){
+          await DB.del('folders', id); folders = folders.filter(f => f.id !== id); changed = true;
+          for (const d of docs){ if (d.folderId === id){ d.folderId = null; await DB.put('docs', d); } }
+          if (currentFolderId === id) currentFolderId = 'all';
+        }
+      }
       for (const rf of (remote.folders || [])){
+        if (tomb.has(rf.id)) continue;
         const lf = folders.find(f => f.id === rf.id);
         if (!lf){ folders.push(rf); await DB.put('folders', rf); changed = true; }
-        else if (lf.name !== rf.name || lf.color !== rf.color){ Object.assign(lf, rf); await DB.put('folders', lf); changed = true; }
+        else if ((rf.updatedAt || 0) > (lf.updatedAt || 0)){ Object.assign(lf, rf); if (!rf.cover) delete lf.cover; await DB.put('folders', lf); changed = true; }
       }
       for (const rd of remote.docs){
         const ld = docs.find(d => d.id === rd.id);
@@ -2284,7 +2329,7 @@
         await DB.put('docs', d);
       }
       await drivePull();   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
-      const lib = { version: 1, updatedAt: Date.now(), folders: folders, docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
+      const lib = { version: 1, updatedAt: Date.now(), folders: folders, deletedFolders: deletedFolderIds(), docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
       const blob = new Blob([JSON.stringify(lib)], { type: 'application/json' });
       driveLibFileId = await driveUploadMedia({ name: DRIVE_LIB_NAME, parents: [driveFolderId] }, blob, driveLibFileId);
       await driveFindLibFile();   // so our own upload is not mistaken for a change from the other device
@@ -3175,16 +3220,17 @@
         await DB.open();
         folders = await DB.getAll('folders');
         docs = await DB.getAll('docs');
-        let seeded = false;
-        try { seeded = !!localStorage.getItem('ghichu-seeded'); } catch (e) {}
-        if (!seeded && folders.length === 0 && docs.length === 0){
-          const seedNames = [['Mathematics', '#2563eb'], ['Literature', '#be3455'], ['English', '#0e7c66'], ['Physics', '#b45309']];
-          for (const [name, color] of seedNames){
-            const f = { id: uid(), name, color, createdAt: Date.now() };
-            await DB.put('folders', f); folders.push(f);
+        // One-time cleanup: older versions auto-created sample folders on every device (and Drive copied them
+        // around). Remove the empty ones with those names; the library now starts empty.
+        try {
+          if (!localStorage.getItem('nt-seed-cleaned-v1')){
+            const sample = ['Mathematics', 'Literature', 'English', 'Physics'];
+            for (const f of folders.slice()){
+              if (sample.includes(f.name) && !docs.some(d => d.folderId === f.id)){ await removeFolder(f.id); folders = folders.filter(x => x.id !== f.id); }
+            }
+            localStorage.setItem('nt-seed-cleaned-v1', '1');
           }
-          try { localStorage.setItem('ghichu-seeded', '1'); } catch (e) {}
-        }
+        } catch (e) {}
         // Khoi phuc trang doc do tu ban sao local (neu lan thoat app truoc chua kip ghi IndexedDB)
         try {
           const m = JSON.parse(localStorage.getItem('ghichu-lastpages') || '{}');
