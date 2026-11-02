@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-f" />
+    <meta name="app-build" content="2026-11-02-h" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -909,6 +909,13 @@
       .sym-chip{min-height:36px;min-width:38px;font-size:14px;}
       .sym-chip.ring{width:42px;min-width:42px;height:42px;font-size:13px;}
       .sp-foot{padding-right:36px;}
+      #inkSmooth[data-level="0"]{opacity:.55;} #inkSmooth[data-level="2"]{color:var(--accent);background:var(--accent-soft);}
+      .drive-banner{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:320;display:flex;align-items:center;gap:12px;max-width:min(560px,calc(100vw - 24px));width:max-content;padding:10px 10px 10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--shadow-lg);animation:pop-in .2s var(--ease);}
+      .db-ico{width:36px;height:36px;border-radius:50%;background:var(--danger-soft);color:var(--danger);display:grid;place-items:center;flex:none;} .db-ico svg{width:19px;height:19px;}
+      .db-txt{display:flex;flex-direction:column;min-width:0;font-size:12.5px;color:var(--muted);line-height:1.35;} .db-txt b{font-size:14px;color:var(--ink);font-weight:700;}
+      .db-x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex:none;} .db-x:hover{background:var(--surface-2);} .db-x svg{width:15px;height:15px;}
+      .drive-banner .btn{height:38px;padding:0 16px;flex:none;}
+      @media (max-width:560px){ .drive-banner{border-radius:22px;top:10px;} .db-txt span{display:none;} }
     </style>
   </head>
   <body>
@@ -1079,6 +1086,7 @@
         <button class="fmt-btn" data-tool="eraser" title="Eraser — removes whole strokes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4-4a2 2 0 0 1 0-2.8L14.2 3a2 2 0 0 1 2.8 0l4 4a2 2 0 0 1 0 2.8L11 21Z"/><path d="M22 21H7M5 11l9 9"/></svg></button>
         <button class="fmt-btn" data-tool="select" title="Select, move and resize"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 3 7 17 2.5-7.5L21 10Z"/></svg></button>
         <button class="fmt-btn" id="inkSyms" title="Symbols — word classes (N, V, A, ADV) and syntax labels (NP, AP, AdvP …)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 16 12 7l3.5 9M9.8 13.2h4.4"/></svg></button>
+        <button class="fmt-btn" id="inkSmooth" title="Handwriting smoothing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 19 9-9"/><path d="m13 4 1 2.2L16.2 7 14 8l-1 2.2L12 8 9.8 7 12 6.2Z"/><path d="m18.5 12 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6Z"/></svg></button>
         <button class="fmt-btn" id="inkShapes" title="Shapes and brackets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="10" height="10" rx="1"/><circle cx="16.5" cy="16.5" r="5"/></svg></button>
         <div class="bar-sep"></div>
         <div class="swatches" id="inkSwatches"></div>
@@ -1173,6 +1181,12 @@
       <div class="sp-body" id="spBody"></div>
       <div class="sp-foot">Size <input type="number" id="spW" min="6" max="400" step="1" inputmode="numeric" aria-label="Width" /> × <input type="number" id="spH" min="6" max="400" step="1" inputmode="numeric" aria-label="Height" /> pt</div>
       <span class="sp-resize" id="spResize" aria-hidden="true"></span>
+    </div>
+    <div class="drive-banner hidden" id="driveBanner" role="alert">
+      <span class="db-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="m4 4 16 16"/></svg></span>
+      <span class="db-txt"><b>Google Drive disconnected</b><span>Reconnect to keep your library in sync — no password needed.</span></span>
+      <button class="btn primary" id="driveReBtn">Reconnect</button>
+      <button class="db-x" id="driveBannerX" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="nav-scrim" id="navScrim"></div>
     <div id="modalRoot"></div>
@@ -2803,6 +2817,14 @@
     const DRIVE_FOLDER_NAME = 'GhiChuPDF';
     const DRIVE_LIB_NAME = 'ghichu-library.json';
     let driveToken = null, driveTokenExp = 0, driveFolderId = null, driveLibFileId = null;
+    /* "Linked" = you connected this device once. It is remembered; the 1-hour Google access token is renewed
+       silently (no password) on your next tap, so you are never asked to connect again from scratch. */
+    let driveLinked = false, driveHookArmed = false, driveLostNotified = false, driveReauthFailedAt = 0;
+    function drivePersist(){ try { localStorage.setItem('nt-drive', JSON.stringify({ on: driveLinked, t: driveToken, e: driveTokenExp })); } catch (e) {} }
+    (function(){
+      try { const d = JSON.parse(localStorage.getItem('nt-drive') || 'null');
+        if (d && d.on){ driveLinked = true; if (d.t && d.e > Date.now()){ driveToken = d.t; driveTokenExp = d.e; } } } catch (e) {}
+    })();
     let driveSyncing = false, driveSyncTimer = null, driveLastFingerprint = '';
     let driveLibModified = '', driveChangedDocs = [], driveProgOn = false;
     /* Progress: the first half of the bar is "download from Drive", the second half is "upload to Drive" */
@@ -2835,7 +2857,7 @@
         }
       } catch (e) {}
     })();
-    function driveIsConnected(){ return !!driveToken; }
+    function driveIsConnected(){ return driveLinked; }
     function driveTokenValid(){ return !!driveToken && Date.now() < driveTokenExp; }
     function setDriveUI(state, sub){
       const badge = $('#driveBadge'); if (!badge) return;
@@ -2844,7 +2866,7 @@
       badge.className = 'drive-badge' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : state === 'err' ? ' err' : '');
       badge.textContent = state === 'on' ? 'Drive Connected' : state === 'busy' ? 'Syncing…' : state === 'err' ? 'Sync Error' : 'Not Connected';
       if (sub) $('#driveSub').textContent = sub;
-      const connected = !!driveToken;
+      const connected = driveLinked || !!driveToken;
       $('#driveConnectBtn').classList.toggle('hidden', connected);
       $('#driveSyncBtn').classList.toggle('hidden', !connected);
       $('#driveSetupBtn').classList.toggle('hidden', !connected);
@@ -2860,7 +2882,7 @@
       return s;
     }
     function queueDriveSync(){
-      if (!driveToken) return;
+      if (!driveLinked) return;
       clearTimeout(driveSyncTimer);
       driveSyncTimer = setTimeout(() => { driveSyncNow(false); }, 2500);
     }
@@ -2882,19 +2904,45 @@
           client_id: cid,
           scope: 'https://www.googleapis.com/auth/drive.file',
           callback: resp => {
-            if (resp && resp.access_token){ driveToken = resp.access_token; driveTokenExp = Date.now() + (resp.expires_in || 3600) * 1000 - 60000; resolve(driveToken); }
+            if (resp && resp.access_token){ driveToken = resp.access_token; driveTokenExp = Date.now() + (resp.expires_in || 3600) * 1000 - 60000; driveLinked = true; driveLostNotified = false; drivePersist(); hideDriveBanner(); resolve(driveToken); }
             else reject(new Error('no-token'));
           },
           error_callback: () => reject(new Error('oauth-error'))
         });
-        client.requestAccessToken({ prompt: driveToken ? '' : 'consent' });
+        client.requestAccessToken({ prompt: driveLinked ? '' : 'consent' });
       });
     }
     async function driveFetch(url, opts){
-      if (!driveToken || Date.now() > driveTokenExp) await driveRequestToken();
+      if (!driveTokenValid()){ driveLost(); throw new Error('needs-reauth'); }
       const r = await fetch(url, Object.assign({}, opts || {}, { headers: Object.assign({ 'Authorization': 'Bearer ' + driveToken }, (opts && opts.headers) || {}) }));
-      if (r.status === 401){ await driveRequestToken(); return fetch(url, Object.assign({}, opts || {}, { headers: Object.assign({ 'Authorization': 'Bearer ' + driveToken }, (opts && opts.headers) || {}) })); }
+      if (r.status === 401){ driveToken = null; driveTokenExp = 0; drivePersist(); driveLost(); throw new Error('needs-reauth'); }
       return r;
+    }
+    /* ----- losing the connection is never silent ----- */
+    function showDriveBanner(){ const b = $('#driveBanner'); if (b) b.classList.remove('hidden'); }
+    function hideDriveBanner(){ const b = $('#driveBanner'); if (b) b.classList.add('hidden'); }
+    function driveLost(){
+      if (!driveLinked) return;
+      showDriveBanner();
+      setDriveUI('err', 'Google Drive is disconnected. Tap Reconnect — your Google session is remembered, so no password is needed.');
+      if (!driveLostNotified){ driveLostNotified = true; toast('Google Drive disconnected — tap Reconnect to keep syncing.'); }
+      armDriveReauth();
+    }
+    async function driveReconnect(){
+      try { setDriveUI('busy', 'Reconnecting to Google Drive…'); await driveRequestToken(); driveReauthFailedAt = 0; await driveSyncNow(false); }
+      catch (e) { driveReauthFailedAt = Date.now(); setDriveUI('err', 'Could not reconnect. Tap Reconnect again, or sign in with Connect Google Drive.'); toast('Could not reconnect to Google Drive.'); }
+    }
+    /* the first tap after the token ran out renews it (a popup that closes by itself) — except while you are drawing or typing */
+    function armDriveReauth(){
+      if (driveHookArmed || !driveLinked) return; driveHookArmed = true;
+      const h = e => {
+        if (e.target.closest && e.target.closest('#driveBanner')) return;
+        if (!driveLinked || driveTokenValid()){ document.removeEventListener('pointerup', h, true); driveHookArmed = false; return; }
+        if ((typeof INK !== 'undefined' && INK.tool) || (typeof editingId !== 'undefined' && editingId)) return;
+        if (Date.now() - driveReauthFailedAt < 300000) return;
+        document.removeEventListener('pointerup', h, true); driveHookArmed = false; driveReconnect();
+      };
+      document.addEventListener('pointerup', h, true);
     }
     async function driveEnsureFolder(){
       if (driveFolderId) return driveFolderId;
@@ -3072,7 +3120,11 @@
     }
     async function driveSyncNow(manual){
       if (driveSyncing) return;
-      if (!driveToken){ if (manual) await driveConnect(); return; }
+      if (!driveLinked){ if (manual) await driveConnect(); return; }
+      if (!driveTokenValid()){
+        if (!manual){ driveLost(); return; }
+        try { await driveRequestToken(); } catch (e) { driveLost(); return; }   // the Sync Now tap is the user gesture
+      }
       driveSyncing = true; driveProgOn = true;
       syncProgress(0, 0, 1, 'Connecting to Google Drive…');
       setDriveUI('busy', 'Syncing with Google Drive…');
@@ -3088,8 +3140,8 @@
         syncProgressEnd(true);
       } catch (e) {
         syncProgressEnd(false);
-        setDriveUI('err', 'Sync failed. Check your connection, then tap "Sync Now" to try again.');
-        if (manual) toast('Drive sync failed. Please try again later.');
+        if (e && e.message === 'needs-reauth'){ /* driveLost() already told you */ }
+        else { setDriveUI('err', 'Sync failed. Check your connection, then tap "Sync Now" to try again.'); if (manual) toast('Drive sync failed. Please try again later.'); }
       }
       driveSyncing = false;
     }
@@ -3163,7 +3215,7 @@
     $('#driveSetupBtn').addEventListener('click', () => driveSetupModal(false));
     $('#driveDisconnectBtn').addEventListener('click', () => {
       if (window.google && google.accounts && google.accounts.oauth2 && driveToken) google.accounts.oauth2.revoke(driveToken, () => {});
-      driveToken = null; driveTokenExp = 0;
+      driveToken = null; driveTokenExp = 0; driveLinked = false; drivePersist(); hideDriveBanner();
       setDriveUI('', 'Disconnected on this device. Your Drive files are untouched — reconnect with the same Google account to see your library again.');
     });
     /* Live updates: while connected, check every 20 s (and when the tab comes back to the front) whether the
@@ -3193,12 +3245,20 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden) drivePoll(); });
     // Tu dong nhan thay doi thu vien (folder / tai lieu / ghi chu) de day len Drive
     setInterval(() => {
-      if (!driveToken || driveSyncing) return;
+      if (!driveLinked || driveSyncing) return;
       const fp = driveFingerprint();
       if (driveLastFingerprint && fp !== driveLastFingerprint) queueDriveSync();
       else if (!driveLastFingerprint) driveLastFingerprint = fp;
     }, 4000);
-    if (driveClientId()) setDriveUI('', 'Tap "Connect Google Drive" and sign in with the same Google account on every device to sync.');
+    $('#driveReBtn').addEventListener('click', driveReconnect);
+    $('#driveBannerX').addEventListener('click', hideDriveBanner);
+    // the token ends after an hour: say so when it happens, and when you come back to the tab
+    setInterval(() => { if (driveLinked && !driveTokenValid() && !driveSyncing) driveLost(); }, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && driveLinked && !driveTokenValid()) driveLost(); });
+    if (driveLinked){
+      if (driveTokenValid()){ setDriveUI('on', 'Connected. Your Google session is remembered on this device.'); queueDriveSync(); }
+      else { setDriveUI('err', 'Connected earlier on this device. Tap Reconnect (or just tap anywhere) — no password needed.'); showDriveBanner(); armDriveReauth(); }
+    } else if (driveClientId()) setDriveUI('', 'Tap "Connect Google Drive" and sign in with the same Google account on every device to sync.');
     </script>
 
     <script>
@@ -4002,6 +4062,7 @@
 const INK = { tool: null, shape: { k: 'line', o: 0 }, color: { pen: '#111111', hl: '#FFD43B' }, width: { pen: 2, hl: 16, er: 6 }, finger: false, sel: null, live: null, undo: [], redo: [], pinned: null };
 try { INK.finger = localStorage.getItem('nt-ink-finger') === '1'; } catch (e) {}
 INK.symOpen = false; INK.symDims = { ring: null, label: null };
+INK.smooth = 1; try { const v = localStorage.getItem('nt-ink-smooth'); if (v !== null) INK.smooth = +v; } catch (e) {}
 INK.shapeDims = {}; try { INK.shapeDims = JSON.parse(localStorage.getItem('nt-shape-dims') || '{}') || {}; } catch (e) {}
 function saveShapeDims(){ try { localStorage.setItem('nt-shape-dims', JSON.stringify(INK.shapeDims)); } catch (e) {} }
 const shapeKey = st => st.k + ((st.k === 'brkt' || st.k === 'brace') ? (st.o || 0) : '');
@@ -4414,6 +4475,31 @@ function startInertia(){
   const step = () => { sc.scrollTop -= vy * 16; sc.scrollLeft -= vx * 16; vx *= 0.95; vy *= 0.95; if (Math.hypot(vx, vy) > 0.02) inertia = requestAnimationFrame(step); };
   inertia = requestAnimationFrame(step);
 }
+function commitPen(st, g){
+  if (st.t === 'pen'){
+    if (g && g.raw && st.pts.length >= 3 && Math.hypot(g.raw[0] - st.pts[st.pts.length - 3], g.raw[1] - st.pts[st.pts.length - 2]) > 0.3) st.pts.push(r1(g.raw[0]), r1(g.raw[1]), g.raw[2]);
+    smoothStroke(st);
+  }
+}
+function finishStale(){
+  const g = G; if (!g) return; clearTimeout(g.timer);
+  const live = INK.live; INK.live = null; G = null;
+  if (live && live.st && (g.kind === 'draw' || g.kind === 'shape')){ commitPen(live.st, g); pushUndo(g.p); inkList(g.p, true).push(live.st); scheduleSave(); }
+  endInteraction(g.p); redrawInk(g.p);
+}
+/* handwriting smoothing: light / strong (smooths wobble and tapers the ends like a real pen) */
+function smoothStroke(st){
+  const lv = INK.smooth, n = st.pts.length / 3; if (!lv || st.t !== 'pen' || n < 5) return;
+  let xs = [], ys = [], ps = [];
+  for (let i = 0; i < n; i++){ xs.push(st.pts[i * 3]); ys.push(st.pts[i * 3 + 1]); ps.push(st.pts[i * 3 + 2]); }
+  for (let pass = 0; pass < lv + 1; pass++){
+    const nx = xs.slice(), ny = ys.slice(), np = ps.slice();
+    for (let i = 1; i < n - 1; i++){ nx[i] = (xs[i - 1] + 2 * xs[i] + xs[i + 1]) / 4; ny[i] = (ys[i - 1] + 2 * ys[i] + ys[i + 1]) / 4; np[i] = (ps[i - 1] + 2 * ps[i] + ps[i + 1]) / 4; }
+    xs = nx; ys = ny; ps = np;
+  }
+  for (let i = 0; i < Math.min(3, n); i++){ const f = 0.55 + 0.15 * i; ps[i] *= f; ps[n - 1 - i] *= f; }
+  st.pts = []; for (let i = 0; i < n; i++) st.pts.push(r1(xs[i]), r1(ys[i]), Math.round(ps[i]));
+}
 function abortGesture(){
   if (!G) return; clearTimeout(G.timer); const p = G.p; INK.live = null; G = null; endInteraction(p); redrawInk(p);
 }
@@ -4426,13 +4512,14 @@ function inkDown(e, cv){
   }
   if (e.pointerType === 'touch'){
     if (palmIds.has(e.pointerId)) return;
-    if ((e.width || 0) > 32 || (e.height || 0) > 32 || performance.now() - lastPenAt < 700 || (G && !G.touch)){ palmIds.add(e.pointerId); return; }   // big contact, or right after / during pencil use: a palm
+    if (Math.max(e.width || 0, e.height || 0) > 110 || performance.now() - lastPenAt < 500 || (G && !G.touch)){ palmIds.add(e.pointerId); return; }   // big contact, or right after / during pencil use: a palm
     TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
     try { cv.setPointerCapture(e.pointerId); } catch (er) {}
     if (TP.size >= 2 && G && G.touch) abortGesture();
     if (navActive()){ e.preventDefault(); navStart(); return; }
   }
   e.preventDefault();
+  if (G && e.pointerType !== 'touch') finishStale();   // a stroke whose pen-up never arrived is kept, not thrown away
   const p = +cv.parentNode.dataset.page, [x, y] = pagePt(e, cv), tool = INK.tool;
   try { cv.setPointerCapture(e.pointerId); } catch (er) {}
   if (tool === 'pen' || tool === 'hl'){
@@ -4485,7 +4572,7 @@ function inkMove(e, cv){
     const t = TP.get(e.pointerId); if (!t) return;
     if (navActive()){ navMove(e, t); return; }
   }
-  if (!G || +cv.parentNode.dataset.page !== G.p || (G.pid !== undefined && G.pid !== e.pointerId)) return;
+  if (!G || +cv.parentNode.dataset.page !== G.p || (G.pid !== undefined && G.pid !== e.pointerId && e.pointerType === 'touch')) return;
   const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
   for (const ev of (evs.length ? evs : [e])){ const [x, y] = pagePt(ev, cv); inkStep(ev, x, y, cv); }
 }
@@ -4501,14 +4588,21 @@ function inkStep(e, x, y, cv){
       return;
     }
     const n = st.pts.length, lx = st.pts[n - 3], ly = st.pts[n - 2];
-    if (Math.hypot(x - lx, y - ly) < 0.4) return;
-    st.pts.push(r1(x), r1(y), pressure(e));
+    G.raw = [x, y, pressure(e)];
+    let fx = x, fy = y;
+    if (st.t === 'pen' && INK.smooth){   // stabiliser: slow, jittery movement is smoothed, fast strokes follow the pen closely
+      if (G.fx === undefined){ G.fx = lx; G.fy = ly; }
+      const a0 = INK.smooth === 2 ? 0.3 : 0.55, d = Math.hypot(x - G.fx, y - G.fy), a = a0 + (1 - a0) * Math.min(1, d / 10);
+      G.fx += (x - G.fx) * a; G.fy += (y - G.fy) * a; fx = G.fx; fy = G.fy;
+    }
+    if (Math.hypot(fx - lx, fy - ly) < 0.4) return;
+    st.pts.push(r1(fx), r1(fy), pressure(e));
     if (Math.hypot(x - G.hx, y - G.hy) * scale > 4){ G.hx = x; G.hy = y; armHold(); }
     if (st.t === 'hl'){ compose(p); return; }
     const L = inkLayers(p); if (!L) return;
     const c = L.ic.getContext('2d'), k = L.k;
     c.lineCap = 'round'; c.strokeStyle = st.c; c.lineWidth = st.sw * k * (.45 + 1.1 * pressure(e) / 100);
-    c.beginPath(); c.moveTo(lx * k, ly * k); c.lineTo(x * k, y * k); c.stroke();
+    c.beginPath(); c.moveTo(lx * k, ly * k); c.lineTo(fx * k, fy * k); c.stroke();
   } else if (G.kind === 'shape'){
     G.moved = true; INK.live.st = makeShape(G.x0, G.y0, x, y); compose(p);
   } else if (G.kind === 'erase'){ eraseAt(p, x, y); }
@@ -4543,15 +4637,15 @@ function inkUp(e, cv, cancelled){
     const nav = navActive(), had = TP.delete(e.pointerId);
     if (had && nav){ if (TP.size < 2) pinch = null; if (TP.size === 0) startInertia(); return; }
   }
-  if (!G || (G.pid !== undefined && G.pid !== e.pointerId)) return;
+  if (!G || (G.pid !== undefined && G.pid !== e.pointerId && e.pointerType === 'touch')) return;
   const g = G, p = g.p; G = null; clearTimeout(g.timer);
   if (g.kind === 'draw'){
     const st = INK.live && INK.live.st; INK.live = null;
-    if (st && !cancelled){ pushUndo(p); inkList(p, true).push(st); scheduleSave(); }
+    if (st){ commitPen(st, g); pushUndo(p); inkList(p, true).push(st); scheduleSave(); }   // even if the system cancelled the touch, what was drawn stays
     endInteraction(p); redrawInk(p);
   } else if (g.kind === 'shape'){
     let st = INK.live && INK.live.st; INK.live = null; endInteraction(p);
-    if (st && !cancelled){
+    if (st && (!cancelled || g.moved)){
       const tiny = !g.moved || Math.hypot(st.bw || Math.abs(st.x2 - st.x), st.bh || Math.abs(st.y2 - st.y)) < 6;
       if (tiny){ const x = g.x0, y = g.y0, v = (INK.shape.o & 1) === 0;
         if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
@@ -4684,6 +4778,7 @@ function syncToolUI(){
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === INK.tool));
   $('#inkShapes').classList.toggle('active', INK.tool === 'shape' && INK.shape.k !== 'sym');
   $('#inkSyms').classList.toggle('active', INK.symOpen && !!INK.tool);
+  { const sm = $('#inkSmooth'); sm.dataset.level = INK.smooth; sm.classList.toggle('active', INK.smooth === 1); sm.title = 'Handwriting smoothing: ' + ['off', 'light', 'strong'][INK.smooth]; }
   $('#drawBtn').classList.toggle('active', !!INK.tool && INK.tool !== 'hl');
   $('#markBtn').classList.toggle('active', INK.tool === 'hl');
   $('#inkFinger').classList.toggle('active', INK.finger);
@@ -4918,6 +5013,18 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#inkBar').addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }, true);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.addEventListener('click', () => setInkTool(b.dataset.tool)));
   $('#inkShapes').addEventListener('click', () => togglePop($('#shapePop'), $('#inkShapes'), buildShapePop));
+  $('#inkSmooth').addEventListener('click', () => { INK.smooth = (INK.smooth + 1) % 3; try { localStorage.setItem('nt-ink-smooth', String(INK.smooth)); } catch (e) {} syncToolUI(); toast('Handwriting smoothing: ' + ['off', 'light', 'strong'][INK.smooth]); });
+  // the palm must not drive the floating panels either
+  document.addEventListener('pointerdown', e => { if (e.pointerType === 'pen') lastPenAt = performance.now(); }, true);
+  document.addEventListener('pointermove', e => { if (e.pointerType === 'pen') lastPenAt = performance.now(); }, true);
+  let panelBlock = 0;
+  ['#symPanel', '#inkBar'].forEach(sel => {
+    const el = $(sel);
+    el.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'touch' && (Math.max(e.width || 0, e.height || 0) > 110 || performance.now() - lastPenAt < 900 || (G && !G.touch))){ e.stopPropagation(); e.preventDefault(); panelBlock = performance.now(); }
+    }, true);
+    el.addEventListener('click', e => { if (performance.now() - panelBlock < 700){ e.stopPropagation(); e.preventDefault(); } }, true);
+  });
   $('#inkSyms').addEventListener('click', () => openSymPanel(!INK.symOpen));
   $('#spClose').addEventListener('click', () => openSymPanel(false));
   $('#spBody').addEventListener('click', e => {
