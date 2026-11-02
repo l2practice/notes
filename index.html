@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-d" />
+    <meta name="app-build" content="2026-11-02-e" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -890,6 +890,25 @@
         .lib-side .side-toggle{margin-top:14px;}
       }
       @media (max-width:760px){ .lib-side .chip-menu-btn{display:none !important;} }
+      /* 1. while drawing, the browser must never start a text selection / callout (it looked like "select all") */
+      #pagesCol.ink-on,#pagesCol.ink-on *{-webkit-user-select:none !important;user-select:none !important;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+      .page-wrap canvas{-webkit-user-drag:none;}
+      /* 3. phone: single column (the 268px sidebar column used to stay behind and squeeze the content) */
+      @media (max-width:760px){ .lib-frame{grid-template-columns:minmax(0,1fr) !important;} .lib-main{min-width:0;} }
+      /* 4. floating symbol panel */
+      .sym-panel{position:fixed;z-index:95;display:flex;flex-direction:column;min-width:240px;min-height:220px;background:var(--mat);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow-lg);overflow:hidden;}
+      .sp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 6px 16px;font-weight:700;font-size:14.5px;cursor:grab;touch-action:none;flex:none;user-select:none;-webkit-user-select:none;}
+      .sp-head:active{cursor:grabbing;}
+      .sp-head button{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;color:var(--ink-2);}
+      .sp-head button:hover{background:var(--active);} .sp-head svg{width:18px;height:18px;}
+      .sp-body{flex:1;overflow:auto;padding:0 14px 10px;min-height:0;}
+      .sp-foot{flex:none;display:flex;align-items:center;gap:8px;padding:8px 14px 10px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2);font-weight:600;}
+      .sp-foot input{width:58px;height:32px;border:1px solid var(--control);border-radius:10px;padding:0 8px;text-align:center;background:var(--surface);color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums;}
+      .sp-resize{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 52%,var(--muted) 52%,var(--muted) 58%,transparent 58%,transparent 70%,var(--muted) 70%,var(--muted) 76%,transparent 76%);opacity:.7;}
+      .sym-chip.cur{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+      .sym-chip{min-height:36px;min-width:38px;font-size:14px;}
+      .sym-chip.ring{width:42px;min-width:42px;height:42px;font-size:13px;}
+      .sp-foot{padding-right:36px;}
     </style>
   </head>
   <body>
@@ -1149,7 +1168,12 @@
       <div class="cp-row"><input type="color" id="cpPick" value="#2D7495" /><input type="text" id="cpHex" placeholder="#RRGGBB" maxlength="7" autocomplete="off" spellcheck="false" /><button class="btn primary" id="cpAdd" style="padding:6px 12px">Add</button></div>
     </div>
     <div class="fpop hidden" id="shapePop"></div>
-    <div class="fpop hidden" id="symPop"></div>
+    <div class="sym-panel hidden" id="symPanel" role="dialog" aria-label="Symbols">
+      <div class="sp-head" id="spHead"><span>Symbols</span><button id="spClose" aria-label="Close symbols"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="sp-body" id="spBody"></div>
+      <div class="sp-foot">Size <input type="number" id="spW" min="6" max="400" step="1" inputmode="numeric" aria-label="Width" /> × <input type="number" id="spH" min="6" max="400" step="1" inputmode="numeric" aria-label="Height" /> pt</div>
+      <span class="sp-resize" id="spResize" aria-hidden="true"></span>
+    </div>
     <div class="nav-scrim" id="navScrim"></div>
     <div id="modalRoot"></div>
     <div id="menuRoot"></div>
@@ -2005,7 +2029,7 @@
     function closeReader(fromPop){
       flushReadLog();
       if (typeof updateBlankThumb === 'function') updateBlankThumb();
-      if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; $('#inkBar').classList.add('hidden'); $('#pagesCol').classList.remove('ink-on'); }
+      if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; $('#inkBar').classList.add('hidden'); $('#symPanel').classList.add('hidden'); $('#pagesCol').classList.remove('ink-on'); }
       if (fromPop !== true && history.state && history.state.nt === 'reader'){ history.back(); return; }
       flushLastPage();
       if (pdfDoc){ pdfDoc.destroy(); pdfDoc = null; }
@@ -3977,9 +4001,12 @@
      shape    : { id, t:'shape', k, c, sw, x,y,bw,bh | x,y,x2,y2, o } */
 const INK = { tool: null, shape: { k: 'line', o: 0 }, color: { pen: '#111111', hl: '#FFD43B' }, width: { pen: 2, hl: 16, er: 6 }, finger: false, sel: null, live: null, undo: [], redo: [], pinned: null };
 try { INK.finger = localStorage.getItem('nt-ink-finger') === '1'; } catch (e) {}
+INK.symOpen = false; INK.symDims = { ring: null, label: null };
+try { INK.symOpen = localStorage.getItem('nt-sym-open') === '1'; } catch (e) {}
 const INK_SW = { pen: ['#111111', '#D45060', '#2D7495'], hl: ['#FFD43B', '#7ED957', '#FF8FB1'] };
 const INK_RANGE = { pen: [0.5, 14, 0.5], hl: [6, 44, 1], er: [2, 30, 1] };
 let G = null;                  // the gesture in progress
+let lastPenAt = 0; const palmIds = new Set();   // palm protection
 const INKCACHE = {};           // page -> { ink, hl } off-screen layers while interacting
 
 function isBlank(){ return !!(currentReader && currentReader.kind === 'blank'); }
@@ -4077,7 +4104,7 @@ function drawSym(ctx, st, k){
   ctx.fillText(st.txt, x + w / 2, y + h / 2 + fs * 0.05);
   ctx.restore();
 }
-function symSize(txt, ring){ return ring ? (() => { const s = 30 + (txt.length > 2 ? 6 : 0); return [s, s]; })() : [Math.max(24, txt.length * 13 + 10), 24]; }
+function symSize(txt, ring){ const d = INK.symDims[ring ? 'ring' : 'label']; if (d) return d.slice(); return ring ? (() => { const s = 30 + (txt.length > 2 ? 6 : 0); return [s, s]; })() : [Math.max(24, txt.length * 13 + 10), 24]; }
 const IMGS = {};   // picture id -> <img>, decoded from the copy kept in IndexedDB
 function ensureImg(id){
   if (IMGS[id]) return IMGS[id];
@@ -4209,7 +4236,27 @@ function compose(p){
     ci.save(); ci.strokeStyle = acc; ci.lineWidth = 1.6; ci.setLineDash([6, 5]); ci.lineJoin = 'round';
     ci.beginPath(); G.pts.forEach((q, i) => i ? ci.lineTo(q[0] * L.k, q[1] * L.k) : ci.moveTo(q[0] * L.k, q[1] * L.k)); ci.closePath(); ci.stroke(); ci.restore();
   }
+  if (G && G.kind === 'shape' && INK.live && INK.live.p === p && INK.live.st.bw !== undefined){
+    const s = INK.live.st; sizeBadge(ci, L, { x: s.x, y: s.y, w: s.bw, h: s.bh }, true);
+  } else if (G && G.kind === 'resize' && G.moved){
+    const arr = selList(); if (arr.length && !(arr.length === 1 && isLine(arr[0]))) sizeBadge(ci, L, groupBox(arr), false);
+  }
   drawSel(ci, p, L.k);
+}
+/* a dashed frame with "W × H pt" so identical symbols can be sized identically */
+function sizeBadge(ctx, L, b, frame){
+  const k = L.k, r = k / (scale || 1), acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#d4664f';
+  ctx.save();
+  if (frame){ ctx.strokeStyle = acc; ctx.lineWidth = 1.3 * r; ctx.setLineDash([5 * r, 4 * r]); ctx.strokeRect(b.x * k, b.y * k, b.w * k, b.h * k); ctx.setLineDash([]); }
+  const txt = Math.round(b.w) + ' × ' + Math.round(b.h) + ' pt';
+  ctx.font = '600 ' + 12 * r + 'px "Be Vietnam Pro", system-ui, sans-serif';
+  const tw = ctx.measureText(txt).width, pw = tw + 16 * r, ph = 22 * r;
+  let px = b.x * k + b.w * k / 2 - pw / 2, py = b.y * k - ph - 8 * r;
+  if (py < 2) py = (b.y + b.h) * k + 8 * r;
+  px = Math.max(2, Math.min(px, L.W - pw - 2));
+  ctx.fillStyle = '#15171C'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px, py, pw, ph, ph / 2) : ctx.rect(px, py, pw, ph); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; ctx.fillText(txt, px + pw / 2, py + ph / 2 + r);
+  ctx.restore();
 }
 
 /* ---------- undo / redo ---------- */
@@ -4305,9 +4352,15 @@ function pagePt(e, cv){
 const pressure = e => e.pointerType === 'mouse' ? 50 : Math.round((e.pressure || 0.5) * 100);
 function makeShape(x0, y0, x1, y1){
   const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen };
-  if (s.k === 'line' || s.k === 'arrow'){ s.x = r1(x0); s.y = r1(y0); s.x2 = r1(x1); s.y2 = r1(y1); }
-  else { s.x = r1(Math.min(x0, x1)); s.y = r1(Math.min(y0, y1)); s.bw = r1(Math.abs(x1 - x0)); s.bh = r1(Math.abs(y1 - y0)); }
-  if (s.k === 'sym'){ s.txt = INK.shape.txt; s.ring = !!INK.shape.ring; s.it = !!INK.shape.it; }
+  if (s.k === 'line' || s.k === 'arrow'){ s.x = r1(x0); s.y = r1(y0); s.x2 = r1(x1); s.y2 = r1(y1); return s; }
+  let w = Math.abs(x1 - x0), h = Math.abs(y1 - y0);
+  if (s.k === 'sym'){
+    s.txt = INK.shape.txt; s.ring = !!INK.shape.ring; s.it = !!INK.shape.it;
+    const d = INK.symDims[s.ring ? 'ring' : 'label'];   // sticks to the size you used last, so symbols line up
+    if (d){ if (Math.abs(w - d[0]) < 4) w = d[0]; if (Math.abs(h - d[1]) < 4) h = d[1]; }
+    if (s.ring && Math.abs(w - h) < 5) h = w;
+  }
+  s.bw = r1(w); s.bh = r1(h); s.x = r1(x1 >= x0 ? x0 : x0 - w); s.y = r1(y1 >= y0 ? y0 : y0 - h);
   return s;
 }
 function attachInk(wrap){
@@ -4343,8 +4396,14 @@ function abortGesture(){
 }
 function inkDown(e, cv){
   if (!INK.tool || e.button > 0) return;
+  try { const sel = window.getSelection(); if (sel && sel.rangeCount) sel.removeAllRanges(); } catch (er) {}
+  if (e.pointerType === 'pen'){
+    lastPenAt = performance.now();
+    if (TP.size || pinch){ TP.forEach((v, id) => palmIds.add(id)); TP.clear(); pinch = null; cancelInertia(); }   // the pencil is down: anything already touching was the hand
+  }
   if (e.pointerType === 'touch'){
-    if (G && !G.touch) return;   // palm resting while the pencil draws
+    if (palmIds.has(e.pointerId)) return;
+    if ((e.width || 0) > 32 || (e.height || 0) > 32 || performance.now() - lastPenAt < 700 || (G && !G.touch)){ palmIds.add(e.pointerId); return; }   // big contact, or right after / during pencil use: a palm
     TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
     try { cv.setPointerCapture(e.pointerId); } catch (er) {}
     if (TP.size >= 2 && G && G.touch) abortGesture();
@@ -4366,13 +4425,29 @@ function inkDown(e, cv){
   if (G){ G.touch = e.pointerType === 'touch'; G.pid = e.pointerId; }
 }
 function armHold(){
-  if (!G || G.kind !== 'draw' || G.snapped || !INK.live || INK.live.st.t !== 'pen') return;
+  if (!G || G.kind !== 'draw' || G.snapped || !INK.live) return;
+  const t = INK.live.st.t; if (t !== 'pen' && t !== 'hl') return;
   clearTimeout(G.timer);
-  G.timer = setTimeout(snapNow, 400);
+  G.timer = setTimeout(snapNow, t === 'hl' ? 330 : 400);
+}
+function hlStraighten(st, x, y){
+  const x0 = st.pts[0], y0 = st.pts[1], dx = x - x0, dy = y - y0; let nx = x, ny = y;
+  if (Math.abs(dy) < Math.abs(dx) * 0.09) ny = y0; else if (Math.abs(dx) < Math.abs(dy) * 0.09) nx = x0;   // dead level or dead upright
+  st.pts[3] = r1(nx); st.pts[4] = r1(ny);
 }
 function snapNow(){
   if (!G || G.kind !== 'draw' || G.snapped || !INK.live) return;
-  const st = INK.live.st, P = []; for (let i = 0; i < st.pts.length; i += 3) P.push([st.pts[i], st.pts[i + 1]]);
+  const st = INK.live.st;
+  if (st.t === 'hl'){   // highlighter: hold still -> a straight stroke from where you started to where you are
+    const n = st.pts.length; if (n < 6) return;
+    const x0 = st.pts[0], y0 = st.pts[1], x1 = st.pts[n - 3], y1 = st.pts[n - 2];
+    if (Math.hypot(x1 - x0, y1 - y0) < 6) return;
+    st.pts = [x0, y0, 50, x1, y1, 50]; hlStraighten(st, x1, y1);
+    G.snapped = true; G.hlLine = true; compose(G.p);
+    try { navigator.vibrate && navigator.vibrate(12); } catch (er) {}
+    return;
+  }
+  const P = []; for (let i = 0; i < st.pts.length; i += 3) P.push([st.pts[i], st.pts[i + 1]]);
   const sh = recognize(P); if (!sh) return;
   sh.id = st.id; sh.c = st.c; sh.sw = st.sw; sh.o = sh.o || 0;
   for (const kk of ['x', 'y', 'x2', 'y2', 'bw', 'bh']) if (sh[kk] !== undefined) sh[kk] = r1(sh[kk]);
@@ -4381,7 +4456,9 @@ function snapNow(){
   try { navigator.vibrate && navigator.vibrate(12); } catch (er) {}
 }
 function inkMove(e, cv){
+  if (e.pointerType === 'pen') lastPenAt = performance.now();
   if (e.pointerType === 'touch'){
+    if (palmIds.has(e.pointerId)) return;
     const t = TP.get(e.pointerId); if (!t) return;
     if (navActive()){ navMove(e, t); return; }
   }
@@ -4394,6 +4471,7 @@ function inkStep(e, x, y, cv){
   if (G.kind === 'draw'){
     const st = INK.live.st;
     if (G.snapped){
+      if (G.hlLine){ hlStraighten(st, x, y); compose(p); return; }
       if (G.line){ let nx = x, ny = y; const dx = x - st.x, dy = y - st.y, ang = Math.atan2(dy, dx), step = Math.PI / 12, sn = Math.round(ang / step) * step;
         if (Math.abs(ang - sn) < 0.07){ const l = Math.hypot(dx, dy); nx = st.x + l * Math.cos(sn); ny = st.y + l * Math.sin(sn); }
         st.x2 = r1(nx); st.y2 = r1(ny); compose(p); }
@@ -4436,7 +4514,9 @@ function inkStep(e, x, y, cv){
   }
 }
 function inkUp(e, cv, cancelled){
+  if (e.pointerType === 'pen') lastPenAt = performance.now();
   if (e.pointerType === 'touch'){
+    if (palmIds.delete(e.pointerId)) return;
     const nav = navActive(), had = TP.delete(e.pointerId);
     if (had && nav){ if (TP.size < 2) pinch = null; if (TP.size === 0) startInertia(); return; }
   }
@@ -4454,6 +4534,7 @@ function inkUp(e, cv, cancelled){
         if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
         else st = (st.k === 'line' || st.k === 'arrow') ? makeShape(x, y, x + 90, y)
           : (st.k === 'brkt' || st.k === 'brace') ? (v ? makeShape(x, y, x + 16, y + 110) : makeShape(x, y, x + 110, y + 16)) : makeShape(x, y, x + 80, y + 80); }
+      if (st.k === 'sym'){ INK.symDims[st.ring ? 'ring' : 'label'] = [st.bw, st.bh]; syncSymFields(); }
       pushUndo(p); inkList(p, true).push(st); scheduleSave();   // the shape tool stays selected, ready for the next one
     }
     redrawInk(p);
@@ -4573,7 +4654,7 @@ function syncToolUI(){
   $('#inkBar').classList.toggle('hidden', !INK.tool);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === INK.tool));
   $('#inkShapes').classList.toggle('active', INK.tool === 'shape' && INK.shape.k !== 'sym');
-  $('#inkSyms').classList.toggle('active', INK.tool === 'shape' && INK.shape.k === 'sym');
+  $('#inkSyms').classList.toggle('active', INK.symOpen && !!INK.tool);
   $('#drawBtn').classList.toggle('active', !!INK.tool && INK.tool !== 'hl');
   $('#markBtn').classList.toggle('active', INK.tool === 'hl');
   $('#inkFinger').classList.toggle('active', INK.finger);
@@ -4607,7 +4688,7 @@ function setInkTool(t){
   INK.tool = t; if (t !== 'select') INK.sel = null;
   if (prevSel && !INK.sel) redrawInk(prevSel.p);
   hidePops();
-  syncToolUI(); updateToolbarVisibility();
+  syncToolUI(); updateToolbarVisibility(); syncSymPanel();
 }
 function setInkWidth(v){
   const kind = inkKind(); INK.width[kind] = v;
@@ -4625,15 +4706,44 @@ function setInkColor(hex){
 const SYM_RING = ['N', 'V', 'A', 'ADV', 'P', 'Det', 'Pron', 'Conj'];
 const SYM_LABEL = ['S', "S'", 'NP', 'VP', 'AP', 'AdvP', 'PP', 'NOM', 'DP', 'CP', 'TP', 'Vgrp', 'Comp', 'Det', 'PRO', 'M', 'Aux', 'P', 'N', 'V', 'A', 'ADV', 'Conj'];
 const SYM_AFFIX = ['pref', 'suff', 'stem'];
-function buildSymPop(){
+function buildSymPanel(){
   const chip = (t, ring, it) => '<button class="sym-chip' + (ring ? ' ring' : '') + (it ? ' it' : '') + '" data-t="' + t + '"' + (ring ? ' data-ring="1"' : '') + (it ? ' data-it="1"' : '') + '>' + t + '</button>';
-  $('#symPop').innerHTML = '<div class="sym-sec">Word class, circled</div><div class="sym-grid">' + SYM_RING.map(t => chip(t, true)).join('') + '</div>' +
+  $('#spBody').innerHTML = '<div class="sym-sec">Word class, circled</div><div class="sym-grid">' + SYM_RING.map(t => chip(t, true)).join('') + '</div>' +
     '<div class="sym-sec">Syntax labels</div><div class="sym-grid">' + SYM_LABEL.map(t => chip(t)).join('') + '</div>' +
     '<div class="sym-sec">Morphology</div><div class="sym-grid">' + SYM_AFFIX.map(t => chip(t, false, true)).join('') + '</div>' +
-    '<div class="sym-sec">Your own</div><div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:30px;padding:0 12px">Use</button></div>' +
-    '<div class="shape-tip">Tap the page to place a symbol, or drag to set its size. Select it later to move or resize it.</div>';
+    '<div class="sym-sec">Your own</div><div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:34px;padding:0 14px">Use</button></div>' +
+    '<div class="shape-tip">Tap the page to place a symbol, or drag to size it: a frame shows its width and height, and it snaps to the size you used last so symbols match.</div>';
 }
-function pickSymbol(txt, ring, it){ if (!txt) return; INK.shape = { k: 'sym', o: 0, txt, ring: !!ring, it: !!it }; hidePops(); setInkTool('shape'); }
+function symType(){ return INK.shape.k === 'sym' && INK.shape.ring ? 'ring' : 'label'; }
+function syncSymFields(){
+  const w = $('#spW'), h = $('#spH'); if (!w || document.activeElement === w || document.activeElement === h) return;
+  const sz = symSize(INK.shape.txt || 'N', symType() === 'ring'); w.value = Math.round(sz[0]); h.value = Math.round(sz[1]);
+}
+function markSymCur(){
+  document.querySelectorAll('#spBody .sym-chip').forEach(c => c.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === 'sym' && INK.shape.txt === c.dataset.t && !!INK.shape.ring === !!c.dataset.ring && !!INK.shape.it === !!c.dataset.it));
+}
+function pickSymbol(txt, ring, it){ if (!txt) return; INK.shape = { k: 'sym', o: 0, txt, ring: !!ring, it: !!it }; setInkTool('shape'); markSymCur(); syncSymFields(); }
+/* floating, movable, resizable panel that stays open until you close it */
+function symGeo(){
+  let g = null; try { g = JSON.parse(localStorage.getItem('nt-sym-geo') || 'null'); } catch (e) {}
+  if (g) return g;
+  return window.innerWidth < 600 ? { w: window.innerWidth - 24, h: 340, x: 12, y: window.innerHeight - 380 } : { w: 310, h: 420, x: Math.max(8, window.innerWidth - 340), y: 110 };
+}
+function applySymGeo(g, save){
+  const el = $('#symPanel');
+  g.w = Math.max(240, Math.min(g.w, window.innerWidth - 16)); g.h = Math.max(220, Math.min(g.h, window.innerHeight - 16));
+  g.x = Math.max(8, Math.min(g.x, window.innerWidth - g.w - 8)); g.y = Math.max(8, Math.min(g.y, window.innerHeight - 80));
+  el.style.width = g.w + 'px'; el.style.height = g.h + 'px'; el.style.left = g.x + 'px'; el.style.top = g.y + 'px';
+  if (save){ try { localStorage.setItem('nt-sym-geo', JSON.stringify(g)); } catch (e) {} }
+  return g;
+}
+function syncSymPanel(){
+  const el = $('#symPanel'); if (!el) return;
+  const show = !!INK.tool && INK.symOpen, was = !el.classList.contains('hidden');
+  el.classList.toggle('hidden', !show); $('#inkSyms').classList.toggle('open', show);
+  if (show && !was){ buildSymPanel(); applySymGeo(symGeo(), false); markSymCur(); syncSymFields(); }
+}
+function openSymPanel(open){ INK.symOpen = open; try { localStorage.setItem('nt-sym-open', open ? '1' : '0'); } catch (e) {} syncSymPanel(); }
 function shapeIconSVG(k, o){
   const vert = (o & 1) === 0, bk = k === 'brkt' || k === 'brace';
   const st = bk ? (vert ? { x: 9, y: 3, bw: 10, bh: 22 } : { x: 3, y: 9, bw: 22, bh: 10 }) : (k === 'line' || k === 'arrow') ? { x: 4, y: 24, x2: 24, y2: 4 } : { x: 4, y: 4, bw: 20, bh: 20 };
@@ -4779,12 +4889,28 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#inkBar').addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }, true);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.addEventListener('click', () => setInkTool(b.dataset.tool)));
   $('#inkShapes').addEventListener('click', () => togglePop($('#shapePop'), $('#inkShapes'), buildShapePop));
-  $('#inkSyms').addEventListener('click', () => togglePop($('#symPop'), $('#inkSyms'), buildSymPop));
-  $('#symPop').addEventListener('click', e => {
+  $('#inkSyms').addEventListener('click', () => openSymPanel(!INK.symOpen));
+  $('#spClose').addEventListener('click', () => openSymPanel(false));
+  $('#spBody').addEventListener('click', e => {
     const c = e.target.closest('.sym-chip'); if (c){ pickSymbol(c.dataset.t, !!c.dataset.ring, !!c.dataset.it); return; }
     if (e.target.closest('#symAdd')) pickSymbol($('#symTxt').value.trim(), $('#symRing').checked, false);
   });
-  $('#symPop').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'symTxt'){ e.preventDefault(); pickSymbol($('#symTxt').value.trim(), $('#symRing').checked, false); } });
+  $('#spBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'symTxt'){ e.preventDefault(); pickSymbol($('#symTxt').value.trim(), $('#symRing').checked, false); } });
+  const sizeIn = () => { const w = +$('#spW').value, h = +$('#spH').value; if (w >= 6 && h >= 6) INK.symDims[symType()] = [w, h]; };
+  $('#spW').addEventListener('input', sizeIn); $('#spH').addEventListener('input', sizeIn);
+  (function(){   // drag by the header, resize by the corner
+    const head = $('#spHead'), grip = $('#spResize'); let d = null, rz = null;
+    head.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; e.preventDefault(); const g = symGeo(); d = { dx: e.clientX - g.x, dy: e.clientY - g.y, g }; try { head.setPointerCapture(e.pointerId); } catch (er) {} });
+    head.addEventListener('pointermove', e => { if (!d) return; d.g.x = e.clientX - d.dx; d.g.y = e.clientY - d.dy; applySymGeo(d.g, false); });
+    const endD = () => { if (d){ applySymGeo(d.g, true); d = null; } }; head.addEventListener('pointerup', endD); head.addEventListener('pointercancel', endD);
+    grip.addEventListener('pointerdown', e => { e.preventDefault(); const g = symGeo(); rz = { sx: e.clientX, sy: e.clientY, w: g.w, h: g.h, g }; try { grip.setPointerCapture(e.pointerId); } catch (er) {} });
+    grip.addEventListener('pointermove', e => { if (!rz) return; rz.g.w = rz.w + e.clientX - rz.sx; rz.g.h = rz.h + e.clientY - rz.sy; applySymGeo(rz.g, false); });
+    const endR = () => { if (rz){ applySymGeo(rz.g, true); rz = null; } }; grip.addEventListener('pointerup', endR); grip.addEventListener('pointercancel', endR);
+    window.addEventListener('resize', () => { if (!$('#symPanel').classList.contains('hidden')) applySymGeo(symGeo(), false); });
+  })();
+  document.addEventListener('selectstart', e => { if (!INK.tool) return; const t = e.target && e.target.nodeType === 3 ? e.target.parentNode : e.target; if (t && t.closest && t.closest('#pagesCol')) e.preventDefault(); }, true);
+  document.addEventListener('contextmenu', e => { if (INK.tool && e.target.closest && e.target.closest('.ink-canvas')) e.preventDefault(); });
+  document.addEventListener('gesturestart', e => { if (INK.tool) e.preventDefault(); });
   $('#shapePop').addEventListener('click', e => {
     const b = e.target.closest('.shape-btn'); if (!b) return;
     INK.shape = { k: b.dataset.k, o: +b.dataset.o }; hidePops(); setInkTool('shape');
