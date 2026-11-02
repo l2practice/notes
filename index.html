@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-i" />
+    <meta name="app-build" content="2026-11-02-l" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1056,6 +1056,7 @@
               </div>
             </div>
           </div>
+            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Pen diagnostics</div><div class="drive-sub">If a stroke ever goes missing, open this right after and send me the text — it shows what the pencil reported and why a touch was ignored.</div></div><div class="drive-actions"><button class="btn" id="penLogBtn">Show pen log</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">App password</div><div class="drive-sub">The app asks for a password each time it is opened in a new tab. Changing it applies to this browser.</div></div><div class="drive-actions"><button class="btn" id="pwChangeBtn">Change password</button><button class="btn" id="pwLockBtn">Lock now</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Recycle Bin</div><div class="drive-sub">Deleted documents wait here for 90 days before they are removed everywhere.</div></div><div class="drive-actions"><button class="btn" id="settingsBinBtn">Open Recycle Bin</button></div></div>
             <p class="page-sub" style="margin-top:14px">On another device: open this app, tap <b>Connect Google Drive</b> and sign in with the same Google account. Folders, documents and notes stay in step, and deleting a document here removes it everywhere.</p>
@@ -1082,6 +1083,8 @@
         </button>
         <span class="doc-title" id="readerTitle"></span>
         <span class="save-status" id="saveStatus"><span class="dot"></span><span class="txt">Saved</span></span>
+        <button class="btn" id="saveNowBtn" title="Save now (Ctrl/Cmd+S)">Save</button>
+        <button class="btn hidden" id="syncNowBtn" title="Save and sync to Google Drive now">Sync</button>
         <div class="spacer" style="flex:1"></div>
         <span class="page-ind" id="pageInd"></span>
         <div class="zoom-group">
@@ -2049,22 +2052,30 @@
     function setSaveStatus(saving, ts){
       const el = $('#saveStatus');
       el.classList.toggle('saving', saving);
-      let txt = saving ? 'Saving…' : 'Saved' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) : '');
-      if (!saving && typeof driveIsConnected === 'function' && driveIsConnected()) txt += ' · auto-syncs to Drive';
+      let txt = saving ? 'Saving…' : (docDirty ? 'Unsaved · autosave every 15 min' : 'Saved' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) : ''));
+      if (!saving && !docDirty && typeof driveIsConnected === 'function' && driveIsConnected()) txt += ' · syncs when you close the file';
+      const sb = $('#syncNowBtn'); if (sb) sb.classList.toggle('hidden', !(typeof driveLinked !== 'undefined' && driveLinked));
       el.querySelector('.txt').textContent = txt;
     }
+    /* Saving: every 15 minutes while you work, or when you press Save. Closing the file (or leaving the tab) always saves too. */
+    let docDirty = false;
+    const AUTOSAVE_MS = 15 * 60 * 1000;
     function scheduleSave(){
       if (!currentReader) return;
       currentReader.lastPage = currentPage;
       currentReader.lastOpenedAt = Date.now();
-      setSaveStatus(true);
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(async () => {
-        currentReader.updatedAt = Date.now();
-        try { await DB.put('docs', currentReader); setSaveStatus(false, currentReader.updatedAt); if (typeof queueDriveSync === 'function') queueDriveSync(); }
-        catch (e) { setSaveStatus(false); toast('Could not save your notes — device storage may be full.'); }
-      }, 450);
+      currentReader.updatedAt = Date.now();
+      docDirty = true; setSaveStatus(false);
     }
+    async function saveNow(){
+      if (!currentReader) return;
+      const doc = currentReader;
+      setSaveStatus(true);
+      doc.updatedAt = Date.now();
+      try { await DB.put('docs', doc); docDirty = false; setSaveStatus(false, doc.updatedAt); }
+      catch (e) { setSaveStatus(false); toast('Could not save your notes — device storage may be full.'); }
+    }
+    setInterval(() => { if (currentReader && docDirty) saveNow(); }, AUTOSAVE_MS);
 
     /* ================= Open / close ================= */
     async function openReader(docId){
@@ -2151,15 +2162,20 @@
       if (pageObserver){ pageObserver.disconnect(); pageObserver = null; }
       if (thumbObserver){ thumbObserver.disconnect(); thumbObserver = null; }
       thumbQueue.length = 0;
+      docDirty = false;
       currentReader = null; selectedNoteId = null; editingId = null;
+      if (typeof driveLinked !== 'undefined' && driveLinked && typeof queueDriveSync === 'function') queueDriveSync();   // closing the file is the moment to sync
       $('#pagesCol').innerHTML = '';
       $('#readerView').classList.add('hidden');
       $('#libraryView').classList.remove('hidden');
       renderLibrary();
     }
     $('#backBtn').addEventListener('click', () => closeReader());
+    $('#saveNowBtn').addEventListener('click', saveNow);
+    $('#syncNowBtn').addEventListener('click', async () => { await saveNow(); if (typeof driveSyncNow === 'function') driveSyncNow(true); });
+    document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && currentReader){ e.preventDefault(); saveNow(); } });
     window.addEventListener('popstate', () => { if (currentReader) closeReader(true); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden){ flushLastPage(); flushReadLog(); } });
+    document.addEventListener('visibilitychange', () => { if (document.hidden){ flushLastPage(); flushReadLog(); docDirty = false; } });   // leaving the tab never loses work
     /* Time spent: counts 5 s at a time while a document is open, the tab is visible and you touched it in the last minute */
     let lastActive = Date.now(), readLogDirty = false;
     ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { lastActive = Date.now(); }, { passive: true, capture: true }));
@@ -2168,7 +2184,7 @@
       const k = dayKey(), l = currentReader.readLog || (currentReader.readLog = {});
       l[k] = (l[k] || 0) + 5; readLogDirty = true;
     }, 5000);
-    function flushReadLog(){ if (readLogDirty && currentReader){ readLogDirty = false; DB.put('docs', currentReader).catch(() => {}); } }
+    function flushReadLog(){ if (readLogDirty && currentReader && !(typeof G !== 'undefined' && G)){ readLogDirty = false; DB.put('docs', currentReader).catch(() => {}); } }
     setInterval(flushReadLog, 30000);
     window.addEventListener('beforeunload', () => { flushLastPage(); });
 
@@ -2305,7 +2321,7 @@
         if (!currentReader) return;
         currentReader.pageUpdatedAt = Date.now();
         currentReader.updatedAt = Date.now();
-        try { await DB.put('docs', currentReader); if (typeof queueDriveSync === 'function') queueDriveSync(); } catch (e) {}
+        docDirty = true;   // goes to disk with the next save
       }, 900);
     }
     function flushLastPage(){
@@ -2982,8 +2998,10 @@
       docs.forEach(d => { s += Math.floor(docSecs(d) / 600) + d.id + (d.updatedAt || 0) + (d.deletedAt || 0) + (d.pageUpdatedAt || 0) + (d.lastPage || 0) + (d.notes ? d.notes.length : 0) + ';'; });
       return s;
     }
+    let driveDeferred = false;
     function queueDriveSync(){
       if (!driveLinked) return;
+      if (currentReader){ driveDeferred = true; return; }   // a file is open: sync when it is closed (or when you press Sync)
       clearTimeout(driveSyncTimer);
       driveSyncTimer = setTimeout(() => { driveSyncNow(false); }, 2500);
     }
@@ -3136,12 +3154,20 @@
       for (const rd of remote.docs){
         if (dtomb.has(rd.id)) continue;
         const ld = docs.find(d => d.id === rd.id);
-        if (!ld || Math.max(rd.updatedAt || 0, rd.pageUpdatedAt || 0) > Math.max(ld.updatedAt || 0, ld.pageUpdatedAt || 0)){
-          const merged = Object.assign({}, ld || {}, rd);
-          if (ld && ld.thumb) merged.thumb = ld.thumb;
-          if (ld && (ld.pageUpdatedAt || 0) > (rd.pageUpdatedAt || 0) && ld.lastPage){ merged.lastPage = ld.lastPage; merged.pageUpdatedAt = ld.pageUpdatedAt; }
-          if (!ld) docs.push(merged); else Object.assign(ld, merged);
-          await DB.put('docs', merged); changed = true; driveChangedDocs.push(rd.id);
+        const contentNewer = !ld || (rd.updatedAt || 0) > (ld.updatedAt || 0), pageNewer = !!ld && (rd.pageUpdatedAt || 0) > (ld.pageUpdatedAt || 0);
+        if (contentNewer || pageNewer){
+          if (!ld){ const merged = Object.assign({}, rd); docs.push(merged); await DB.put('docs', merged); changed = true; driveChangedDocs.push(rd.id); }
+          else {
+            // another device only moved the page: that must not bring back its older notes and drawings
+            const busy = currentReader && currentReader.id === ld.id && typeof G !== 'undefined' && G;
+            if (contentNewer && !busy){
+              const keep = { lastPage: ld.lastPage, pageUpdatedAt: ld.pageUpdatedAt, lastOpenedAt: ld.lastOpenedAt };
+              Object.assign(ld, rd);
+              if (!pageNewer){ ld.lastPage = keep.lastPage; ld.pageUpdatedAt = keep.pageUpdatedAt; if ((keep.lastOpenedAt || 0) > (ld.lastOpenedAt || 0)) ld.lastOpenedAt = keep.lastOpenedAt; }
+              driveChangedDocs.push(rd.id);
+            } else if (pageNewer){ ld.lastPage = rd.lastPage; ld.pageUpdatedAt = rd.pageUpdatedAt; if ((rd.lastOpenedAt || 0) > (ld.lastOpenedAt || 0)) ld.lastOpenedAt = rd.lastOpenedAt; }
+            await DB.put('docs', ld); changed = true;
+          }
         }
         const target = docs.find(d => d.id === rd.id);
         if (target && rd.readLog){   // reading time: keep the larger figure per day from either device
@@ -3221,6 +3247,8 @@
     }
     async function driveSyncNow(manual){
       if (driveSyncing || !appReady) return;
+      if (!manual && currentReader){ driveDeferred = true; return; }
+      if (!manual && typeof G !== 'undefined' && (G || performance.now() - lastInkAt < 3000)){ queueDriveSync(); return; }   // never while you are writing
       if (!driveLinked){ if (manual) await driveConnect(); return; }
       if (!driveTokenValid()){
         if (!manual){ driveLost(); return; }
@@ -3330,7 +3358,7 @@
     }
     async function drivePoll(){
       if (!driveTokenValid() || driveSyncing || document.hidden || !driveFolderId) return;
-      if (editingId || dragCtx || createCtx) return;
+      if (editingId || dragCtx || createCtx || (typeof G !== 'undefined' && G)) return;
       try {
         const prev = driveLibModified;
         await driveFindLibFile();
@@ -4294,13 +4322,14 @@ function drawImgObj(ctx, st, k){
   if (im._ok){ ctx.drawImage(im, x, y, w, h); return; }
   ctx.save(); ctx.fillStyle = 'rgba(128,128,128,.18)'; ctx.fillRect(x, y, w, h); ctx.restore();
 }
+const minLW = k => 1.3 * k / (scale || 1);   // never thinner than ~1.3 screen pixels, whatever the zoom
 function drawStroke(ctx, st, k){
   if (st.k === 'img'){ drawImgObj(ctx, st, k); return; }
   if (st.k === 'sym'){ drawSym(ctx, st, k); return; }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = st.c; ctx.fillStyle = st.c;
   if (st.t === 'hl'){
     const pts = st.pts, n = pts.length / 3;
-    ctx.globalAlpha = 0.5; ctx.lineWidth = st.sw * k;
+    ctx.globalAlpha = 0.5; ctx.lineWidth = Math.max(st.sw * k, minLW(k));
     ctx.beginPath(); ctx.moveTo(pts[0] * k, pts[1] * k);
     if (n === 1) ctx.lineTo(pts[0] * k + 0.01, pts[1] * k);
     for (let i = 1; i < n; i++) ctx.lineTo(pts[i * 3] * k, pts[i * 3 + 1] * k);
@@ -4308,17 +4337,21 @@ function drawStroke(ctx, st, k){
   }
   if (st.t === 'pen'){
     const pts = st.pts, n = pts.length / 3;
-    if (n === 1){ ctx.beginPath(); ctx.arc(pts[0] * k, pts[1] * k, st.sw * k * (.45 + 1.1 * pts[2] / 100) / 2, 0, 7); ctx.fill(); return; }
+    if (n === 1){ ctx.beginPath(); ctx.arc(pts[0] * k, pts[1] * k, Math.max(st.sw * k * (.45 + 1.1 * pts[2] / 100), minLW(k)) / 2, 0, 7); ctx.fill(); return; }
     let sx = pts[0] * k, sy = pts[1] * k;
     for (let i = 1; i < n; i++){
       const cx = pts[(i - 1) * 3] * k, cy = pts[(i - 1) * 3 + 1] * k, x = pts[i * 3] * k, y = pts[i * 3 + 1] * k;
       const ex = (cx + x) / 2, ey = (cy + y) / 2;
-      ctx.lineWidth = st.sw * k * (.45 + 1.1 * pts[i * 3 + 2] / 100);
+      ctx.lineWidth = Math.max(st.sw * k * (.45 + 1.1 * pts[i * 3 + 2] / 100), minLW(k));
       ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(cx, cy, ex, ey); ctx.stroke(); sx = ex; sy = ey;
     }
-    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(pts[(n - 1) * 3] * k, pts[(n - 1) * 3 + 1] * k); ctx.stroke(); return;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(pts[(n - 1) * 3] * k, pts[(n - 1) * 3 + 1] * k); ctx.stroke();
+    if (n <= 4) for (let i = 0; i < n; i++){   // a very short stroke: a round dab per sample, so a zero-length segment can never be skipped
+      ctx.beginPath(); ctx.arc(pts[i * 3] * k, pts[i * 3 + 1] * k, Math.max(st.sw * k * (.45 + 1.1 * pts[i * 3 + 2] / 100), minLW(k)) / 2, 0, 7); ctx.fill();
+    }
+    return;
   }
-  ctx.lineWidth = st.sw * k;
+  ctx.lineWidth = Math.max(st.sw * k, minLW(k));
   shapePaths(st).forEach(poly => { ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(q[0] * k, q[1] * k) : ctx.moveTo(q[0] * k, q[1] * k)); ctx.stroke(); });
 }
 function isDarkColor(c){ const m = /^#?([0-9a-f]{6})$/i.exec(c || ''); if (!m) return false; const v = parseInt(m[1], 16); return (0.299 * (v >> 16) + 0.587 * ((v >> 8) & 255) + 0.114 * (v & 255)) < 90; }
@@ -4359,7 +4392,7 @@ function pointInPoly(x, y, poly){
   return c;
 }
 function drawSel(ctx, p, k){
-  if (INK.tool !== 'select' || !INK.sel || INK.sel.p !== p) return;
+  if ((INK.tool !== 'select' && INK.tool !== 'shape') || !INK.sel || INK.sel.p !== p) return;
   const arr = selList(); if (!arr.length) return;
   const single = arr.length === 1 && isLine(arr[0]), b = groupBox(arr), pad = 4 / (scale || 1);
   const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d7a64';
@@ -4437,15 +4470,18 @@ function sizeBadge(ctx, L, b, frame, label){
 
 /* ---------- undo / redo ---------- */
 function syncUndoUI(){ const u = $('#inkUndo'), r = $('#inkRedo'); if (u) u.disabled = !INK.undo.length; if (r) r.disabled = !INK.redo.length; }
+function undoAdd(p, st){ INK.undo.push({ p, add: st }); if (INK.undo.length > 40) INK.undo.shift(); INK.redo.length = 0; syncUndoUI(); }
 function pushUndo(p){ INK.undo.push({ p, snap: JSON.stringify(inkList(p)) }); if (INK.undo.length > 40) INK.undo.shift(); INK.redo.length = 0; syncUndoUI(); }
 function inkUndo(){
   const u = INK.undo.pop(); if (!u) return;
-  INK.redo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap));
+  if (u.add){ setInkList(u.p, inkList(u.p).filter(s => s.id !== u.add.id)); INK.redo.push({ p: u.p, readd: u.add }); }
+  else { INK.redo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap)); }
   INK.sel = null; redrawInk(u.p); scheduleSave(); syncInkBar();
 }
 function inkRedo(){
   const u = INK.redo.pop(); if (!u) return;
-  INK.undo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap));
+  if (u.readd){ inkList(u.p, true).push(u.readd); INK.undo.push({ p: u.p, add: u.readd }); }
+  else { INK.undo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap)); }
   INK.sel = null; redrawInk(u.p); scheduleSave(); syncInkBar();
 }
 
@@ -4525,7 +4561,9 @@ function pagePt(e, cv){
   const r = cv.getBoundingClientRect(), sz = pageSizes[+cv.parentNode.dataset.page - 1];
   return [(e.clientX - r.left) / r.width * sz.w, (e.clientY - r.top) / r.height * sz.h];
 }
-const pressure = e => e.pointerType === 'mouse' ? 50 : Math.round((e.pressure || 0.5) * 100);
+const pressure = e => e.pointerType === 'mouse' ? 50 : Math.max(25, Math.round((e.pressure || 0.5) * 100));   // the first pencil samples report ~0: never draw a hairline
+const INKLOG = [];
+function inkLog(kind, e, note){ INKLOG.push(new Date().toISOString().slice(11, 23) + ' ' + kind + ' ' + (e ? e.pointerType + '#' + e.pointerId + ' p=' + (e.pressure !== undefined ? (+e.pressure).toFixed(2) : '-') + ' w=' + (e.width || 0) + ' h=' + (e.height || 0) + ' btn=' + e.button : '') + (note ? ' ' + note : '') + (G ? ' [G:' + G.kind + ']' : '')); if (INKLOG.length > 80) INKLOG.shift(); }
 function makeShape(x0, y0, x1, y1){
   const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen };
   if (s.k === 'line' || s.k === 'arrow'){
@@ -4579,16 +4617,24 @@ function startInertia(){
   const step = () => { sc.scrollTop -= vy * 16; sc.scrollLeft -= vx * 16; vx *= 0.95; vy *= 0.95; if (Math.hypot(vx, vy) > 0.02) inertia = requestAnimationFrame(step); };
   inertia = requestAnimationFrame(step);
 }
+let lastInkAt = 0;
+/* the last point the pencil reported may be ahead of the stabilised stroke: draw that last bit straight onto the canvas */
+function finishPenTail(p, st, g){
+  const n = st.pts.length;
+  if (g && g.raw && n >= 3 && Math.hypot(g.raw[0] - st.pts[n - 3], g.raw[1] - st.pts[n - 2]) > 0.3){
+    const lx = st.pts[n - 3], ly = st.pts[n - 2]; st.pts.push(r1(g.raw[0]), r1(g.raw[1]), g.raw[2]);
+    const L = inkLayers(p); if (L){ const c = L.ic.getContext('2d'), k = L.k; c.lineCap = 'round'; c.strokeStyle = st.c; c.lineWidth = Math.max(st.sw * k * (.45 + 1.1 * g.raw[2] / 100), minLW(k)); c.beginPath(); c.moveTo(lx * k, ly * k); c.lineTo(g.raw[0] * k, g.raw[1] * k); c.stroke(); }
+  }
+}
 function commitPen(st, g){
   if (st.t === 'pen'){
     if (g && g.raw && st.pts.length >= 3 && Math.hypot(g.raw[0] - st.pts[st.pts.length - 3], g.raw[1] - st.pts[st.pts.length - 2]) > 0.3) st.pts.push(r1(g.raw[0]), r1(g.raw[1]), g.raw[2]);
-    smoothStroke(st);
   }
 }
 function finishStale(){
   const g = G; if (!g) return; clearTimeout(g.timer);
   const live = INK.live; INK.live = null; G = null;
-  if (live && live.st && (g.kind === 'draw' || g.kind === 'shape')){ commitPen(live.st, g); pushUndo(g.p); inkList(g.p, true).push(live.st); scheduleSave(); }
+  if (live && live.st && (g.kind === 'draw' || g.kind === 'shape')){ commitPen(live.st, g); undoAdd(g.p, live.st); inkList(g.p, true).push(live.st); scheduleSave(); }
   endInteraction(g.p); redrawInk(g.p);
 }
 /* handwriting smoothing: light / strong (smooths wobble and tapers the ends like a real pen) */
@@ -4608,15 +4654,17 @@ function abortGesture(){
   if (!G) return; clearTimeout(G.timer); const p = G.p; INK.live = null; G = null; endInteraction(p); redrawInk(p);
 }
 function inkDown(e, cv){
-  if (!INK.tool || e.button > 0) return;
+  lastInkAt = performance.now();
+  if (!INK.tool || (e.pointerType === 'mouse' && e.button > 0)) return;
+  inkLog('down', e);
   try { const sel = window.getSelection(); if (sel && sel.rangeCount) sel.removeAllRanges(); } catch (er) {}
   if (e.pointerType === 'pen'){
     lastPenAt = performance.now();
     if (TP.size || pinch){ TP.forEach((v, id) => palmIds.add(id)); TP.clear(); pinch = null; cancelInertia(); }   // the pencil is down: anything already touching was the hand
   }
   if (e.pointerType === 'touch'){
-    if (palmIds.has(e.pointerId)) return;
-    if (Math.max(e.width || 0, e.height || 0) > 110 || performance.now() - lastPenAt < 500 || (G && !G.touch)){ palmIds.add(e.pointerId); return; }   // big contact, or right after / during pencil use: a palm
+    if (palmIds.has(e.pointerId)){ inkLog('ignored', e, 'palm (known)'); return; }
+    if (Math.max(e.width || 0, e.height || 0) > 110 || performance.now() - lastPenAt < 500 || (G && !G.touch)){ palmIds.add(e.pointerId); inkLog('ignored', e, 'palm'); return; }   // big contact, or right after / during pencil use: a palm
     TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
     try { cv.setPointerCapture(e.pointerId); } catch (er) {}
     if (TP.size >= 2 && G && G.touch) abortGesture();
@@ -4632,7 +4680,12 @@ function inkDown(e, cv){
     if (tool === 'hl'){ beginInteraction(p, null); compose(p); } else { const L = inkLayers(p); if (L){ sizeLayer(L.ic, L.W, L.H); sizeLayer(L.hc, L.W, L.H); } }
     armHold();
   } else if (tool === 'shape'){
-    G = { kind: 'shape', p, x0: x, y0: y, moved: false }; INK.live = { p, st: makeShape(x, y, x, y) }; beginInteraction(p, null);
+    // touching a symbol / picture / the shape you just placed selects it (move, or drag a corner to resize); empty space places a new one
+    if (selectDown(p, x, y, { noLasso: true, filter: st => st.k === 'sym' || st.k === 'img' || st.id === INK.lastPlacedId })) { /* handled as a selection */ }
+    else {
+      if (INK.sel){ const ps = INK.sel.p; INK.sel = null; if (ps !== p) redrawInk(ps); }
+      G = { kind: 'shape', p, x0: x, y0: y, moved: false }; INK.live = { p, st: makeShape(x, y, x, y) }; beginInteraction(p, null);
+    }
   } else if (tool === 'eraser'){
     G = { kind: 'erase', p, changed: false }; eraseAt(p, x, y);
   } else if (tool === 'select'){ selectDown(p, x, y); }
@@ -4705,8 +4758,9 @@ function inkStep(e, x, y, cv){
     if (st.t === 'hl'){ compose(p); return; }
     const L = inkLayers(p); if (!L) return;
     const c = L.ic.getContext('2d'), k = L.k;
-    c.lineCap = 'round'; c.strokeStyle = st.c; c.lineWidth = st.sw * k * (.45 + 1.1 * pressure(e) / 100);
+    c.lineCap = 'round'; c.strokeStyle = st.c; c.fillStyle = st.c; c.lineWidth = Math.max(st.sw * k * (.45 + 1.1 * pressure(e) / 100), minLW(k));
     c.beginPath(); c.moveTo(lx * k, ly * k); c.lineTo(fx * k, fy * k); c.stroke();
+    c.beginPath(); c.arc(fx * k, fy * k, c.lineWidth / 2, 0, 7); c.fill();
   } else if (G.kind === 'shape'){
     G.moved = true; INK.live.st = makeShape(G.x0, G.y0, x, y); compose(p);
   } else if (G.kind === 'erase'){ eraseAt(p, x, y); }
@@ -4728,13 +4782,14 @@ function inkStep(e, x, y, cv){
     } else {
       const ox = (G.h === 'nw' || G.h === 'sw') ? ob.x + ob.w : ob.x, oy = (G.h === 'nw' || G.h === 'ne') ? ob.y + ob.h : ob.y;
       const nb = { x: Math.min(x, ox), y: Math.min(y, oy), w: Math.max(4, Math.abs(x - ox)), h: Math.max(4, Math.abs(y - oy)) };
-      if (arr.length === 1 && arr[0].k === 'img'){ nb.h = nb.w * ob.h / ob.w; nb.y = (G.h === 'nw' || G.h === 'ne') ? oy - nb.h : oy; }
+      if (arr.length === 1 && (arr[0].k === 'img' || (arr[0].k === 'sym' && arr[0].ring))){ nb.h = nb.w * ob.h / ob.w; nb.y = (G.h === 'nw' || G.h === 'ne') ? oy - nb.h : oy; }
       arr.forEach((st, i) => { const base = clone(G.origs[i]); fitStroke(base, ob, nb); copyInto(st, base); });
     }
     compose(p);
   }
 }
 function inkUp(e, cv, cancelled){
+  inkLog(cancelled ? 'cancel' : 'up', e);
   if (e.pointerType === 'pen') lastPenAt = performance.now();
   if (e.pointerType === 'touch'){
     if (palmIds.delete(e.pointerId)) return;
@@ -4745,8 +4800,14 @@ function inkUp(e, cv, cancelled){
   const g = G, p = g.p; G = null; clearTimeout(g.timer);
   if (g.kind === 'draw'){
     const st = INK.live && INK.live.st; INK.live = null;
-    if (st){ commitPen(st, g); pushUndo(p); inkList(p, true).push(st); scheduleSave(); }   // even if the system cancelled the touch, what was drawn stays
-    endInteraction(p); redrawInk(p);
+    lastInkAt = performance.now();
+    if (st){
+      const live = st.t === 'pen' && !g.snapped;   // the pencil stroke is already on the canvas: no redraw, no copying, just remember it
+      if (live) finishPenTail(p, st, g); else commitPen(st, g);
+      undoAdd(p, st); inkList(p, true).push(st); scheduleSave();
+      inkLog('saved', e, (st.pts ? st.pts.length / 3 + ' pts' : st.k) + (cancelled ? ' (cancelled)' : ''));
+      endInteraction(p); if (!live) redrawInk(p);
+    } else { endInteraction(p); redrawInk(p); }
   } else if (g.kind === 'shape'){
     let st = INK.live && INK.live.st; INK.live = null; endInteraction(p);
     if (st && (!cancelled || g.moved)){
@@ -4762,7 +4823,8 @@ function inkUp(e, cv, cancelled){
       if (st.k === 'sym'){ INK.symDims[st.ring ? 'ring' : 'label'] = [st.bw, st.bh]; syncSymFields(); }
       else if (st.x2 !== undefined){ INK.shapeDims.line = [Math.hypot(st.x2 - st.x, st.y2 - st.y)]; saveShapeDims(); }
       else if (st.bw !== undefined){ INK.shapeDims[shapeKey(st)] = [st.bw, st.bh]; saveShapeDims(); }
-      pushUndo(p); inkList(p, true).push(st); scheduleSave();   // the shape tool stays selected, ready for the next one
+      undoAdd(p, st); inkList(p, true).push(st); scheduleSave();   // the shape tool stays selected, ready for the next one
+      INK.sel = { p, ids: [st.id] }; INK.lastPlacedId = st.id; setTimeout(syncInkBar, 0);   // …and what you just placed is selected, with handles to move / resize it
     }
     redrawInk(p);
   } else if (g.kind === 'erase'){ if (g.changed) scheduleSave(); redrawInk(p); }
@@ -4776,7 +4838,12 @@ function inkUp(e, cv, cancelled){
       INK.sel = ids.length ? { p, ids } : null;
     }
     redrawInk(p); syncInkBar();
-  } else if (g.kind === 'move' || g.kind === 'resize'){ endInteraction(p); if (g.moved) scheduleSave(); redrawInk(p); syncInkBar(); }
+  } else if (g.kind === 'move' || g.kind === 'resize'){
+    endInteraction(p); if (g.moved) scheduleSave();
+    const one = g.moved && g.kind === 'resize' ? selList() : [];
+    if (one.length === 1 && one[0].k === 'sym'){ INK.symDims[one[0].ring ? 'ring' : 'label'] = [one[0].bw, one[0].bh]; syncSymFields(); }   // a resized symbol becomes the size new ones match
+    redrawInk(p); syncInkBar();
+  }
 }
 /* eraser: removes only the part under the eraser — strokes (and shapes, turned into strokes) are cut into pieces */
 function flatPts(poly){ const a = []; poly.forEach(q => a.push(r1(q[0]), r1(q[1]), 50)); return a; }
@@ -4830,26 +4897,28 @@ function hitHandle(arr, x, y, tol){
   return null;
 }
 /* Select tool: tap something to pick it, drag a loop around an area to pick everything inside, drag inside the box to move */
-function selectDown(p, x, y){
+function selectDown(p, x, y, opts){
   const list = inkList(p), tol = 10 / scale, prev = INK.sel, pad = 6 / scale;
   const arr = prev && prev.p === p ? selList() : [];
   if (arr.length){
     const h = hitHandle(arr, x, y, tol * 1.3);
-    if (h){ G = { kind: 'resize', p, h, ob: groupBox(arr), origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return; }
+    if (h){ G = { kind: 'resize', p, h, ob: groupBox(arr), origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return true; }
     const b = groupBox(arr), single = arr.length === 1 && isLine(arr[0]);
-    if ((!single && x >= b.x - pad && x <= b.x + b.w + pad && y >= b.y - pad && y <= b.y + b.h + pad) || arr.some(s => strokeHit(s, x, y, tol))){
-      G = { kind: 'move', p, x0: x, y0: y, origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return;
+    const inBox = !single && x >= b.x - pad && x <= b.x + b.w + pad && y >= b.y - pad && y <= b.y + b.h + pad && (!opts || arr.every(s => s.k === 'sym' || s.k === 'img'));
+    if (inBox || arr.some(s => strokeHit(s, x, y, tol))){
+      G = { kind: 'move', p, x0: x, y0: y, origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return true;
     }
   }
   for (let i = list.length - 1; i >= 0; i--){
-    if (strokeHit(list[i], x, y, tol)){
+    if ((!opts || opts.filter(list[i])) && strokeHit(list[i], x, y, tol)){
       INK.sel = { p, ids: [list[i].id] };
       G = { kind: 'move', p, x0: x, y0: y, origs: [clone(list[i])], moved: false };
       beginInteraction(p, [list[i].id]); compose(p); syncInkBar();
       if (prev && prev.p !== p) redrawInk(prev.p);
-      return;
+      return true;
     }
   }
+  if (opts && opts.noLasso) return false;
   INK.sel = null; G = { kind: 'lasso', p, pts: [[x, y]] };
   if (prev && prev.p !== p) redrawInk(prev.p);
   beginInteraction(p, null); compose(p); syncInkBar();
@@ -4895,7 +4964,7 @@ function syncInkBar(){
   sl.min = rg[0]; sl.max = rg[1]; sl.step = rg[2]; sl.value = w; $('#inkWVal').textContent = w;
   sl.title = kind === 'er' ? 'Eraser size' : 'Thickness';
   buildInkSwatches(); syncUndoUI();
-  $('#inkDel').classList.toggle('hidden', !(INK.tool === 'select' && INK.sel));
+  $('#inkDel').classList.toggle('hidden', !(INK.sel && (INK.tool === 'select' || INK.tool === 'shape')));
   positionInkBar();
 }
 function positionInkBar(){
@@ -4913,7 +4982,7 @@ function setInkTool(t){
     selectNote(null);
   }
   const prevSel = INK.sel;
-  INK.tool = t; if (t !== 'select') INK.sel = null;
+  INK.tool = t; if (t !== 'select' && t !== 'shape') INK.sel = null;
   if (prevSel && !INK.sel) redrawInk(prevSel.p);
   hidePops();
   syncToolUI(); updateToolbarVisibility(); syncSymPanel();
@@ -5117,6 +5186,12 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#inkBar').addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }, true);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.addEventListener('click', () => setInkTool(b.dataset.tool)));
   $('#inkShapes').addEventListener('click', () => togglePop($('#shapePop'), $('#inkShapes'), buildShapePop));
+  $('#penLogBtn').addEventListener('click', () => {
+    openModal('<h3>Pen log</h3><p>Last events from the pencil and touches (newest last).</p><textarea id="penLogTxt" readonly style="width:100%;height:240px;box-sizing:border-box;border:1px solid var(--control);border-radius:12px;padding:10px;font:12px/1.5 ui-monospace,Menlo,monospace;background:var(--surface);color:var(--ink)"></textarea><div class="modal-actions"><button class="btn" id="mCancel">Close</button><button class="btn primary" id="penLogCopy">Copy</button></div>');
+    $('#penLogTxt').value = INKLOG.join('\n') || '(no pen events yet — draw something first)';
+    $('#mCancel').addEventListener('click', closeModal);
+    $('#penLogCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#penLogTxt').value); toast('Copied.'); } catch (e) { $('#penLogTxt').select(); } });
+  });
   $('#inkSmooth').addEventListener('click', () => { INK.smooth = (INK.smooth + 1) % 3; try { localStorage.setItem('nt-ink-smooth', String(INK.smooth)); } catch (e) {} syncToolUI(); toast('Handwriting smoothing: ' + ['off', 'light', 'strong'][INK.smooth]); });
   // the palm must not drive the floating panels either
   document.addEventListener('pointerdown', e => { if (e.pointerType === 'pen') lastPenAt = performance.now(); }, true);
