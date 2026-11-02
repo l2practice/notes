@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-n" />
+    <meta name="app-build" content="2026-11-02-o" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4484,12 +4484,14 @@ function syncUndoUI(){ const u = $('#inkUndo'), r = $('#inkRedo'); if (u) u.disa
 function undoAdd(p, st){ INK.undo.push({ p, add: st }); if (INK.undo.length > 40) INK.undo.shift(); INK.redo.length = 0; syncUndoUI(); }
 function pushUndo(p){ INK.undo.push({ p, snap: JSON.stringify(inkList(p)) }); if (INK.undo.length > 40) INK.undo.shift(); INK.redo.length = 0; syncUndoUI(); }
 function inkUndo(){
+  legitUntil = performance.now() + 700;
   const u = INK.undo.pop(); if (!u) return;
   if (u.add){ setInkList(u.p, inkList(u.p).filter(s => s.id !== u.add.id)); INK.redo.push({ p: u.p, readd: u.add }); }
   else { INK.redo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap)); }
   INK.sel = null; redrawInk(u.p); scheduleSave(); syncInkBar();
 }
 function inkRedo(){
+  legitUntil = performance.now() + 700;
   const u = INK.redo.pop(); if (!u) return;
   if (u.readd){ inkList(u.p, true).push(u.readd); INK.undo.push({ p: u.p, add: u.readd }); }
   else { INK.undo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap)); }
@@ -4574,7 +4576,23 @@ function pagePt(e, cv){
 }
 const pressure = e => e.pointerType === 'mouse' ? 50 : Math.max(25, Math.round((e.pressure || 0.5) * 100));   // the first pencil samples report ~0: never draw a hairline
 const INKLOG = [];
-function inkLog(kind, e, note){ INKLOG.push(new Date().toISOString().slice(11, 23) + ' ' + kind + ' ' + (e ? e.pointerType + '#' + e.pointerId + ' p=' + (e.pressure !== undefined ? (+e.pressure).toFixed(2) : '-') + ' w=' + (e.width || 0) + ' h=' + (e.height || 0) + ' btn=' + e.button : '') + (note ? ' ' + note : '') + (G ? ' [G:' + G.kind + ']' : '')); if (INKLOG.length > 80) INKLOG.shift(); }
+function inkLog(kind, e, note){ INKLOG.push(new Date().toISOString().slice(11, 23) + ' ' + kind + ' ' + (e ? e.pointerType + '#' + e.pointerId + ' p=' + (e.pressure !== undefined ? (+e.pressure).toFixed(2) : '-') + ' w=' + (e.width || 0) + ' h=' + (e.height || 0) + ' btn=' + e.button : '') + (note ? ' ' + note : '') + (G ? ' [G:' + G.kind + ']' : '')); if (INKLOG.length > 200) INKLOG.shift(); }
+const INKAUDIT = {};   // page -> { arr, ids }: watches the stored strokes and logs when one disappears that the user did not remove
+let legitUntil = 0;
+setInterval(() => {
+  if (!currentReader || !currentReader.ink) return;
+  const live = docs.find(d => d.id === currentReader.id);
+  if (INKAUDIT.doc !== currentReader.id){ for (const k in INKAUDIT) delete INKAUDIT[k]; INKAUDIT.doc = currentReader.id; }
+  for (const p in currentReader.ink){
+    const arr = currentReader.ink[p] || [], a = INKAUDIT[p] || (INKAUDIT[p] = { arr, ids: new Set() });
+    const now = new Set(arr.map(x => x.id));
+    if (performance.now() > legitUntil){
+      const gone = [...a.ids].filter(id => !now.has(id));
+      if (gone.length) inkLog('LOST', null, 'page ' + p + ': ' + gone.length + ' stroke(s) vanished; list ' + a.ids.size + '->' + now.size + '; arrayReplaced=' + (a.arr !== arr) + '; docObjSame=' + (live === currentReader));
+    }
+    a.arr = arr; a.ids = now;
+  }
+}, 150);
 function makeShape(x0, y0, x1, y1){
   const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen };
   if (s.k === 'line' || s.k === 'arrow'){
@@ -4832,7 +4850,7 @@ function inkUp(e, cv, cancelled){
       const live = st.t === 'pen' && !g.snapped;   // the pencil stroke is already on the canvas: no redraw, no copying, just remember it
       if (live) finishPenTail(p, st, g); else commitPen(st, g);
       undoAdd(p, st); inkList(p, true).push(st); scheduleSave();
-      inkLog('saved', e, (st.pts ? st.pts.length / 3 + ' pts' : st.k) + (cancelled ? ' (cancelled)' : ''));
+      inkLog('saved', e, (st.pts ? st.pts.length / 3 + ' pts' : st.k) + (cancelled ? ' (cancelled)' : '') + ' list=' + inkList(p).length);
       endInteraction(p); if (!live) redrawInk(p); else settleInk(p);
     } else { endInteraction(p); redrawInk(p); }
   } else if (g.kind === 'shape'){
@@ -4900,6 +4918,7 @@ function erasePieces(st, cs, r){
   return out;
 }
 function eraseAt(p, x, y){
+  legitUntil = performance.now() + 700;
   const r = INK.width.er, lx = G.lx === undefined ? x : G.lx, ly = G.ly === undefined ? y : G.ly;
   G.lx = x; G.ly = y;
   const n = Math.max(1, Math.ceil(Math.hypot(x - lx, y - ly) / (r * 0.6))), cs = [];
@@ -4953,7 +4972,7 @@ function selectDown(p, x, y, opts){
 function deleteSelected(){
   if (!INK.sel) return;
   const p = INK.sel.p, ids = new Set(INK.sel.ids); pushUndo(p);
-  setInkList(p, inkList(p).filter(s => !ids.has(s.id))); INK.sel = null; redrawInk(p); scheduleSave(); syncInkBar();
+  legitUntil = performance.now() + 700; setInkList(p, inkList(p).filter(s => !ids.has(s.id))); INK.sel = null; redrawInk(p); scheduleSave(); syncInkBar();
 }
 
 /* ---------- toolbar ---------- */
