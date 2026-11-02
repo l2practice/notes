@@ -9,8 +9,8 @@
     <title>Note-taking App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-c" />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <meta name="app-build" content="2026-11-02-d" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -678,6 +678,218 @@
         .spinner{animation-duration:1.6s;}
         .doc-card{transition:none;}
       }
+
+      /* ===================================================================================
+         Theme "Woolen cream" — same family as LisDictation (ld-theme.css): Be Vietnam Pro, black
+         pill actions, terracotta accent, soft panels — on a warm cream canvas.
+         =================================================================================== */
+      :root{
+        --font-ui:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif; --font-display:var(--font-ui);
+        --bg:#EAE6D9; --bg-reader:#E3DECF; --surface:#FFFCF5; --surface-2:#F3EEDF; --active:#EBE4D0; --side:#FBF0D9; --sand:#E8E3CE;
+        --ink:#15171C; --ink-2:#4A4E57; --muted:#6F6A5D; --line:#E9E1CD; --control:#D9D0B8;
+        --accent:#D4664F; --accent-strong:#B5523D; --accent-soft:#FBE9E4; --slate:#C9CEDA; --slate-lt:#E6E9F0;
+        --primary:#15171C; --primary-hover:#2B2E35; --on-primary:#FFFFFF;
+        --danger:#C0392B; --danger-soft:#FBE4E0; --ok:#2E8B57;
+        --t1:#F6E3A6; --t2:#F9D6CB; --t3:#DDE0EE;
+        --radius:18px; --radius-control:12px; --radius-lg:26px;
+        --shadow:0 2px 10px rgba(60,45,20,.07); --shadow-md:0 10px 30px rgba(60,45,20,.10); --shadow-lg:0 14px 44px rgba(40,30,10,.22);
+        --mat:rgba(255,252,245,.84);
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#0F0E0C; --bg-reader:#0B0A09; --surface:#1A1814; --surface-2:#25221A; --active:#2F2B20; --side:#201D17; --sand:#2A261C;
+          --ink:#F4EFE3; --ink-2:#C3BCAB; --muted:#9A937F; --line:#332F25; --control:#4A4435;
+          --accent:#E27A63; --accent-strong:#F09480; --accent-soft:#3A211B; --slate-lt:#2C2F38;
+          --primary:#F4EFE3; --primary-hover:#FFFFFF; --on-primary:#15171C; --danger:#F07A6B; --danger-soft:#3A1F1B;
+          --t1:#4A3F1F; --t2:#4A2A22; --t3:#2C2F42;
+          --shadow:0 2px 10px rgba(0,0,0,.4); --shadow-md:0 10px 30px rgba(0,0,0,.45); --shadow-lg:0 14px 44px rgba(0,0,0,.65);
+          --mat:rgba(32,29,23,.84);
+        }
+      }
+      body{font-size:15px;font-feature-settings:normal;background:var(--bg);}
+      h1,h2,h3,h4{letter-spacing:-.02em;}
+      .btn{height:42px;padding:0 20px;border-radius:999px;border:0;background:var(--surface-2);color:var(--ink);font-weight:600;}
+      .btn:hover{background:var(--active);}
+      .btn.primary,.btn.import-main,.btn.drive{background:var(--primary);color:var(--on-primary);}
+      .btn.primary:hover,.btn.import-main:hover,.btn.drive:hover{background:var(--primary-hover);}
+      .btn.danger{background:var(--danger-soft);color:var(--danger);}
+      .icon-btn{border-radius:12px;}
+      /* library shell: one rounded card on the cream canvas */
+      #libraryView{padding:16px;background:transparent;}
+      .lib-frame{border-radius:30px;overflow:clip;box-shadow:var(--shadow-md);min-height:calc(100vh - 32px);grid-template-columns:268px minmax(0,1fr);background:linear-gradient(90deg,var(--side) 268px,var(--surface) 268px);}
+      .lib-side{background:var(--side);border-right:0;top:16px;height:calc(100vh - 32px);padding:24px 14px 16px;gap:4px;}
+      .lib-main{background:var(--surface);padding:28px 36px 56px;}
+      .lib-brand .owl{background:#fff;border:0;box-shadow:var(--shadow);border-radius:14px;width:42px;height:42px;}
+      .lib-brand .brand-name{font-size:16px;font-weight:700;}
+      .side-nav-item{height:48px;gap:12px;padding:0 8px;border-radius:16px;font-size:15px;font-weight:600;color:var(--ink-2);}
+      .side-nav-item svg{width:18px;height:18px;padding:9px;box-sizing:content-box;border-radius:13px;background:var(--surface);color:var(--ink-2);transition:background .15s,color .15s;stroke-width:2;}
+      .side-nav-item:hover{background:rgba(255,255,255,.55);}
+      .side-nav-item.active{background:transparent;color:var(--ink);font-weight:700;}
+      .side-nav-item.active svg{background:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(212,102,79,.35);}
+      .side-nav-item .count{background:var(--surface);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700;color:var(--ink-2);}
+      .folder-item{height:40px;border-radius:14px;font-weight:600;}
+      .folder-item:hover{background:rgba(255,255,255,.55);}
+      .folder-item.active{background:var(--surface);box-shadow:var(--shadow);}
+      .continue-card{border:0;box-shadow:var(--shadow);border-radius:20px;background:var(--surface);}
+      .side-account{border-top:0;}
+      .lib-topbar{background:var(--sand);border-radius:24px;padding:12px;margin-bottom:26px;}
+      .lib-tabs{background:rgba(255,255,255,.55);border-radius:999px;padding:3px;}
+      .lib-tab{height:34px;border-radius:999px;font-weight:600;}
+      .lib-tab.active{background:var(--surface);box-shadow:var(--shadow);}
+      .search-box{height:46px;border:0;border-radius:999px;background:var(--surface);padding:0 5px 0 18px;}
+      .search-box:focus-within{box-shadow:0 0 0 3px rgba(212,102,79,.25);}
+      .search-go{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;}
+      .search-go:hover{background:var(--accent-strong);color:#fff;}
+      .shelf-head h2{font-size:21px;font-weight:700;letter-spacing:-.025em;}
+      .sort-sel{height:36px;border:0;border-radius:999px;background:var(--surface-2);padding:0 14px;font-weight:600;}
+      .book-cover{border:0;border-radius:10px;box-shadow:0 10px 24px rgba(60,40,10,.18),0 2px 6px rgba(60,40,10,.10);}
+      .book:hover .book-cover{transform:translateY(-5px);box-shadow:0 18px 34px rgba(60,40,10,.24),0 3px 8px rgba(60,40,10,.12);}
+      .book-name{font-weight:700;}
+      .drive-card,.empty,.bin-list,.chart-card{border-radius:22px;}
+      .empty{border-color:var(--control);}
+      .modal{border-radius:26px;border:0;box-shadow:var(--shadow-lg);}
+      .menu,.fpop{border-radius:18px;}
+      #toast{border-radius:999px;}
+      .reader-bar{background:var(--surface);}
+      .zoom-group{border-radius:999px;background:var(--surface-2);}
+      .zoom-group .icon-btn{border-radius:50%;}
+      .thumb-item{border-radius:10px;}
+      /* toolbars: taller, easier to hit */
+      .format-bar{padding:8px 12px;gap:3px;border-radius:22px;}
+      .fmt-btn{min-width:42px;height:44px;border-radius:13px;padding:0 9px;}
+      .fmt-btn svg{width:21px;height:21px;}
+      .fa-glyph{font-size:23px;}
+      .size-val{font-size:15px;min-width:38px;}
+      .bar-sep{height:30px;margin:0 6px;}
+      .swatch{width:25px;height:25px;}
+      .format-bar .swatches{gap:7px;}
+      .ink-range{width:108px;height:28px;}
+      .gram-btn{font-size:13px;min-width:42px;}
+      @media (pointer:coarse){ .fmt-btn{min-width:48px;height:48px;} .swatch{width:29px;height:29px;} }
+      /* Home */
+      .hero{position:relative;border-radius:28px;overflow:hidden;min-height:300px;background:#241b14;color:#fff;isolation:isolate;}
+      .hero-mosaic{position:absolute;inset:-14% -6%;display:grid;grid-template-columns:repeat(8,1fr);gap:12px;transform:rotate(-5deg);opacity:.6;z-index:-2;}
+      .hero-mosaic i{aspect-ratio:3/4;background:center/cover #3a2f26;border-radius:9px;}
+      .hero-shade{position:absolute;inset:0;z-index:-1;background:radial-gradient(60% 90% at 18% 40%,rgba(212,102,79,.35),transparent 70%),linear-gradient(90deg,rgba(24,17,11,.93) 0%,rgba(24,17,11,.68) 52%,rgba(24,17,11,.38) 100%);}
+      .hero-in{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:42px 48px;min-height:300px;}
+      .hero-copy{min-width:0;flex:1;}
+      .hero h1{font-size:clamp(34px,5vw,60px);font-weight:800;line-height:1.02;letter-spacing:-.04em;margin:0 0 10px;}
+      .hero-sub{margin:0;color:rgba(255,255,255,.72);font-size:16px;max-width:430px;line-height:1.55;}
+      .hero-search{display:flex;max-width:520px;background:#fff;border-radius:999px;padding:6px;margin-top:24px;box-shadow:0 14px 34px rgba(0,0,0,.35);}
+      .hero-search input{flex:1;min-width:0;border:0;outline:0;background:none;padding:0 18px;font-size:15px;color:#15171C;}
+      .hero-search input::placeholder{color:#8A8F99;}
+      .hero-search button{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none;}
+      .hero-search button svg{width:20px;height:20px;}
+      .hero-covers{position:relative;width:320px;height:230px;flex:none;}
+      .hero-cover{position:absolute;bottom:0;width:140px;height:196px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 22px 44px rgba(0,0,0,.55);transition:transform .3s var(--ease);text-align:left;}
+      .hero-cover img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;}
+      .hero-cover .fallback{position:absolute;inset:0;padding:14px;font-weight:700;font-size:14px;color:#fff;display:flex;align-items:flex-end;}
+      .hero-cover .chip{position:absolute;left:8px;bottom:8px;background:rgba(21,23,28,.82);color:#fff;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600;}
+      .hero-cover.c0{left:0;transform:rotate(-9deg);} .hero-cover.c1{left:92px;transform:translateY(-14px);z-index:2;} .hero-cover.c2{left:184px;transform:rotate(9deg);}
+      .hero-cover:hover{transform:translateY(-18px) rotate(0) scale(1.05);z-index:5;}
+      .stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:34px 6px 8px;}
+      .stat b{display:block;font-size:clamp(34px,4.6vw,56px);font-weight:800;letter-spacing:-.045em;line-height:1;font-variant-numeric:tabular-nums;}
+      .stat span{display:block;margin-top:8px;color:var(--accent);font-weight:600;font-size:15px;}
+      .h-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 0 14px;}
+      .h-title h2{font-size:22px;font-weight:700;letter-spacing:-.03em;margin:0;}
+      .h-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:18px;}
+      .card{background:var(--surface);border:1px solid var(--line);border-radius:26px;padding:22px 24px;box-shadow:var(--shadow);min-width:0;}
+      .card .c-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+      .card .c-lab{font-size:14px;font-weight:600;color:var(--ink-2);}
+      .card .c-big{font-size:clamp(30px,3.6vw,44px);font-weight:800;letter-spacing:-.04em;line-height:1.15;font-variant-numeric:tabular-nums;margin:6px 0 4px;}
+      .card .c-big em{font-style:normal;color:var(--muted);font-weight:700;}
+      .card .c-note{font-size:13.5px;color:var(--muted);max-width:360px;line-height:1.5;}
+      .card .c-note b{color:var(--accent);font-weight:600;}
+      .seg{display:inline-flex;background:var(--surface-2);border-radius:999px;padding:3px;gap:2px;}
+      .seg button{padding:7px 15px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-2);}
+      .seg button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);}
+      .badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent-strong);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;}
+      .badge svg{width:12px;height:12px;}
+      .area-wrap{position:relative;margin-top:10px;}
+      .area-wrap svg{display:block;width:100%;height:auto;overflow:visible;touch-action:pan-y;}
+      .area-wrap text,.bars-wrap text{font-family:var(--font-ui);font-size:11.5px;fill:var(--muted);}
+      .tip{position:absolute;pointer-events:none;background:#15171C;color:#fff;border-radius:10px;padding:5px 10px;font-size:12.5px;font-weight:600;white-space:nowrap;transform:translate(-50%,-130%);opacity:0;transition:opacity .12s;}
+      .tip.on{opacity:1;}
+      .bars-wrap{margin-top:14px;}
+      .bars-wrap svg{display:block;width:100%;height:auto;overflow:visible;}
+      .tints{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:18px;}
+      .tint{border-radius:28px;padding:22px 26px 22px;color:var(--ink);}
+      .tint.t1{background:var(--t1);} .tint.t2{background:var(--t2);} .tint.t3{background:var(--t3);}
+      .tint h4{font-size:19px;font-weight:700;margin:0;letter-spacing:-.02em;}
+      .tint p{margin:4px 0 0;font-size:13px;opacity:.72;}
+      .tint .big{font-size:38px;font-weight:800;letter-spacing:-.04em;margin:22px 0 10px;font-variant-numeric:tabular-nums;}
+      .tint .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#15171C;border-radius:999px;padding:4px 12px;font-weight:700;font-size:13px;}
+      .tint .pill svg{width:11px;height:11px;}
+      .tint .when{margin-left:8px;font-size:14px;opacity:.75;}
+      .doc-rows{display:flex;flex-direction:column;margin-top:6px;}
+      .doc-row{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(90px,150px) 70px;align-items:center;gap:14px;padding:11px 4px;border-top:1px solid var(--line);text-align:left;width:100%;border-radius:12px;}
+      .doc-row:first-child{border-top:0;}
+      .doc-row:hover{background:var(--surface-2);}
+      .doc-row .dr-cover{width:40px;height:54px;border-radius:7px;background:var(--surface-2) center/cover no-repeat;box-shadow:0 4px 10px rgba(60,40,10,.18);}
+      .doc-row .dr-name{font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .doc-row .dr-sub{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .doc-row .dr-prog{height:7px;border-radius:4px;background:var(--surface-2);overflow:hidden;}
+      .doc-row .dr-prog i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),#e8977f);}
+      .doc-row .dr-val{font-size:13px;color:var(--ink-2);font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
+      .fold-row{display:flex;align-items:center;gap:14px;padding:11px 4px;border-radius:14px;width:100%;text-align:left;}
+      .fold-row:hover{background:var(--surface-2);}
+      .fold-row .fr-ico{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;background:center/cover no-repeat;flex:none;}
+      .fold-row .fr-main{flex:1;min-width:0;}
+      .fold-row .fr-name{font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .fold-row .fr-sub{font-size:12.5px;color:var(--muted);}
+      .fold-row .fr-go{width:30px;height:30px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2);flex:none;}
+      .fold-row .fr-go svg{width:14px;height:14px;}
+      .side-nav-item .count:empty{display:none;}
+      @media (max-width:1180px){ .h-grid{grid-template-columns:minmax(0,1fr);} .hero-covers{display:none;} .hero-in{padding:34px 36px;} }
+      @media (max-width:900px){
+        .tints{grid-template-columns:minmax(0,1fr);}
+        .stat-row{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:26px;}
+        .hero-covers{display:none;} .hero-in{padding:28px 24px;min-height:260px;}
+      }
+      /* phone: floating tab bar */
+      @media (max-width:760px){
+        #libraryView{padding:0;} .lib-frame{border-radius:0;box-shadow:none;background:var(--surface);min-height:100vh;}
+        .lib-main{padding:16px 16px 120px;}
+        .lib-topbar{border-radius:22px;padding:10px;margin-bottom:18px;}
+        .mobile-bottom-nav{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));border:0;border-radius:28px;padding:8px 10px;box-shadow:var(--shadow-lg);align-items:center;}
+        .mobile-bottom-nav button{min-width:54px;min-height:50px;border-radius:18px;font-weight:600;font-size:11px;}
+        .mobile-bottom-nav button.active{color:var(--accent);background:var(--accent-soft);}
+        .mobile-bottom-nav .nav-add{width:54px;height:54px;min-width:54px;border-radius:50%;background:var(--primary);color:var(--on-primary);margin-top:-22px;box-shadow:0 12px 26px rgba(21,23,28,.35);padding:0;justify-content:center;}
+        .mobile-bottom-nav .nav-add.active{background:var(--primary);color:var(--on-primary);}
+        .mobile-bottom-nav .nav-add svg{width:24px;height:24px;}
+        .stat b{font-size:34px;}
+        .hero h1{font-size:34px;} .hero-search{margin-top:18px;}
+        .card{padding:18px;border-radius:22px;}
+        .doc-row{grid-template-columns:40px minmax(0,1fr) 60px;} .doc-row .dr-prog{display:none;}
+      }
+      .reader-bar .btn{height:40px;padding:0 15px;font-size:13.5px;gap:7px;}
+      @media (max-width:1560px){ .save-status .txt{display:none;} .reader-bar .btn{padding:0 12px;} }
+      .nav-scrim{display:none;}
+      .greet-menu{display:none;}
+      @media (max-width:760px){
+        .greet-menu{display:inline-flex;width:46px;height:46px;border-radius:16px;background:var(--surface-2);align-items:center;justify-content:center;flex:none;color:var(--ink);}
+        .greet-menu svg{width:22px;height:22px;}
+        .greet-avatar{display:none;}
+        /* the sidebar becomes a drawer: hidden until the menu button is tapped */
+        .lib-side{display:flex;position:fixed;left:0;top:0;bottom:0;height:100dvh;width:min(86vw,330px);z-index:200;border-radius:0 28px 28px 0;
+          padding:calc(22px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom));box-shadow:var(--shadow-lg);overflow-y:auto;transform:translateX(-104%);visibility:hidden;
+          transition:transform .28s var(--ease),visibility 0s linear .28s;}
+        .lib-frame.nav-open .lib-side{transform:none;visibility:visible;transition:transform .28s var(--ease),visibility 0s;}
+        .nav-scrim{display:block;position:fixed;inset:0;background:rgba(21,23,28,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:190;}
+        .nav-scrim.on{opacity:1;pointer-events:auto;}
+        .continue-card,.continue-empty{display:block;}
+      }
+      @media (prefers-reduced-motion:reduce){ .lib-side,.nav-scrim{transition:none !important;} }
+      @media (max-width:760px){ .mobile-greet.on-home .greet-txt{display:none;} .mobile-greet.on-home{justify-content:space-between;} .mobile-greet.on-home .greet-menu{order:0;} }
+      @media (max-width:760px){
+        .lib-side .folder-list{flex-direction:column;flex-wrap:nowrap;overflow:visible;padding:0;gap:1px;max-width:none;}
+        .lib-side .folder-item{width:100%;flex:none;border:0;background:none;min-height:0;height:42px;padding:0 6px 0 10px;border-radius:14px;}
+        .lib-side .folder-item.active{background:var(--surface);box-shadow:var(--shadow);}
+        .lib-side .folder-item .f-actions{display:flex !important;} .lib-side .folder-item .count{display:none;}
+        .lib-side .new-folder-btn{width:100%;justify-content:flex-start;min-height:0;height:42px;margin-top:2px;}
+        .lib-side .side-toggle{margin-top:14px;}
+      }
+      @media (max-width:760px){ .lib-side .chip-menu-btn{display:none !important;} }
     </style>
   </head>
   <body>
@@ -727,6 +939,7 @@
         </aside>
         <section class="lib-main" id="libBody">
           <div class="mobile-greet">
+            <button class="greet-menu" id="navToggle" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
             <span class="greet-avatar"><svg viewBox="0 0 512 512"><path d="M96 126h336v346H96z" fill="#ffc944"/><path d="M60 64h360v350H60z" fill="#f2f2f2"/><path d="M350 416v-66h72z" fill="#fff"/><g fill="none" stroke="#000" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><path d="M64 320V68h352v278l-68 70H64v-30"/><path d="M348 416v-68h68"/><path d="M448 128v346H96v-26"/><path d="M108 176h264M108 224h264M108 272h152"/><path d="M96 112V80a32 32 0 0 1 64 0v40a16 16 0 0 1-32 0V84"/></g><circle cx="64" cy="352" r="10"/></svg></span>
             <div class="greet-txt"><div class="greet-hi">Hello!</div><div class="greet-sub">What will you annotate today?</div></div>
             <button class="greet-drive" id="greetDriveBtn" title="Google Drive Sync">
@@ -789,11 +1002,11 @@
         </section>
       </div>
       <nav class="mobile-bottom-nav" id="mobileBottomNav">
-        <button data-nav="home" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg><span>Library</span></button>
-        <button data-nav="continue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5v15l6-4.5 6 4.5v-15Z"/></svg><span>Continue</span></button>
-        <button data-nav="import" class="nav-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Import PDF</span></button>
-        <button data-nav="folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span>New Folder</span></button>
-        <button data-nav="drive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/><path d="M12 12v7m0-7-2.2 2.2M12 12l2.2 2.2"/></svg><span>Settings</span></button>
+        <button data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg><span>Home</span></button>
+        <button data-nav="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg><span>Library</span></button>
+        <button data-nav="add" class="nav-add" aria-label="Add a document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button data-nav="bin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg><span>Bin</span></button>
+        <button data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span>Settings</span></button>
       </nav>
     </div>
 
@@ -825,6 +1038,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16m-3 0h6"/></svg>
           Add Text
         </button>
+        <button class="btn" id="picBtn" title="Add a picture or photo (you can also paste or drop one)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>Picture</button>
+        <input type="file" id="picInput" accept="image/*" multiple class="hidden" />
         <button class="btn" id="drawBtn" title="Draw with a pen, Apple Pencil or mouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Draw</button>
         <button class="btn" id="markBtn" title="Highlighter — highlight anywhere on the page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6.5-6.5-4-4Z"/><path d="m9 11-4.5 4.5V19h4L13 14.5"/><path d="M4 21h16"/></svg>Highlight</button>
         <button class="btn hidden" id="addPageBtn" title="Add a page at the end"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Page</button>
@@ -935,6 +1150,7 @@
     </div>
     <div class="fpop hidden" id="shapePop"></div>
     <div class="fpop hidden" id="symPop"></div>
+    <div class="nav-scrim" id="navScrim"></div>
     <div id="modalRoot"></div>
     <div id="menuRoot"></div>
     <div id="toast"></div>
@@ -982,7 +1198,7 @@
     let docs = [];
     let currentFolderId = 'all'; // 'all' | folder id | 'none'
     let libViewMode = 'shelves'; // 'shelves' (ke sach) | 'all' (luoi tat ca)
-    let libView = 'library';     // 'library' | 'home' (statistics) | 'settings'
+    let libView = 'home';        // the app opens on Home; 'library' | 'home' | 'settings' | 'bin'
     let sortMode = 'recent';     // 'recent' (last opened) | 'newest' (date added) | 'alpha'
     try { sortMode = localStorage.getItem('nt-sort') || 'recent'; } catch (e) {}
     let searchText = '';
@@ -1183,6 +1399,8 @@
       $('#settingsView').classList.toggle('hidden', libView !== 'settings');
       $('#binView').classList.toggle('hidden', libView !== 'bin');
       { const bc = $('#binCount'); if (bc) bc.textContent = binDocsList().length || ''; }
+      document.querySelectorAll('#mobileBottomNav [data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === libView));
+      { const mg = document.querySelector('.mobile-greet'); if (mg) mg.classList.toggle('on-home', libView === 'home'); }
       [['navHomeBtn', 'home'], ['navLibBtn', 'library'], ['navSettingsBtn', 'settings'], ['navBinBtn', 'bin']].forEach(([id, v]) => { const b = document.getElementById(id); if (b) b.classList.toggle('active', libView === v); });
       if (libView === 'home'){ renderHome(); return; }
       if (libView === 'bin'){ renderBin(); return; }
@@ -1234,45 +1452,156 @@
     function fmtDur(sec){ const m = Math.round(sec / 60); if (m < 60) return m + ' min'; return Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min'; }
     function inkCount(d){ let n = 0; if (d.ink) for (const k in d.ink) n += (d.ink[k] || []).length; return n; }
     function niceMax(v){ const steps = [10, 20, 30, 60, 90, 120, 180, 240, 360, 480]; return steps.find(x => x >= v) || Math.ceil(v / 60) * 60; }
-    function renderHome(){
-      const el = $('#homeView');
-      const totalPages = liveDocs().reduce((a, d) => a + (d.pages || 0), 0);
-      const pagesRead = liveDocs().reduce((a, d) => a + (d.lastOpenedAt ? Math.min(d.lastPage || 1, d.pages || 1) : 0), 0);
-      const secs = liveDocs().reduce((a, d) => a + docSecs(d), 0);
-      const marks = liveDocs().reduce((a, d) => a + (d.notes ? d.notes.length : 0) + inkCount(d), 0);
-      const days = []; const now = new Date();
-      for (let i = 13; i >= 0; i--){ const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); const k = dayKey(t); days.push({ k, d: t.getDate(), label: t.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }), m: liveDocs().reduce((a, x) => a + ((x.readLog || {})[k] || 0), 0) / 60 }); }
-      const week = days.slice(7).reduce((a, x) => a + x.m, 0) * 60;
-      // bar chart
-      const mx = niceMax(Math.max.apply(null, days.map(x => x.m).concat([5])));
-      const W = 620, H = 190, L = 34, B = 22, T = 8, cw = (W - L) / days.length, ch = H - B - T;
-      let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Reading minutes per day">';
-      [0, .5, 1].forEach(f => { const y = T + ch - f * ch; svg += '<line x1="' + L + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-width="1"' + (f ? ' stroke-dasharray="3 4"' : '') + '/><text x="' + (L - 6) + '" y="' + (y + 4) + '" text-anchor="end">' + Math.round(f * mx) + '</text>'; });
-      days.forEach((x, i) => {
-        const h = Math.max(x.m ? 2 : 0, x.m / mx * ch), bx = L + i * cw + cw * 0.2;
-        svg += '<rect x="' + bx + '" y="' + (T + ch - h) + '" width="' + cw * 0.6 + '" height="' + h + '" rx="3" fill="var(--accent)"><title>' + x.label + ' — ' + Math.round(x.m) + ' min</title></rect>';
-        svg += '<text x="' + (bx + cw * 0.3) + '" y="' + (H - 6) + '" text-anchor="middle">' + x.d + '</text>';
-      });
-      svg += '</svg>';
-      // per folder
-      const groups = folders.map(f => ({ name: f.name, docs: folderDocs(f.id) }));
-      if (folderDocs('none').length) groups.push({ name: 'Uncategorized', docs: folderDocs('none') });
-      const gmax = Math.max.apply(null, groups.map(g => g.docs.reduce((a, d) => a + (d.pages || 0), 0)).concat([1]));
-      const folderRows = groups.length ? groups.map(g => { const pg = g.docs.reduce((a, d) => a + (d.pages || 0), 0); return '<div class="hbar-row"><span class="nm" title="' + esc(g.name) + '">' + esc(g.name) + '</span><span class="hbar"><i style="width:' + (pg / gmax * 100) + '%"></i></span><span class="vl">' + g.docs.length + (g.docs.length === 1 ? ' doc' : ' docs') + ' · ' + pg + ' pp</span></div>'; }).join('') : '<div class="chart-empty">No folders yet.</div>';
-      const top = liveDocs().filter(d => docSecs(d) > 0).sort((a, b) => docSecs(b) - docSecs(a)).slice(0, 5);
-      const tmax = top.length ? docSecs(top[0]) : 1;
-      const topRows = top.length ? top.map(d => '<div class="hbar-row"><span class="nm" title="' + esc(d.name) + '">' + esc(d.name) + '</span><span class="hbar"><i style="width:' + (docSecs(d) / tmax * 100) + '%"></i></span><span class="vl">' + fmtDur(docSecs(d)) + '</span></div>').join('') : '<div class="chart-empty">Time is counted while a document is open and you are working in it.</div>';
-      el.innerHTML = '<h2 class="page-title">Home</h2><p class="page-sub">Your library and study time at a glance.</p>' +
-        '<div class="kpis">' +
-          '<div class="kpi"><div class="k-l">Documents</div><div class="k-v">' + liveDocs().length + '</div><div class="k-s">' + folders.length + (folders.length === 1 ? ' folder' : ' folders') + '</div></div>' +
-          '<div class="kpi"><div class="k-l">Pages</div><div class="k-v">' + totalPages.toLocaleString('en-US') + '</div><div class="k-s">' + pagesRead.toLocaleString('en-US') + ' reached' + (totalPages ? ' (' + Math.round(pagesRead / totalPages * 100) + '%)' : '') + '</div></div>' +
-          '<div class="kpi"><div class="k-l">Time spent</div><div class="k-v">' + fmtDur(secs) + '</div><div class="k-s">' + fmtDur(week) + ' in the last 7 days</div></div>' +
-          '<div class="kpi"><div class="k-l">Notes and drawings</div><div class="k-v">' + marks.toLocaleString('en-US') + '</div><div class="k-s">across all documents</div></div>' +
-        '</div>' +
-        '<div class="charts"><div class="chart-card"><h3>Time per day</h3><div class="sub">Minutes, last 14 days</div>' + svg + '</div>' +
-        '<div class="chart-card"><h3>Documents by folder</h3><div class="sub">Pages per folder</div>' + folderRows + '</div></div>' +
-        '<div class="chart-card"><h3>Most-used documents</h3><div class="sub">By time spent</div>' + topRows + '</div>';
+    let homeRange = 30, homeTab = 'recent';
+    const IC = {
+      search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>',
+      up: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5 3 19h18Z"/></svg>',
+      down: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 19 9-14H3Z"/></svg>',
+      go: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>'
+    };
+    function smoothPath(pts, top, bot){
+      let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+      for (let i = 0; i < pts.length - 1; i++){
+        const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2, t = 0.17;
+        const cl = v => Math.max(top, Math.min(bot, v));
+        d += ' C' + (p1[0] + (p2[0] - p0[0]) * t).toFixed(1) + ' ' + cl(p1[1] + (p2[1] - p0[1]) * t).toFixed(1) + ' ' + (p2[0] - (p3[0] - p1[0]) * t).toFixed(1) + ' ' + cl(p2[1] - (p3[1] - p1[1]) * t).toFixed(1) + ' ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+      }
+      return d;
     }
+    function daySeries(n, offset){
+      const out = [], now = new Date(), live = liveDocs();
+      for (let i = n - 1; i >= 0; i--){
+        const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i - (offset || 0)), k = dayKey(t);
+        out.push({ k, t, m: live.reduce((a, x) => a + ((x.readLog || {})[k] || 0), 0) / 60 });
+      }
+      return out;
+    }
+    function fmtBig(sec){
+      const m = Math.round(sec / 60); if (m < 60) return '<span>' + m + '</span><em> min</em>';
+      return '<span>' + Math.floor(m / 60) + '</span><em> h </em><span>' + String(m % 60).padStart(2, '0') + '</span><em> min</em>';
+    }
+    function areaChart(data){
+      const W = 640, H = 220, L = 38, B = 26, T = 12, cw = W - L - 6, ch = H - B - T;
+      const mx = niceMax(Math.max.apply(null, data.map(x => x.m).concat([5])));
+      const X = i => L + (data.length === 1 ? cw / 2 : i / (data.length - 1) * cw), Y = v => T + ch - v / mx * ch;
+      const pts = data.map((x, i) => [X(i), Y(x.m)]);
+      let g = '';
+      [0, .25, .5, .75, 1].forEach(f => { const y = T + ch - f * ch; g += '<line x1="' + L + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-dasharray="' + (f ? '2 5' : '0') + '"/><text x="' + (L - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + Math.round(f * mx) + '</text>'; });
+      const step = Math.max(1, Math.round(data.length / 7)); let lbl = '';
+      data.forEach((x, i) => { if (i % step === 0 || i === data.length - 1) lbl += '<text x="' + X(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + x.t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + '</text>'; });
+      const line = smoothPath(pts, T, T + ch);
+      return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Reading minutes per day">' +
+        '<defs><linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent);stop-opacity:.34"/><stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/></linearGradient></defs>' +
+        g + lbl + '<path d="' + line + ' L' + X(data.length - 1) + ' ' + (T + ch) + ' L' + X(0) + ' ' + (T + ch) + ' Z" fill="url(#gArea)"/>' +
+        '<path d="' + line + '" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/>' +
+        '<line id="arLine" x1="0" x2="0" y1="' + T + '" y2="' + (T + ch) + '" stroke="var(--ink)" stroke-dasharray="3 4" opacity="0"/>' +
+        '<circle id="arDot" r="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.5" opacity="0"/></svg><div class="tip" id="arTip"></div>';
+    }
+    function bindArea(el, data){
+      const wrap = el.querySelector('.area-wrap'); if (!wrap) return;
+      const svg = wrap.querySelector('svg'), line = svg.querySelector('#arLine'), dot = svg.querySelector('#arDot'), tip = wrap.querySelector('#arTip');
+      const W = 640, H = 220, L = 38, B = 26, T = 12, cw = W - L - 6, ch = H - B - T, mx = niceMax(Math.max.apply(null, data.map(x => x.m).concat([5])));
+      const show = e => {
+        const r = svg.getBoundingClientRect(), fx = Math.max(0, Math.min(1, ((e.clientX - r.left) / r.width * W - L) / cw)), i = Math.round(fx * (data.length - 1)), d = data[i];
+        const x = L + (data.length === 1 ? cw / 2 : i / (data.length - 1) * cw), y = T + ch - d.m / mx * ch;
+        line.setAttribute('x1', x); line.setAttribute('x2', x); line.setAttribute('opacity', 1); dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('opacity', 1);
+        tip.textContent = d.t.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + Math.round(d.m) + ' min';
+        tip.style.left = (x / W * r.width) + 'px'; tip.style.top = (y / H * r.height) + 'px'; tip.classList.add('on');
+      };
+      const hide = () => { line.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); tip.classList.remove('on'); };
+      svg.addEventListener('pointermove', show); svg.addEventListener('pointerdown', show); svg.addEventListener('pointerleave', hide);
+    }
+    function barsChart(groups){
+      if (!groups.length) return '<div class="chart-empty">Open a document and your progress shows up here.</div>';
+      const W = 460, H = 230, B = 40, T = 26, n = groups.length, slot = W / n, bw = Math.min(34, slot * 0.46), ch = H - B - T;
+      const mx = Math.max.apply(null, groups.map(g => g.v).concat([1])), avg = groups.reduce((a, g) => a + g.v, 0) / n;
+      let out = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Pages reached per folder"><defs>' +
+        '<linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--accent);stop-opacity:1"/><stop offset="1" style="stop-color:var(--accent);stop-opacity:.08"/></linearGradient>' +
+        '<linearGradient id="gBarD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--ink);stop-opacity:.8"/><stop offset="1" style="stop-color:var(--ink);stop-opacity:.05"/></linearGradient></defs>';
+      groups.forEach((g, i) => {
+        const x = i * slot + (slot - bw) / 2, h = Math.max(4, g.v / mx * ch), y = T + ch - h;
+        out += '<rect x="' + (x + bw / 2 - 0.5) + '" y="' + T + '" width="1" height="' + ch + '" fill="var(--line)"/>' +
+          '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + h + '" rx="' + bw / 2 + '" fill="url(#' + (g.v >= avg ? 'gBar' : 'gBarD') + ')"><title>' + esc(g.name) + ' — ' + g.v + ' pages</title></rect>' +
+          '<text x="' + (x + bw / 2) + '" y="' + (H - 18) + '" text-anchor="middle">' + esc(g.name.length > 9 ? g.name.slice(0, 8) + '…' : g.name) + '</text>';
+      });
+      const ay = T + ch - avg / mx * ch;
+      out += '<line x1="0" x2="' + W + '" y1="' + ay + '" y2="' + ay + '" stroke="var(--ink)" stroke-opacity=".55"/><g transform="translate(0,' + (ay - 13) + ')"><rect width="92" height="26" rx="13" fill="#15171C"/><text x="46" y="17" text-anchor="middle" style="fill:#fff;font-weight:600">Avg ' + Math.round(avg) + ' pp</text></g></svg>';
+      return out;
+    }
+    function coverCss(d){ return d.thumb ? 'background-image:url(' + d.thumb + ')' : 'background:' + ((folders.find(f => f.id === d.folderId) || {}).color || '#6b7280'); }
+    function renderHome(){
+      const el = $('#homeView'), live = liveDocs();
+      const totalPages = live.reduce((a, d) => a + (d.pages || 0), 0);
+      const reached = d => d.lastOpenedAt ? Math.min(d.lastPage || 1, d.pages || 1) : 0;
+      const pagesRead = live.reduce((a, d) => a + reached(d), 0);
+      const secs = live.reduce((a, d) => a + docSecs(d), 0);
+      const marks = live.reduce((a, d) => a + (d.notes ? d.notes.length : 0) + inkCount(d), 0);
+      const hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+      const recent = live.filter(d => d.lastOpenedAt).sort((a, b) => b.lastOpenedAt - a.lastOpenedAt);
+      const heroDocs = (recent.length ? recent : live.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))).slice(0, 3);
+      const mosaic = live.filter(d => d.thumb).slice(0, 16);
+      while (mosaic.length && mosaic.length < 16) mosaic.push(mosaic[mosaic.length % Math.max(1, mosaic.length)]);
+      const hours = secs < 3600 ? Math.round(secs / 60) + ' min' : (secs / 3600).toFixed(1) + ' h';
+      // ranges for the chart
+      const cur = daySeries(homeRange), prev = daySeries(homeRange, homeRange);
+      const curSec = cur.reduce((a, x) => a + x.m, 0) * 60, prevSec = prev.reduce((a, x) => a + x.m, 0) * 60;
+      const pct = prevSec > 0 ? Math.round((curSec - prevSec) / prevSec * 100) : null;
+      const rangeLbl = homeRange === 7 ? 'week' : homeRange + ' days';
+      const wkNow = daySeries(7).reduce((a, x) => a + x.m, 0) * 60, wkPrev = daySeries(7, 7).reduce((a, x) => a + x.m, 0) * 60;
+      const wkPct = wkPrev > 0 ? Math.round((wkNow - wkPrev) / wkPrev * 100) : null;
+      const newThisWeek = live.filter(d => (d.createdAt || 0) > Date.now() - 7 * DAY_MS).length;
+      const finished = live.filter(isFinishedDoc).length;
+      const arrow = up => up ? IC.up : IC.down;
+      // folders
+      const groups = folders.map(f => ({ id: f.id, name: f.name, color: f.color, cover: f.cover, docs: folderDocs(f.id) }));
+      if (folderDocs('none').length) groups.push({ id: 'none', name: 'Uncategorized', color: '#8a8f99', docs: folderDocs('none') });
+      const bars = groups.map(g => ({ name: g.name, v: g.docs.reduce((a, d) => a + reached(d), 0) })).filter(g => g.v > 0).sort((a, b) => b.v - a.v).slice(0, 7);
+      // lists
+      const list = (homeTab === 'recent' ? recent : live.filter(d => docSecs(d) > 0).sort((a, b) => docSecs(b) - docSecs(a))).slice(0, 6);
+      const rows = list.length ? list.map(d => {
+        const f = folders.find(x => x.id === d.folderId), pc = d.pages ? Math.min(100, Math.round(reached(d) / d.pages * 100)) : 0;
+        return '<button class="doc-row" data-open="' + d.id + '"><span class="dr-cover" style="' + coverCss(d) + '"></span><span style="min-width:0"><div class="dr-name">' + esc(d.name) + '</div><div class="dr-sub">' + esc(f ? f.name : 'Uncategorized') + ' · p. ' + reached(d) + ' / ' + (d.pages || 0) + '</div></span><span class="dr-prog"><i style="width:' + pc + '%"></i></span><span class="dr-val">' + (homeTab === 'recent' ? pc + '%' : fmtDur(docSecs(d))) + '</span></button>';
+      }).join('') : '<div class="chart-empty">Nothing here yet — open a document and it will appear.</div>';
+      const folderRows = groups.length ? groups.map(g => {
+        const pg = g.docs.reduce((a, d) => a + (d.pages || 0), 0);
+        return '<button class="fold-row" data-folder-go="' + g.id + '"><span class="fr-ico" style="' + (g.cover ? 'background-image:url(' + g.cover + ')' : 'background:' + g.color) + '">' + (g.cover ? '' : esc(g.name.charAt(0).toUpperCase())) + '</span><span class="fr-main"><div class="fr-name">' + esc(g.name) + '</div><div class="fr-sub">' + g.docs.length + (g.docs.length === 1 ? ' document' : ' documents') + ' · ' + pg + ' pages</div></span><span class="fr-go">' + IC.go + '</span></button>';
+      }).join('') : '<div class="chart-empty">Create a folder to group your documents.</div>';
+      const fan = heroDocs.map((d, i) => '<button class="hero-cover c' + i + '" data-open="' + d.id + '" title="' + esc(d.name) + '">' + (d.thumb ? '<img src="' + d.thumb + '" alt="" />' : '<span class="fallback" style="' + coverCss(d) + '">' + esc(d.name) + '</span>') + ((d.lastPage || 1) > 1 ? '<span class="chip">Resume p. ' + d.lastPage + '</span>' : '') + '</button>').join('');
+      el.innerHTML =
+        '<section class="hero"><div class="hero-mosaic" aria-hidden="true">' + mosaic.map(d => '<i style="background-image:url(' + d.thumb + ')"></i>').join('') + '</div><div class="hero-shade"></div>' +
+          '<div class="hero-in"><div class="hero-copy"><h1>' + greet + '</h1><p class="hero-sub">' + (heroDocs.length ? 'Pick up where you left off, or find anything in your library.' : 'Import a PDF or start a blank notebook to begin.') + '</p>' +
+            '<form class="hero-search" id="heroSearch"><input id="heroInput" type="text" placeholder="Search your documents…" autocomplete="off" /><button type="submit" aria-label="Search">' + IC.search + '</button></form></div>' +
+            '<div class="hero-covers">' + fan + '</div></div></section>' +
+        '<section class="stat-row"><div class="stat"><b>' + live.length + '</b><span>Documents</span></div><div class="stat"><b>' + totalPages.toLocaleString('en-US') + '</b><span>Pages</span></div><div class="stat"><b>' + hours + '</b><span>Time spent</span></div><div class="stat"><b>' + marks.toLocaleString('en-US') + '</b><span>Notes &amp; drawings</span></div></section>' +
+        '<div class="h-title"><h2>Overview</h2></div>' +
+        '<div class="h-grid"><div class="card" id="areaCard"><div class="c-top"><div><div class="c-label c-lab">Reading time</div><div class="c-big">' + fmtBig(curSec) + '</div></div>' +
+            '<div class="seg" id="rangeSeg">' + [[7, '7d'], [30, '30d'], [90, '90d']].map(([n, l]) => '<button data-range="' + n + '" class="' + (homeRange === n ? 'on' : '') + '">' + l + '</button>').join('') + '</div></div>' +
+          '<div class="c-top" style="margin-top:2px"><div class="c-note">' + (pct === null ? 'Time is counted while a document is open and you are working in it.' : 'Compared with the previous ' + rangeLbl + ', you read <b>' + (pct >= 0 ? fmtDur(curSec - prevSec) + ' more' : fmtDur(prevSec - curSec) + ' less') + '</b>.') + '</div>' +
+            (pct === null ? '' : '<span class="badge">' + arrow(pct >= 0) + (pct >= 0 ? 'Up ' : 'Down ') + Math.abs(pct) + '%</span>') + '</div>' +
+          '<div class="area-wrap">' + areaChart(cur) + '</div></div>' +
+          '<div class="card"><div class="c-top"><div class="c-lab" style="font-size:16px;font-weight:700;color:var(--ink)">Progress by folder</div><span class="badge" style="background:var(--surface-2);color:var(--ink-2)">Pages reached</span></div>' +
+            '<div class="c-big">' + pagesRead.toLocaleString('en-US') + '<em> / ' + totalPages.toLocaleString('en-US') + '</em></div><div class="bars-wrap">' + barsChart(bars) + '</div></div></div>' +
+        '<div class="h-title"><h2>This week</h2></div>' +
+        '<div class="tints">' +
+          '<div class="tint t1"><h4>New documents</h4><p>Added to your library</p><div class="big">' + newThisWeek + '</div><span class="pill">' + IC.up + ' +' + newThisWeek + '</span><span class="when">last 7 days</span></div>' +
+          '<div class="tint t2"><h4>Reading time</h4><p>Compared with the week before</p><div class="big">' + fmtDur(wkNow) + '</div><span class="pill">' + (wkPct === null ? 'First week' : arrow(wkPct >= 0) + ' ' + Math.abs(wkPct) + '%') + '</span><span class="when">vs last week</span></div>' +
+          '<div class="tint t3"><h4>Finished</h4><p>Documents read to the last page</p><div class="big">' + finished + '</div><span class="pill">' + (live.length ? Math.round(finished / live.length * 100) : 0) + '%</span><span class="when">of your library</span></div>' +
+        '</div>' +
+        '<div class="h-grid" style="margin-top:34px"><div class="card"><div class="c-top"><div class="c-lab" style="font-size:16px;font-weight:700;color:var(--ink)">Your documents</div><div class="seg" id="tabSeg"><button data-tab="recent" class="' + (homeTab === 'recent' ? 'on' : '') + '">Recent</button><button data-tab="most" class="' + (homeTab === 'most' ? 'on' : '') + '">Most read</button></div></div><div class="doc-rows">' + rows + '</div></div>' +
+          '<div class="card"><div class="c-top"><div class="c-lab" style="font-size:16px;font-weight:700;color:var(--ink)">Folders</div></div><div class="doc-rows">' + folderRows + '</div></div></div>';
+      bindArea(el, cur);
+    }
+    $('#homeView').addEventListener('click', e => {
+      const o = e.target.closest('[data-open]'); if (o){ openReader(o.dataset.open); return; }
+      const r = e.target.closest('[data-range]'); if (r){ homeRange = +r.dataset.range; renderHome(); return; }
+      const t = e.target.closest('[data-tab]'); if (t){ homeTab = t.dataset.tab; renderHome(); return; }
+      const f = e.target.closest('[data-folder-go]'); if (f){ currentFolderId = f.dataset.folderGo; libView = 'library'; renderLibrary(); window.scrollTo({ top: 0 }); }
+    });
+    $('#homeView').addEventListener('submit', e => {
+      if (e.target.id !== 'heroSearch') return; e.preventDefault();
+      const v = $('#heroInput').value.trim().toLowerCase(); searchText = v; $('#searchInput').value = v;
+      libView = 'library'; currentFolderId = 'all'; renderLibrary(); window.scrollTo({ top: 0 });
+    });
     function shelfAreaClick(e){
       if (e.target.closest('[data-fullshelf]')){ libViewMode = 'all'; renderLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     }
@@ -1300,6 +1629,7 @@
     }
     async function purgeDoc(doc){
       await DB.del('docs', doc.id); await DB.del('files', doc.id);
+      for (const id in (doc.imgs || {})){ await DB.del('files', 'img:' + id); addDocTombstone('img:' + id, doc.imgs[id].fid); }
       docs = docs.filter(x => x.id !== doc.id);
       addDocTombstone(doc.id, doc.driveFileId);
       if (typeof queueDriveSync === 'function') queueDriveSync();
@@ -1400,6 +1730,15 @@
     }
     $('#newFolderBtn').addEventListener('click', () => folderForm(null));
     /* Subjects fold with the arrow; with no saved choice they fold on their own when the sidebar runs out of room */
+    function setNav(open){
+      document.querySelector('.lib-frame').classList.toggle('nav-open', open);
+      $('#navScrim').classList.toggle('on', open); $('#navToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    $('#navToggle').addEventListener('click', () => setNav(true));
+    $('#navScrim').addEventListener('click', () => setNav(false));
+    document.querySelector('.lib-side').addEventListener('click', e => { if (e.target.closest('.side-nav-item, .folder-item, .side-account, .continue-card, .new-folder-btn') && !e.target.closest('[data-chipmenu], [data-act]')) setNav(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') setNav(false); });
+    window.addEventListener('resize', () => { if (window.innerWidth > 760) setNav(false); });
     function fitSidebar(){
       const side = document.querySelector('.lib-side'), t = $('#subjToggle'); if (!side || !t) return;
       let pref = null; try { pref = localStorage.getItem('nt-subj'); } catch (e) {}
@@ -1443,16 +1782,17 @@
     const _mbn = $('#mobileBottomNav');
     if (_mbn) _mbn.addEventListener('click', e => {
       const b = e.target.closest('[data-nav]'); if (!b) return;
-      _mbn.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
       const act = b.dataset.nav;
-      if (act === 'home'){ currentFolderId = 'all'; libView = 'library'; renderLibrary(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-      else if (act === 'import'){ $('#fileInput').click(); }
-      else if (act === 'folder'){ folderForm(null); }
-      else if (act === 'drive'){ scrollToDrive(); }
-      else if (act === 'continue'){
-        const cand = liveDocs().filter(d => isReadingDoc(d)).sort((a, bb) => (bb.lastOpenedAt || bb.updatedAt) - (a.lastOpenedAt || a.updatedAt))[0];
-        if (cand) openReader(cand.id); else toast('No document in progress yet.');
+      if (act === 'add'){
+        const r = b.getBoundingClientRect();
+        $('#menuRoot').innerHTML = '<div class="menu" style="bottom:' + (window.innerHeight - r.top + 10) + 'px;left:' + Math.max(8, Math.min(r.left - 80, window.innerWidth - 215)) + 'px;transform-origin:bottom center">' +
+          '<button data-add="pdf">Import a PDF</button><button data-add="blank">New blank document</button><button data-add="folder">New folder</button></div>';
+        document.addEventListener('pointerdown', menuOutside, true);
+        $('.menu').addEventListener('click', ev => { const t = ev.target.closest('[data-add]'); if (!t) return; closeMenu(); if (t.dataset.add === 'pdf') $('#fileInput').click(); else if (t.dataset.add === 'blank') newDocModal(); else folderForm(null); });
+        return;
       }
+      libView = act === 'library' ? 'library' : act; if (act === 'library'){ libViewMode = 'shelves'; }
+      renderLibrary(); window.scrollTo({ top: 0 });
     });
     $('#importBtnTop').addEventListener('click', () => $('#fileInput').click());
     $('#searchInput').addEventListener('input', e => { searchText = e.target.value.trim().toLowerCase(); renderLibrary(); });
@@ -2014,7 +2354,7 @@
     function zoomAnimStep(){
       zoomAnimFrame = null;
       if (zoomTargetScale === null) return;
-      let next = scale + (zoomTargetScale - scale) * 0.42;
+      let next = scale + (zoomTargetScale - scale) * 0.52;
       if (Math.abs(zoomTargetScale - next) < 0.003) next = zoomTargetScale;
       scale = next;
       sizeAllPages();
@@ -2035,7 +2375,7 @@
     $('#pagesScroll').addEventListener('wheel', e => {
       if (e.ctrlKey || e.metaKey){
         e.preventDefault();
-        const f = Math.max(0.7, Math.min(1.45, Math.exp(-e.deltaY * 0.004)));
+        const f = Math.max(0.6, Math.min(1.65, Math.exp(-e.deltaY * 0.0058)));
         smoothZoomTo((zoomTargetScale || scale) * f, false);
       }
     }, { passive: false });
@@ -2646,6 +2986,15 @@
         const fr = await driveFetch('https://www.googleapis.com/drive/v3/files/' + t.driveFileId + '?alt=media');
         if (fr.ok){ const buf = await fr.arrayBuffer(); await DB.put('files', buf, t.id); changed = true; if (!noProg) renderLibrary(); }
       }
+      for (const d of docs){
+        if (d.deletedAt || !d.imgs) continue;
+        for (const id in d.imgs){
+          const m = d.imgs[id]; if (!m.fid || await DB.get('files', 'img:' + id)) continue;
+          if (!noProg) syncProgress(0, 1 + toDl.length, 1 + toDl.length, 'Downloading pictures — ' + d.name);
+          const fr = await driveFetch('https://www.googleapis.com/drive/v3/files/' + m.fid + '?alt=media');
+          if (fr.ok){ await DB.put('files', await fr.arrayBuffer(), 'img:' + id); delete IMGS[id]; changed = true; if (currentReader && currentReader.id === d.id && typeof redrawAllInk === 'function') redrawAllInk(); }
+        }
+      }
       if (!noProg) syncProgress(0, 1 + toDl.length, 1 + toDl.length, 'Download complete');
       if (changed){ renderLibrary(); if (typeof ensureDocThumbs === 'function') ensureDocThumbs(); }
       return true;
@@ -2675,6 +3024,17 @@
         d.driveFileId = await driveUploadMedia({ name: d.id + '.pdf', parents: [driveFolderId] }, blob, d.driveFileId || null);
         d.drivePushedAt = Date.now(); d.pdfDirty = false;
         await DB.put('docs', d);
+      }
+      // pictures added to documents: one small file each, so the library file stays light
+      for (const d of docs){
+        if (d.deletedAt || !d.imgs) continue;
+        for (const id in d.imgs){
+          const m = d.imgs[id]; if (m.fid) continue;
+          const buf = await DB.get('files', 'img:' + id); if (!buf) continue;
+          syncProgress(1, todo.length, total, 'Uploading pictures — ' + d.name);
+          m.fid = await driveUploadMedia({ name: 'img-' + id + (m.type === 'image/png' ? '.png' : '.jpg'), parents: [driveFolderId] }, new Blob([buf], { type: m.type }), null);
+          await DB.put('docs', d);
+        }
       }
       syncProgress(1, todo.length, total, 'Saving library');
       await drivePull(true);   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
@@ -2787,6 +3147,7 @@
     function refreshOpenDoc(){
       if (!currentReader || !driveChangedDocs.includes(currentReader.id)) return;
       for (let p = 1; p <= pageSizes.length; p++) renderNotesForPage(p);
+      if (typeof redrawAllInk === 'function') redrawAllInk();
       if (selectedNoteId && !findNote(selectedNoteId)) selectNote(null);
       toast('Updated from your other device.');
     }
@@ -3483,6 +3844,7 @@
     }
     async function exportPdf(pageList){
       if (!currentReader || (!pdfDoc && !isBlank())) return;
+      try { await preloadDocImages(); } catch (e) {}
       const btn = $('#exportBtn'); btn.disabled = true;
       toast('Creating PDF with notes…');
       try {
@@ -3652,7 +4014,7 @@ const bracketLocal = (w, h) => [[w, 0], [0, 0], [0, h], [w, h]];
 /* returns polylines (arrays of [x,y]) in page units */
 function shapePaths(st){
   const k = st.k, x = st.x, y = st.y, w = st.bw || 0, h = st.bh || 0;
-  if (k === 'sym') return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x + w / 2, y + h / 2]]];
+  if (k === 'sym' || k === 'img') return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x + w / 2, y + h / 2]]];
   if (k === 'line') return [[[x, y], [st.x2, st.y2]]];
   if (k === 'arrow'){
     const a = Math.atan2(st.y2 - y, st.x2 - x), L = Math.max(9, (st.sw || 2) * 4.5), s = .45;
@@ -3677,7 +4039,7 @@ function strokePolys(st){
   return shapePaths(st);
 }
 function strokeHit(st, x, y, tol){
-  if (st.k === 'sym') return x >= st.x - tol && x <= st.x + st.bw + tol && y >= st.y - tol && y <= st.y + st.bh + tol;
+  if (st.k === 'sym' || st.k === 'img') return x >= st.x - tol && x <= st.x + st.bw + tol && y >= st.y - tol && y <= st.y + st.bh + tol;
   const hw = (st.sw || 2) / 2 + tol;
   for (const poly of strokePolys(st)){
     if (poly.length === 1){ if (Math.hypot(x - poly[0][0], y - poly[0][1]) <= hw) return true; continue; }
@@ -3716,7 +4078,29 @@ function drawSym(ctx, st, k){
   ctx.restore();
 }
 function symSize(txt, ring){ return ring ? (() => { const s = 30 + (txt.length > 2 ? 6 : 0); return [s, s]; })() : [Math.max(24, txt.length * 13 + 10), 24]; }
+const IMGS = {};   // picture id -> <img>, decoded from the copy kept in IndexedDB
+function ensureImg(id){
+  if (IMGS[id]) return IMGS[id];
+  const im = new Image(); IMGS[id] = im;
+  im._p = DB.get('files', 'img:' + id).then(buf => new Promise(res => {
+    if (!buf){ res(false); return; }
+    const type = (currentReader && currentReader.imgs && currentReader.imgs[id] && currentReader.imgs[id].type) || 'image/jpeg';
+    im.onload = () => { im._ok = true; res(true); redrawPagesWithImg(id); };
+    im.onerror = () => res(false);
+    im.src = URL.createObjectURL(new Blob([buf], { type }));
+  })).catch(() => false);
+  return im;
+}
+function redrawPagesWithImg(id){ for (let p = 1; p <= pageSizes.length; p++) if (inkList(p).some(s => s.img === id)) redrawInk(p); }
+function redrawAllInk(){ for (let p = 1; p <= pageSizes.length; p++) redrawInk(p); }
+async function preloadDocImages(){ if (!currentReader || !currentReader.imgs) return; await Promise.all(Object.keys(currentReader.imgs).map(id => ensureImg(id)._p)); }
+function drawImgObj(ctx, st, k){
+  const im = ensureImg(st.img), x = st.x * k, y = st.y * k, w = st.bw * k, h = st.bh * k;
+  if (im._ok){ ctx.drawImage(im, x, y, w, h); return; }
+  ctx.save(); ctx.fillStyle = 'rgba(128,128,128,.18)'; ctx.fillRect(x, y, w, h); ctx.restore();
+}
 function drawStroke(ctx, st, k){
+  if (st.k === 'img'){ drawImgObj(ctx, st, k); return; }
   if (st.k === 'sym'){ drawSym(ctx, st, k); return; }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = st.c; ctx.fillStyle = st.c;
   if (st.t === 'hl'){
@@ -4045,6 +4429,7 @@ function inkStep(e, x, y, cv){
     } else {
       const ox = (G.h === 'nw' || G.h === 'sw') ? ob.x + ob.w : ob.x, oy = (G.h === 'nw' || G.h === 'ne') ? ob.y + ob.h : ob.y;
       const nb = { x: Math.min(x, ox), y: Math.min(y, oy), w: Math.max(4, Math.abs(x - ox)), h: Math.max(4, Math.abs(y - oy)) };
+      if (arr.length === 1 && arr[0].k === 'img'){ nb.h = nb.w * ob.h / ob.w; nb.y = (G.h === 'nw' || G.h === 'ne') ? oy - nb.h : oy; }
       arr.forEach((st, i) => { const base = clone(G.origs[i]); fitStroke(base, ob, nb); copyInto(st, base); });
     }
     compose(p);
@@ -4120,7 +4505,7 @@ function eraseAt(p, x, y){
   const list = inkList(p), out = []; let changed = false;
   list.forEach(st => {
     if (!cs.some(c => strokeHit(st, c[0], c[1], r))){ out.push(st); return; }
-    changed = true; if (st.k !== 'sym') erasePieces(st, cs, r).forEach(pc => out.push(pc));   // a symbol is removed whole
+    changed = true; if (st.k !== 'sym' && st.k !== 'img') erasePieces(st, cs, r).forEach(pc => out.push(pc));   // a symbol or picture is removed whole
   });
   if (!changed) return;
   if (!G.changed){ G.changed = true; pushUndo(p); }
@@ -4345,6 +4730,45 @@ function newDocModal(){
   $('#ndName').addEventListener('keydown', e => { if (e.key === 'Enter') create(); });
   $('#ndName').focus(); $('#ndName').select();
 }
+
+/* ---------- pictures: button, paste, drop ---------- */
+function loadImageFile(file){
+  return new Promise((res, rej) => { const url = URL.createObjectURL(file), im = new Image(); im.onload = () => { URL.revokeObjectURL(url); res(im); }; im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('img')); }; im.src = url; });
+}
+async function addPictureFile(file){
+  if (!currentReader || !file || !/^image\//.test(file.type)) return;
+  let im; try { im = await loadImageFile(file); } catch (e) { toast('Could not read that picture.'); return; }
+  const sc = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(im.naturalWidth * sc)); c.height = Math.max(1, Math.round(im.naturalHeight * sc));
+  c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+  let type = 'image/jpeg', blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.86));
+  if (file.type === 'image/png'){ const pb = await new Promise(r => c.toBlob(r, 'image/png')); if (pb && pb.size < 450000){ blob = pb; type = 'image/png'; } }
+  const id = uid(); await DB.put('files', await blob.arrayBuffer(), 'img:' + id);
+  if (!currentReader.imgs) currentReader.imgs = {};
+  currentReader.imgs[id] = { w: c.width, h: c.height, type };
+  // put it in the middle of what is on screen, on the page that is mostly in view
+  const p = Math.min(currentPage || 1, pageSizes.length), sz = pageSizes[p - 1], wrap = document.querySelector('.page-wrap[data-page="' + p + '"]'), sr = $('#pagesScroll').getBoundingClientRect(), wr = wrap.getBoundingClientRect();
+  const cx = Math.max(0, Math.min(1, ((sr.left + sr.width / 2) - wr.left) / wr.width)) * sz.w, cy = Math.max(0.1, Math.min(0.9, ((sr.top + sr.height / 2) - wr.top) / wr.height)) * sz.h;
+  let w = Math.min(sz.w * 0.5, c.width), h = w * c.height / c.width; if (h > sz.h * 0.6){ h = sz.h * 0.6; w = h * c.width / c.height; }
+  const st = { id: uid(), t: 'shape', k: 'img', img: id, c: '#000000', sw: 1, x: r1(Math.max(0, Math.min(sz.w - w, cx - w / 2))), y: r1(Math.max(0, Math.min(sz.h - h, cy - h / 2))), bw: r1(w), bh: r1(h) };
+  pushUndo(p); inkList(p, true).unshift(st);   // pictures sit underneath pen strokes
+  scheduleSave(); setInkTool('select'); INK.sel = { p, ids: [st.id] }; ensureImg(id); redrawInk(p); syncInkBar();
+  toast('Picture added — drag to move, drag a corner to resize.');
+}
+function addPictureFiles(files){ Array.from(files || []).filter(f => /^image\//.test(f.type)).forEach(f => addPictureFile(f)); }
+document.addEventListener('paste', e => {
+  if (!currentReader) return;
+  const it = Array.from((e.clipboardData && e.clipboardData.items) || []).find(i => i.kind === 'file' && i.type.indexOf('image/') === 0);
+  if (!it) return;
+  e.preventDefault(); e.stopImmediatePropagation(); addPictureFile(it.getAsFile());
+}, true);
+['dragover', 'drop'].forEach(ev => document.addEventListener(ev, e => {
+  if (!currentReader || !e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes('Files')) return;
+  e.preventDefault();
+  if (ev === 'drop') addPictureFiles(e.dataTransfer.files);
+}));
+$('#picBtn').addEventListener('click', () => $('#picInput').click());
+$('#picInput').addEventListener('change', e => { const f = e.target.files; addPictureFiles(f); e.target.value = ''; });
 
 /* ---------- wiring ---------- */
 (function(){
