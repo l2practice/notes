@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-b" />
+    <meta name="app-build" content="2026-11-02-c" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -113,6 +113,13 @@
       .side-nav-item svg{width:16px;height:16px;flex:none;stroke-width:1.8;}
       .side-nav-item:hover{background:var(--surface-2);}
       .side-nav-item.active{background:var(--active);color:var(--ink);font-weight:600;}
+      .lib-side > *{flex-shrink:0;}
+      .side-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin:18px 0 4px;padding:0 10px;height:28px;border-radius:var(--radius-control);font-size:12px;font-weight:600;color:var(--muted);}
+      .side-toggle:hover{background:var(--surface-2);color:var(--ink);}
+      .side-toggle svg{width:15px;height:15px;transition:transform .18s var(--ease);}
+      .lib-side.subj-collapsed .side-toggle svg{transform:rotate(-90deg);}
+      .lib-side.subj-collapsed #folderList,.lib-side.subj-collapsed #newFolderBtn{display:none;}
+      @media (max-height:760px){ .continue-card,.continue-empty{display:none;} }
       .side-title{font-size:12px;font-weight:600;color:var(--muted);margin:0 0 6px 10px;}
       .lib-side .side-title{margin:18px 0 4px 10px;}
       .folder-list{display:flex;flex-direction:column;gap:1px;min-width:0;}
@@ -478,6 +485,16 @@
       .shape-btn{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);}
       .shape-btn:hover{background:var(--active);} .shape-btn.cur{background:var(--active);color:var(--ink);box-shadow:inset 0 0 0 1px var(--control);}
       .shape-btn svg{width:24px;height:24px;}
+      #symPop{width:292px;padding:8px;}
+      .sym-sec{font-size:12px;font-weight:600;color:var(--muted);padding:6px 4px 3px;}
+      .sym-grid{display:flex;flex-wrap:wrap;gap:5px;}
+      .sym-chip{min-width:34px;height:32px;padding:0 9px;border-radius:7px;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);background:var(--surface);}
+      .sym-chip.ring{width:36px;min-width:36px;height:36px;padding:0;border-radius:50%;border:1.5px solid var(--ink);font-size:12px;}
+      .sym-chip.it{font-style:italic;font-weight:600;}
+      .sym-chip:hover{background:var(--active);}
+      .sym-custom{display:flex;align-items:center;gap:8px;padding:2px;}
+      .sym-custom input[type=text]{width:90px;height:30px;border:1px solid var(--control);border-radius:6px;padding:0 8px;font-size:13px;background:var(--surface);color:var(--ink);}
+      .sym-custom label{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:4px;}
       .shape-tip{font-size:12px;color:var(--muted);max-width:262px;padding:8px 6px 4px;line-height:1.45;}
       .paper-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
       .paper-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border-radius:8px;border:1px solid var(--line);font-size:12px;color:var(--ink-2);}
@@ -692,7 +709,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>
             Recycle Bin <span class="count" id="binCount" style="margin-left:auto"></span>
           </button>
-          <p class="side-title">Subjects</p>
+          <button class="side-toggle" id="subjToggle" aria-expanded="true" title="Show or hide the subject folders">
+            <span>Subjects</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
           <div class="folder-list" id="folderList"></div>
           <button class="new-folder-btn" id="newFolderBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -824,6 +844,7 @@
         <button class="fmt-btn" data-tool="hl" title="Highlighter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6.5-6.5-4-4Z"/><path d="m9 11-4.5 4.5V19h4L13 14.5"/><path d="M4 21h16"/></svg></button>
         <button class="fmt-btn" data-tool="eraser" title="Eraser — removes whole strokes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4-4a2 2 0 0 1 0-2.8L14.2 3a2 2 0 0 1 2.8 0l4 4a2 2 0 0 1 0 2.8L11 21Z"/><path d="M22 21H7M5 11l9 9"/></svg></button>
         <button class="fmt-btn" data-tool="select" title="Select, move and resize"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 3 7 17 2.5-7.5L21 10Z"/></svg></button>
+        <button class="fmt-btn" id="inkSyms" title="Symbols — word classes (N, V, A, ADV) and syntax labels (NP, AP, AdvP …)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 16 12 7l3.5 9M9.8 13.2h4.4"/></svg></button>
         <button class="fmt-btn" id="inkShapes" title="Shapes and brackets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="10" height="10" rx="1"/><circle cx="16.5" cy="16.5" r="5"/></svg></button>
         <div class="bar-sep"></div>
         <div class="swatches" id="inkSwatches"></div>
@@ -913,6 +934,7 @@
       <div class="cp-row"><input type="color" id="cpPick" value="#2D7495" /><input type="text" id="cpHex" placeholder="#RRGGBB" maxlength="7" autocomplete="off" spellcheck="false" /><button class="btn primary" id="cpAdd" style="padding:6px 12px">Add</button></div>
     </div>
     <div class="fpop hidden" id="shapePop"></div>
+    <div class="fpop hidden" id="symPop"></div>
     <div id="modalRoot"></div>
     <div id="menuRoot"></div>
     <div id="toast"></div>
@@ -1154,6 +1176,7 @@
       const tS = $('#tabShelves'), tA = $('#tabAll');
       if (tS && tA){ tS.classList.toggle('active', libViewMode === 'shelves'); tA.classList.toggle('active', libViewMode === 'all'); }
       renderContinue();
+      fitSidebar();
       // Which pane is showing (Home statistics / Library / Settings)
       $('#libraryPane').classList.toggle('hidden', libView !== 'library');
       $('#homeView').classList.toggle('hidden', libView !== 'home');
@@ -1376,6 +1399,16 @@
       });
     }
     $('#newFolderBtn').addEventListener('click', () => folderForm(null));
+    /* Subjects fold with the arrow; with no saved choice they fold on their own when the sidebar runs out of room */
+    function fitSidebar(){
+      const side = document.querySelector('.lib-side'), t = $('#subjToggle'); if (!side || !t) return;
+      let pref = null; try { pref = localStorage.getItem('nt-subj'); } catch (e) {}
+      let col = pref === '1';
+      if (pref === null){ side.classList.remove('subj-collapsed'); col = side.scrollHeight > side.clientHeight + 2; }
+      side.classList.toggle('subj-collapsed', col); t.setAttribute('aria-expanded', col ? 'false' : 'true');
+    }
+    $('#subjToggle').addEventListener('click', () => { const col = !document.querySelector('.lib-side').classList.contains('subj-collapsed'); try { localStorage.setItem('nt-subj', col ? '1' : '0'); } catch (e) {} fitSidebar(); });
+    window.addEventListener('resize', fitSidebar);
     $('#sortSel').addEventListener('change', e => { sortMode = e.target.value; try { localStorage.setItem('nt-sort', sortMode); } catch (er) {} renderLibrary(); });
     const _tS = $('#tabShelves'), _tA = $('#tabAll');
     if (_tS) _tS.addEventListener('click', () => { libViewMode = 'shelves'; renderLibrary(); });
@@ -3619,6 +3652,7 @@ const bracketLocal = (w, h) => [[w, 0], [0, 0], [0, h], [w, h]];
 /* returns polylines (arrays of [x,y]) in page units */
 function shapePaths(st){
   const k = st.k, x = st.x, y = st.y, w = st.bw || 0, h = st.bh || 0;
+  if (k === 'sym') return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x + w / 2, y + h / 2]]];
   if (k === 'line') return [[[x, y], [st.x2, st.y2]]];
   if (k === 'arrow'){
     const a = Math.atan2(st.y2 - y, st.x2 - x), L = Math.max(9, (st.sw || 2) * 4.5), s = .45;
@@ -3643,6 +3677,7 @@ function strokePolys(st){
   return shapePaths(st);
 }
 function strokeHit(st, x, y, tol){
+  if (st.k === 'sym') return x >= st.x - tol && x <= st.x + st.bw + tol && y >= st.y - tol && y <= st.y + st.bh + tol;
   const hw = (st.sw || 2) / 2 + tol;
   for (const poly of strokePolys(st)){
     if (poly.length === 1){ if (Math.hypot(x - poly[0][0], y - poly[0][1]) <= hw) return true; continue; }
@@ -3669,7 +3704,20 @@ function fitStroke(st, ob, nb){
 }
 
 /* ---------- drawing ---------- */
+function drawSym(ctx, st, k){
+  const x = st.x * k, y = st.y * k, w = st.bw * k, h = st.bh * k, face = (st.it ? 'italic 600 ' : '700 ');
+  ctx.save(); ctx.strokeStyle = st.c; ctx.fillStyle = st.c; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (st.ring){ ctx.lineWidth = Math.max(1, (st.sw || 2) * 0.7 * k); ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, 7); ctx.stroke(); }
+  let fs = h * (st.ring ? 0.54 : 0.74);
+  ctx.font = face + fs + 'px Inter, system-ui, sans-serif';
+  const tw = ctx.measureText(st.txt).width, mw = w * (st.ring ? 0.74 : 0.98);
+  if (tw > mw){ fs *= mw / tw; ctx.font = face + fs + 'px Inter, system-ui, sans-serif'; }
+  ctx.fillText(st.txt, x + w / 2, y + h / 2 + fs * 0.05);
+  ctx.restore();
+}
+function symSize(txt, ring){ return ring ? (() => { const s = 30 + (txt.length > 2 ? 6 : 0); return [s, s]; })() : [Math.max(24, txt.length * 13 + 10), 24]; }
 function drawStroke(ctx, st, k){
+  if (st.k === 'sym'){ drawSym(ctx, st, k); return; }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = st.c; ctx.fillStyle = st.c;
   if (st.t === 'hl'){
     const pts = st.pts, n = pts.length / 3;
@@ -3835,7 +3883,7 @@ function recognize(P){
   const box = k => ({ t: 'shape', k, x: minx, y: miny, bw: w, bh: h });
   if (chord >= 0.22 * L){
     let dev = 0; P.forEach(q => { dev = Math.max(dev, distSeg(q[0], q[1], a[0], a[1], b[0], b[1])); });
-    if (dev < Math.max(3, 0.05 * chord) && L < 1.15 * chord) return { t: 'shape', k: 'line', x: a[0], y: a[1], x2: b[0], y2: b[1] };
+    if (dev < Math.max(4, 0.13 * chord) && L < 1.4 * chord) return { t: 'shape', k: 'line', x: a[0], y: a[1], x2: b[0], y2: b[1] };
     // a "[" or "]" drawn in one stroke (arm, spine, arm), upright or lying down
     const tp = P.map(q => [q[1], q[0]]);
     let o = brktOrient(P, minx, miny, w, h); if (o >= 0) return { t: 'shape', k: 'brkt', o, x: minx, y: miny, bw: w, bh: h };
@@ -3875,6 +3923,7 @@ function makeShape(x0, y0, x1, y1){
   const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen };
   if (s.k === 'line' || s.k === 'arrow'){ s.x = r1(x0); s.y = r1(y0); s.x2 = r1(x1); s.y2 = r1(y1); }
   else { s.x = r1(Math.min(x0, x1)); s.y = r1(Math.min(y0, y1)); s.bw = r1(Math.abs(x1 - x0)); s.bh = r1(Math.abs(y1 - y0)); }
+  if (s.k === 'sym'){ s.txt = INK.shape.txt; s.ring = !!INK.shape.ring; s.it = !!INK.shape.it; }
   return s;
 }
 function attachInk(wrap){
@@ -3935,7 +3984,7 @@ function inkDown(e, cv){
 function armHold(){
   if (!G || G.kind !== 'draw' || G.snapped || !INK.live || INK.live.st.t !== 'pen') return;
   clearTimeout(G.timer);
-  G.timer = setTimeout(snapNow, 520);
+  G.timer = setTimeout(snapNow, 400);
 }
 function snapNow(){
   if (!G || G.kind !== 'draw' || G.snapped || !INK.live) return;
@@ -4017,7 +4066,8 @@ function inkUp(e, cv, cancelled){
     if (st && !cancelled){
       const tiny = !g.moved || Math.hypot(st.bw || Math.abs(st.x2 - st.x), st.bh || Math.abs(st.y2 - st.y)) < 6;
       if (tiny){ const x = g.x0, y = g.y0, v = (INK.shape.o & 1) === 0;
-        st = (st.k === 'line' || st.k === 'arrow') ? makeShape(x, y, x + 90, y)
+        if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
+        else st = (st.k === 'line' || st.k === 'arrow') ? makeShape(x, y, x + 90, y)
           : (st.k === 'brkt' || st.k === 'brace') ? (v ? makeShape(x, y, x + 16, y + 110) : makeShape(x, y, x + 110, y + 16)) : makeShape(x, y, x + 80, y + 80); }
       pushUndo(p); inkList(p, true).push(st); scheduleSave();   // the shape tool stays selected, ready for the next one
     }
@@ -4070,7 +4120,7 @@ function eraseAt(p, x, y){
   const list = inkList(p), out = []; let changed = false;
   list.forEach(st => {
     if (!cs.some(c => strokeHit(st, c[0], c[1], r))){ out.push(st); return; }
-    changed = true; erasePieces(st, cs, r).forEach(pc => out.push(pc));
+    changed = true; if (st.k !== 'sym') erasePieces(st, cs, r).forEach(pc => out.push(pc));   // a symbol is removed whole
   });
   if (!changed) return;
   if (!G.changed){ G.changed = true; pushUndo(p); }
@@ -4137,7 +4187,8 @@ function syncToolUI(){
   $('#pagesCol').classList.toggle('tool-select', INK.tool === 'select');
   $('#inkBar').classList.toggle('hidden', !INK.tool);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === INK.tool));
-  $('#inkShapes').classList.toggle('active', INK.tool === 'shape');
+  $('#inkShapes').classList.toggle('active', INK.tool === 'shape' && INK.shape.k !== 'sym');
+  $('#inkSyms').classList.toggle('active', INK.tool === 'shape' && INK.shape.k === 'sym');
   $('#drawBtn').classList.toggle('active', !!INK.tool && INK.tool !== 'hl');
   $('#markBtn').classList.toggle('active', INK.tool === 'hl');
   $('#inkFinger').classList.toggle('active', INK.finger);
@@ -4186,6 +4237,18 @@ function setInkColor(hex){
   if (INK.tool === 'select' && INK.sel){ const arr = selList(); if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.c = hex; }); redrawInk(INK.sel.p); scheduleSave(); } }
   buildInkSwatches();
 }
+const SYM_RING = ['N', 'V', 'A', 'ADV', 'P', 'Det', 'Pron', 'Conj'];
+const SYM_LABEL = ['S', "S'", 'NP', 'VP', 'AP', 'AdvP', 'PP', 'NOM', 'DP', 'CP', 'TP', 'Vgrp', 'Comp', 'Det', 'PRO', 'M', 'Aux', 'P', 'N', 'V', 'A', 'ADV', 'Conj'];
+const SYM_AFFIX = ['pref', 'suff', 'stem'];
+function buildSymPop(){
+  const chip = (t, ring, it) => '<button class="sym-chip' + (ring ? ' ring' : '') + (it ? ' it' : '') + '" data-t="' + t + '"' + (ring ? ' data-ring="1"' : '') + (it ? ' data-it="1"' : '') + '>' + t + '</button>';
+  $('#symPop').innerHTML = '<div class="sym-sec">Word class, circled</div><div class="sym-grid">' + SYM_RING.map(t => chip(t, true)).join('') + '</div>' +
+    '<div class="sym-sec">Syntax labels</div><div class="sym-grid">' + SYM_LABEL.map(t => chip(t)).join('') + '</div>' +
+    '<div class="sym-sec">Morphology</div><div class="sym-grid">' + SYM_AFFIX.map(t => chip(t, false, true)).join('') + '</div>' +
+    '<div class="sym-sec">Your own</div><div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:30px;padding:0 12px">Use</button></div>' +
+    '<div class="shape-tip">Tap the page to place a symbol, or drag to set its size. Select it later to move or resize it.</div>';
+}
+function pickSymbol(txt, ring, it){ if (!txt) return; INK.shape = { k: 'sym', o: 0, txt, ring: !!ring, it: !!it }; hidePops(); setInkTool('shape'); }
 function shapeIconSVG(k, o){
   const vert = (o & 1) === 0, bk = k === 'brkt' || k === 'brace';
   const st = bk ? (vert ? { x: 9, y: 3, bw: 10, bh: 22 } : { x: 3, y: 9, bw: 22, bh: 10 }) : (k === 'line' || k === 'arrow') ? { x: 4, y: 24, x2: 24, y2: 4 } : { x: 4, y: 4, bw: 20, bh: 20 };
@@ -4292,6 +4355,12 @@ function newDocModal(){
   $('#inkBar').addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }, true);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.addEventListener('click', () => setInkTool(b.dataset.tool)));
   $('#inkShapes').addEventListener('click', () => togglePop($('#shapePop'), $('#inkShapes'), buildShapePop));
+  $('#inkSyms').addEventListener('click', () => togglePop($('#symPop'), $('#inkSyms'), buildSymPop));
+  $('#symPop').addEventListener('click', e => {
+    const c = e.target.closest('.sym-chip'); if (c){ pickSymbol(c.dataset.t, !!c.dataset.ring, !!c.dataset.it); return; }
+    if (e.target.closest('#symAdd')) pickSymbol($('#symTxt').value.trim(), $('#symRing').checked, false);
+  });
+  $('#symPop').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'symTxt'){ e.preventDefault(); pickSymbol($('#symTxt').value.trim(), $('#symRing').checked, false); } });
   $('#shapePop').addEventListener('click', e => {
     const b = e.target.closest('.shape-btn'); if (!b) return;
     INK.shape = { k: b.dataset.k, o: +b.dataset.o }; hidePops(); setInkTool('shape');
