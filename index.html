@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-03-b" />
+    <meta name="app-build" content="2026-11-03-d" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1066,6 +1066,13 @@
               </div>
             </div>
           </div>
+            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Always-on connection <span class="drive-badge" id="wkBadge">Off</span></div>
+              <div class="drive-sub" id="wkInfo">Keeps Google Drive connected without asking you to reconnect every hour. It uses a small free Google Apps Script that you create once — see apps-script/HUONG-DAN.md in the project.</div>
+              <div style="display:grid;gap:8px;margin-top:10px;max-width:520px">
+                <input type="url" id="wkUrl" placeholder="Web app address (https://script.google.com/macros/s/…/exec)" autocomplete="off" spellcheck="false" style="height:40px;border:1px solid var(--control);border-radius:12px;padding:0 12px;font-size:14px;background:var(--surface);color:var(--ink)" />
+                <input type="password" id="wkKey" placeholder="App key (the long secret you chose)" autocomplete="off" spellcheck="false" style="height:40px;border:1px solid var(--control);border-radius:12px;padding:0 12px;font-size:14px;background:var(--surface);color:var(--ink)" />
+              </div></div>
+              <div class="drive-actions"><button class="btn primary" id="wkSave">Save and check</button><button class="btn" id="wkLink">Link Google Drive</button><button class="btn" id="wkOff">Remove</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Pen diagnostics</div><div class="drive-sub">If a stroke ever goes missing, open this right after and send me the text — it shows what the pencil reported and why a touch was ignored.</div></div><div class="drive-actions"><button class="btn" id="penLogBtn">Show pen log</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">App password</div><div class="drive-sub">The app asks for a password each time it is opened in a new tab. Changing it applies to this browser.</div></div><div class="drive-actions"><button class="btn" id="pwChangeBtn">Change password</button><button class="btn" id="pwLockBtn">Lock now</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Device storage</div><div class="drive-sub" id="storInfo">Checking…</div></div><div class="drive-actions"><button class="btn" id="storFreeBtn">Move all to Drive</button></div></div>
@@ -1301,6 +1308,7 @@
         let ok = false; try { ok = await pwCheck(input.value); } catch (er) { err.textContent = 'This browser cannot check passwords here (it needs a secure https page).'; go.disabled = false; return; }
         go.disabled = false;
         if (ok){
+          if (needGoogle() && typeof workerCfg === 'function' && workerCfg()){ try { await driveWorkerRenew(); } catch (er) {} }
           if (needGoogle()){ gMode = true; input.disabled = true; go.firstChild.nodeValue = 'Reconnect with Google'; await googleStep(); return; }
           unlock();
         } else {
@@ -1584,6 +1592,7 @@
       { const mg = document.querySelector('.mobile-greet'); if (mg) mg.classList.toggle('on-home', libView === 'home'); }
       [['navHomeBtn', 'home'], ['navLibBtn', 'library'], ['navSettingsBtn', 'settings'], ['navBinBtn', 'bin']].forEach(([id, v]) => { const b = document.getElementById(id); if (b) b.classList.toggle('active', libView === v); });
       if (libView === 'settings' && typeof storRefresh === 'function') storRefresh();
+      if (libView === 'settings' && typeof wkRefresh === 'function') wkRefresh();
       if (libView === 'home'){ renderHome(); return; }
       if (libView === 'bin'){ renderBin(); return; }
       if (libView !== 'library') return;
@@ -3133,7 +3142,22 @@
         }, 250);
       });
     }
+    /* ----- always-on connection: a Google Apps Script web app keeps the refresh token and hands out fresh access tokens ----- */
+    function workerCfg(){ try { const c = JSON.parse(localStorage.getItem('nt-worker') || 'null'); if (c && c.url && c.key) return c; } catch (e) {} return null; }
+    async function workerCall(action){ const c = workerCfg(); const r = await fetch(c.url + (c.url.indexOf('?') < 0 ? '?' : '&') + 'action=' + action + '&key=' + encodeURIComponent(c.key), { cache: 'no-store' }); return r.json(); }
+    let workerState = '';   // '', 'ok', 'not_linked', 'bad_key', 'offline'
+    async function driveWorkerRenew(){
+      if (!workerCfg()) return false;
+      try {
+        const j = await workerCall('token');
+        if (!j.ok || !j.access_token){ workerState = j.error || 'error'; return false; }
+        driveToken = j.access_token; driveTokenExp = Date.now() + (j.expires_in || 3600) * 1000 - 60000;
+        driveLinked = true; driveLostNotified = false; workerState = 'ok'; drivePersist(); hideDriveBanner();
+        return true;
+      } catch (e) { workerState = 'offline'; return false; }
+    }
     async function driveRequestToken(prompt){
+      if ((prompt === undefined || prompt === '') && workerCfg() && await driveWorkerRenew()) return driveToken;   // no pop-up needed
       await waitForGIS();
       const cid = driveClientId();
       if (!cid) throw new Error('no-client-id');
@@ -3174,7 +3198,13 @@
     const appLocked = () => document.documentElement.classList.contains('locked');
     function showDriveBanner(){ if (appLocked()) return; const b = $('#driveBanner'); if (b) b.classList.remove('hidden'); }
     function hideDriveBanner(){ const b = $('#driveBanner'); if (b) b.classList.add('hidden'); }
+    let workerTrying = false;
     function driveLost(){
+      if (!driveLinked) return;
+      if (workerCfg()){ if (!workerTrying){ workerTrying = true; driveWorkerRenew().then(ok => { workerTrying = false; if (ok){ setDriveUI('on', 'Connected.'); queueDriveSync(); } else driveLostUI(); }); } return; }
+      driveLostUI();
+    }
+    function driveLostUI(){
       if (!driveLinked || appLocked()) return;   // on the lock screen the Unlock button does the reconnecting
       showDriveBanner();
       setDriveUI('err', 'Google Drive is disconnected. Tap Reconnect — your Google session is remembered, so no password is needed.');
@@ -3201,7 +3231,7 @@
     /* while you keep using the app, the Google session is renewed at the first tap in its last 8 minutes (a window that closes by itself) */
     let driveRenewing = false;
     document.addEventListener('pointerup', () => {
-      if (!driveLinked || driveRenewing || appLocked() || !driveTokenValid() || driveTokenExp - Date.now() > 8 * 60000) return;
+      if (!driveLinked || driveRenewing || appLocked() || workerCfg() || !driveTokenValid() || driveTokenExp - Date.now() > 8 * 60000) return;
       if ((typeof INK !== 'undefined' && INK.tool) || (typeof editingId !== 'undefined' && editingId)) return;
       if (Date.now() - driveReauthFailedAt < 300000) return;
       driveRenewing = true; driveRequestToken().catch(() => { driveReauthFailedAt = Date.now(); }).finally(() => { driveRenewing = false; });
@@ -3528,6 +3558,45 @@
     // the token ends after an hour: say so when it happens, and when you come back to the tab
     setInterval(() => { if (driveLinked && !driveTokenValid() && !driveSyncing) driveLost(); }, 30000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden && driveLinked && !driveTokenValid()) driveLost(); });
+    // with the Worker the session is renewed quietly in the background, before the lock screen and whenever it runs low
+    const workerKeepAlive = async () => {
+      if (!workerCfg() || workerTrying || (driveLinked && driveTokenValid() && driveTokenExp - Date.now() > 10 * 60000)) return;
+      workerTrying = true; const ok = await driveWorkerRenew(); workerTrying = false;
+      if (ok){ setDriveUI('on', 'Connected. Kept alive by your Apps Script.'); queueDriveSync(); }
+    };
+    setInterval(workerKeepAlive, 60000);
+    window.addEventListener('online', workerKeepAlive);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) workerKeepAlive(); });
+    async function wkRefresh(){
+      const c = workerCfg(), badge = $('#wkBadge'), info = $('#wkInfo'); if (!badge) return;
+      if (document.activeElement !== $('#wkUrl')) $('#wkUrl').value = c ? c.url : ''; if (document.activeElement !== $('#wkKey')) $('#wkKey').value = c ? c.key : '';
+      $('#wkOff').disabled = !c; $('#wkLink').disabled = !c;
+      if (!c){ badge.textContent = 'Off'; badge.className = 'drive-badge'; return; }
+      badge.textContent = 'Checking…';
+      try {
+        const j = await workerCall('status');
+        if (j.error === 'bad_key'){ badge.textContent = 'Wrong key'; badge.className = 'drive-badge'; info.textContent = 'The web app refused the key. Check that it is exactly the APP_KEY in the script properties.'; return; }
+        if (j.linked){ badge.textContent = 'On'; badge.className = 'drive-badge on'; info.textContent = 'Google Drive is kept connected by your Apps Script. You should not need to reconnect any more.'; if (!driveTokenValid()) workerKeepAlive(); }
+        else { badge.textContent = 'Not linked'; badge.className = 'drive-badge'; info.textContent = 'The web app is reachable. Tap “Link Google Drive” once and approve with your Google account.'; }
+      } catch (e) { badge.textContent = 'Unreachable'; badge.className = 'drive-badge'; info.textContent = 'Could not reach the web app. Check the address (https://script.google.com/macros/s/…/exec) and that it is deployed for “Anyone”.'; }
+    }
+    window.wkRefresh = wkRefresh;
+    let wkLinking = false;
+    $('#wkSave').addEventListener('click', () => {
+      const url = $('#wkUrl').value.trim(), key = $('#wkKey').value.trim();
+      if (!/^https:\/\//i.test(url) || key.length < 12){ toast('Enter the web app address (https://script.google.com/…/exec) and the app key (at least 12 characters).'); return; }
+      try { localStorage.setItem('nt-worker', JSON.stringify({ url: url.replace(/\/+$/, ''), key })); } catch (e) {}
+      wkRefresh();
+    });
+    $('#wkLink').addEventListener('click', () => { const c = workerCfg(); if (!c) return; wkLinking = true; window.open(c.url + (c.url.indexOf('?') < 0 ? '?' : '&') + 'action=start&key=' + encodeURIComponent(c.key), '_blank'); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && wkLinking){ wkLinking = false; setTimeout(wkRefresh, 600); } });
+    $('#wkOff').addEventListener('click', async () => {
+      if (!workerCfg()) return;
+      try { await workerCall('disconnect'); } catch (e) {}
+      try { localStorage.removeItem('nt-worker'); } catch (e) {}
+      workerState = ''; wkRefresh(); toast('Always-on connection removed.');
+    });
+    if (workerCfg()) workerKeepAlive();
     if (driveLinked){
       if (driveTokenValid()){ setDriveUI('on', 'Connected. Your Google session is remembered on this device.'); queueDriveSync(); }
       else { setDriveUI('err', 'Connected earlier on this device. Tap Reconnect (or just tap anywhere) — no password needed.'); showDriveBanner(); armDriveReauth(); }
