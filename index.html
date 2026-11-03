@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-02-z" />
+    <meta name="app-build" content="2026-11-03-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -500,6 +500,7 @@
       .sym-chip{min-width:34px;height:32px;padding:0 9px;border-radius:7px;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);background:var(--surface);}
       .sym-chip.ring{width:36px;min-width:36px;height:36px;padding:0;border-radius:50%;border:1.5px solid var(--ink);font-size:12px;}
       .sym-chip.it{font-style:italic;font-weight:600;}
+      .sym-own{position:relative;display:inline-flex;} .sym-own .sym-del{position:absolute;right:-5px;top:-7px;width:16px;height:16px;border-radius:8px;background:var(--ink);color:var(--surface);font-size:11px;line-height:16px;padding:0;opacity:.0;} .sym-own:hover .sym-del,.sym-own:focus-within .sym-del{opacity:1;} @media (hover:none){.sym-own .sym-del{opacity:.75;}}
       .sym-chip:hover{background:var(--active);}
       .sym-custom{display:flex;align-items:center;gap:8px;padding:2px;}
       .sym-custom input[type=text]{width:90px;height:30px;border:1px solid var(--control);border-radius:6px;padding:0 8px;font-size:13px;background:var(--surface);color:var(--ink);}
@@ -1224,7 +1225,11 @@
       <div class="cp-sw" id="cpSw"></div>
       <div class="cp-row"><input type="color" id="cpPick" value="#2D7495" /><input type="text" id="cpHex" placeholder="#RRGGBB" maxlength="7" autocomplete="off" spellcheck="false" /><button class="btn primary" id="cpAdd" style="padding:6px 12px">Add</button></div>
     </div>
-    <div class="fpop hidden" id="shapePop"></div>
+    <div class="sym-panel hidden" id="shapePanel" role="dialog" aria-label="Shapes">
+      <div class="sp-head" id="shHead"><span>Shapes</span><button id="shClose" aria-label="Close shapes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="sp-body" id="shBody"></div>
+      <span class="sp-resize" id="shResize" aria-hidden="true"></span>
+    </div>
     <div class="sym-panel hidden" id="symPanel" role="dialog" aria-label="Symbols">
       <div class="sp-head" id="spHead"><span>Symbols</span><button id="spClose" aria-label="Close symbols"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <div class="sp-body" id="spBody"></div>
@@ -1270,17 +1275,34 @@
       const focus = () => { try { input.focus(); } catch (e) {} };
       if (document.documentElement.classList.contains('locked')) setTimeout(focus, 50);
       document.getElementById('lockEye').addEventListener('click', () => { input.type = input.type === 'password' ? 'text' : 'password'; focus(); });
+      const unlock = () => {
+        try { sessionStorage.setItem('nt-unlocked', '1'); } catch (er) {}
+        input.value = ''; document.documentElement.classList.remove('locked');
+        const f = window.__afterUnlock; window.__afterUnlock = null; if (f) f();
+      };
+      // the Google Drive session ended: after the password, Unlock turns into "Reconnect with Google" (the same as signing in)
+      const needGoogle = () => typeof driveLinked !== 'undefined' && driveLinked && typeof driveTokenValid === 'function' && !driveTokenValid();
+      let gMode = false, gTries = 0;
+      async function googleStep(){
+        go.disabled = true; err.textContent = 'Choose your Google account in the window that opens…';
+        try {
+          await driveRequestToken(gTries > 0 ? 'select_account' : '');
+          if (!(await driveOwnerOk())){ driveForget(); gTries++; err.textContent = 'That Google account is not the one this app is linked to. Choose another account.'; go.disabled = false; return; }
+          err.textContent = ''; go.disabled = false; unlock(); return;
+        } catch (er) { gTries++; err.textContent = 'Google sign-in did not finish. Tap Reconnect with Google to try again.'; }
+        go.disabled = false;
+      }
       form.addEventListener('submit', async e => {
         e.preventDefault();
+        if (gMode){ await googleStep(); return; }
         const wait = Math.ceil((until - Date.now()) / 1000);
         if (wait > 0){ err.textContent = 'Too many attempts. Try again in ' + wait + ' s.'; return; }
         go.disabled = true; err.textContent = '';
         let ok = false; try { ok = await pwCheck(input.value); } catch (er) { err.textContent = 'This browser cannot check passwords here (it needs a secure https page).'; go.disabled = false; return; }
         go.disabled = false;
         if (ok){
-          try { sessionStorage.setItem('nt-unlocked', '1'); } catch (er) {}
-          input.value = ''; document.documentElement.classList.remove('locked');
-          const f = window.__afterUnlock; window.__afterUnlock = null; if (f) f();
+          if (needGoogle()){ gMode = true; input.disabled = true; go.firstChild.nodeValue = 'Reconnect with Google'; await googleStep(); return; }
+          unlock();
         } else {
           fails++; if (fails >= 3) until = Date.now() + Math.min(30, Math.pow(2, fails - 2)) * 1000;
           err.textContent = 'Wrong password.'; form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake'); input.select(); focus();
@@ -1865,18 +1887,29 @@
     });
     function closeMenu(){ $('#menuRoot').innerHTML = ''; document.removeEventListener('pointerdown', menuOutside, true); }
     function menuOutside(e){ if (!e.target.closest('.menu')) closeMenu(); }
+    function moveDocModal(doc){
+      const list = folders.slice().sort((a, b) => String(a.name).localeCompare(String(b.name)));
+      const opts = '<option value="">Uncategorized</option>' + list.map(f => '<option value="' + f.id + '"' + (f.id === doc.folderId ? ' selected' : '') + '>' + esc(f.name) + '</option>').join('');
+      openModal('<h3>Move to folder</h3><p>“' + esc(doc.name) + '”</p><label for="mvSel">Folder</label>' +
+        '<select id="mvSel" style="width:100%;height:42px;border:1px solid var(--control);border-radius:12px;padding:0 12px;font-size:15px;background:var(--surface);color:var(--ink)">' + opts + '</select>' +
+        '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mOk">Move</button></div>');
+      $('#mCancel').addEventListener('click', closeModal);
+      $('#mOk').addEventListener('click', async () => {
+        const v = $('#mvSel').value || null; closeModal();
+        if (v === (doc.folderId || null)) return;
+        doc.folderId = v; doc.updatedAt = Date.now(); await DB.put('docs', doc); renderLibrary(); toast('Document moved.');
+      });
+      setTimeout(() => { try { $('#mvSel').focus(); } catch (e) {} }, 30);
+    }
     function openDocMenu(docId, anchor){
       const doc = docs.find(d => d.id === docId); if (!doc) return;
       const r = anchor.getBoundingClientRect();
-      const moveItems = folders.filter(f => f.id !== doc.folderId).map(f =>
-        '<button data-move="' + f.id + '"><span class="folder-dot" style="background:' + f.color + ';width:11px;height:11px;border-radius:3px"></span>Move to "' + esc(f.name) + '"</button>').join('');
       $('#menuRoot').innerHTML = '<div class="menu" style="top:' + (r.bottom + 6) + 'px;left:' + Math.max(8, Math.min(r.left - 140, window.innerWidth - 210)) + 'px">' +
         '<button data-m="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3H11v18H4.5A2.5 2.5 0 0 0 2 23.5Z"/><path d="M22 5.5A2.5 2.5 0 0 0 19.5 3H13v18h6.5a2.5 2.5 0 0 1 2.5 2.5Z" transform="translate(0,-2.5)"/></svg>Open Document</button>' +
         '<button data-m="rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Rename</button>' +
         ((doc.kind !== 'blank') ? ((onDevice(doc) && inCloud(doc) && !KEEP.has(doc.id) ? '<button data-m="free"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4.2 4.2 0 0 1-.5 8.5Z"/></svg>Free up space</button>' : '') +
           (KEEP.has(doc.id) ? '<button data-m="unkeep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M8 10l3 3 5-5"/></svg>Always kept on this device ✓</button>' : '<button data-m="keep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Always keep on this device</button>')) : '') +
-        moveItems +
-        (doc.folderId ? '<button data-move=""><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg>Move to Uncategorized</button>' : '') +
+        '<button data-m="move"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>Move to folder…</button>' +
         '<button data-m="del" class="danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg>Delete Document</button></div>';
       document.addEventListener('pointerdown', menuOutside, true);
       $('.menu').addEventListener('click', async e => {
@@ -1887,6 +1920,7 @@
         const act = b.dataset.m; closeMenu();
         if (act === 'open') openReader(doc.id);
         else if (act === 'rename') renameDocModal(doc);
+        else if (act === 'move') moveDocModal(doc);
         else if (act === 'free'){ if (currentReader && currentReader.id === doc.id) return; await DB.del('files', doc.id); renderLibrary(); toast('Freed up space. The PDF stays on Google Drive.'); }
         else if (act === 'unkeep'){ KEEP.delete(doc.id); saveKeep(); renderLibrary(); toast('This file can be removed from this device when you free up space.'); }
         else if (act === 'keep'){
@@ -3093,7 +3127,7 @@
         }, 250);
       });
     }
-    async function driveRequestToken(){
+    async function driveRequestToken(prompt){
       await waitForGIS();
       const cid = driveClientId();
       if (!cid) throw new Error('no-client-id');
@@ -3107,8 +3141,22 @@
           },
           error_callback: () => reject(new Error('oauth-error'))
         });
-        client.requestAccessToken({ prompt: driveLinked ? '' : 'consent' });
+        client.requestAccessToken({ prompt: prompt !== undefined ? prompt : (driveLinked ? '' : 'consent') });
       });
+    }
+    /* the Google account that first linked Drive on this browser is the owner: another account cannot unlock the app here */
+    async function driveOwnerOk(setIt){
+      try {
+        const r = await driveFetch('https://www.googleapis.com/drive/v3/about?fields=user(permissionId,emailAddress)'); if (!r.ok) return true;
+        const u = (await r.json()).user || {}; if (!u.permissionId) return true;
+        const known = localStorage.getItem('nt-owner');
+        if (!known || setIt){ localStorage.setItem('nt-owner', u.permissionId); localStorage.setItem('nt-owner-mail', u.emailAddress || ''); return true; }
+        return known === u.permissionId;
+      } catch (e) { return true; }   // cannot check (offline): never lock the owner out
+    }
+    function driveForget(){
+      try { if (driveToken && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(driveToken, () => {}); } catch (e) {}
+      driveToken = null; driveTokenExp = 0; drivePersist();
     }
     async function driveFetch(url, opts){
       if (!driveTokenValid()){ driveLost(); throw new Error('needs-reauth'); }
@@ -3117,10 +3165,11 @@
       return r;
     }
     /* ----- losing the connection is never silent ----- */
-    function showDriveBanner(){ const b = $('#driveBanner'); if (b) b.classList.remove('hidden'); }
+    const appLocked = () => document.documentElement.classList.contains('locked');
+    function showDriveBanner(){ if (appLocked()) return; const b = $('#driveBanner'); if (b) b.classList.remove('hidden'); }
     function hideDriveBanner(){ const b = $('#driveBanner'); if (b) b.classList.add('hidden'); }
     function driveLost(){
-      if (!driveLinked) return;
+      if (!driveLinked || appLocked()) return;   // on the lock screen the Unlock button does the reconnecting
       showDriveBanner();
       setDriveUI('err', 'Google Drive is disconnected. Tap Reconnect — your Google session is remembered, so no password is needed.');
       if (!driveLostNotified){ driveLostNotified = true; toast('Google Drive disconnected — tap Reconnect to keep syncing.'); }
@@ -3134,6 +3183,7 @@
     function armDriveReauth(){
       if (driveHookArmed || !driveLinked) return; driveHookArmed = true;
       const h = e => {
+        if (appLocked()) return;
         if (e.target.closest && e.target.closest('#driveBanner')) return;
         if (!driveLinked || driveTokenValid()){ document.removeEventListener('pointerup', h, true); driveHookArmed = false; return; }
         if ((typeof INK !== 'undefined' && INK.tool) || (typeof editingId !== 'undefined' && editingId)) return;
@@ -3142,6 +3192,14 @@
       };
       document.addEventListener('pointerup', h, true);
     }
+    /* while you keep using the app, the Google session is renewed at the first tap in its last 8 minutes (a window that closes by itself) */
+    let driveRenewing = false;
+    document.addEventListener('pointerup', () => {
+      if (!driveLinked || driveRenewing || appLocked() || !driveTokenValid() || driveTokenExp - Date.now() > 8 * 60000) return;
+      if ((typeof INK !== 'undefined' && INK.tool) || (typeof editingId !== 'undefined' && editingId)) return;
+      if (Date.now() - driveReauthFailedAt < 300000) return;
+      driveRenewing = true; driveRequestToken().catch(() => { driveReauthFailedAt = Date.now(); }).finally(() => { driveRenewing = false; });
+    }, true);
     async function driveEnsureFolder(){
       if (driveFolderId) return driveFolderId;
       const q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
@@ -3358,6 +3416,7 @@
       try {
         setDriveUI('busy', 'Opening the Google sign-in window…');
         await driveRequestToken();
+        await driveOwnerOk(true);
         setDriveUI('on', 'Signed in with Google. Running the first sync…');
         driveSyncing = false;
         await driveSyncNow(true);
@@ -5191,7 +5250,7 @@ function syncToolUI(){
   $('#pagesCol').classList.toggle('tool-select', INK.tool === 'select');
   $('#inkBar').classList.toggle('hidden', !INK.tool);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === INK.tool));
-  $('#inkShapes').classList.toggle('active', INK.tool === 'shape' && INK.shape.k !== 'sym');
+  $('#inkShapes').classList.toggle('active', INK.shapeOpen && !!INK.tool || (INK.tool === 'shape' && INK.shape.k !== 'sym'));
   $('#inkSyms').classList.toggle('active', INK.symOpen && !!INK.tool);
   { const sm = $('#inkSmooth'); sm.dataset.level = INK.smooth; sm.classList.toggle('active', INK.smooth === 1); sm.title = 'Handwriting smoothing: ' + ['off', 'light', 'strong'][INK.smooth]; }
   $('#drawBtn').classList.toggle('active', !!INK.tool && INK.tool !== 'hl');
@@ -5228,7 +5287,7 @@ function setInkTool(t){
   INK.tool = t; if (t !== 'select' && t !== 'shape') INK.sel = null;
   if (prevSel && !INK.sel) redrawInk(prevSel.p);
   hidePops();
-  syncToolUI(); updateToolbarVisibility(); syncSymPanel();
+  syncToolUI(); updateToolbarVisibility(); syncSymPanel(); syncShapePanel();
 }
 function setInkWidth(v){
   const kind = inkKind(); INK.width[kind] = v;
@@ -5246,13 +5305,21 @@ function setInkColor(hex){
 const SYM_RING = ['N', 'V', 'A', 'ADV', 'P', 'Det', 'Pron', 'Conj'];
 const SYM_LABEL = ['S', "S'", 'NP', 'VP', 'AP', 'AdvP', 'PP', 'NOM', 'DP', 'CP', 'TP', 'Vgrp', 'Comp', 'Det', 'PRO', 'M', 'Aux', 'P', 'N', 'V', 'A', 'ADV', 'Conj'];
 const SYM_AFFIX = ['pref', 'suff', 'stem'];
+function symOwn(){ try { const a = JSON.parse(localStorage.getItem('nt-sym-own') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function saveSymOwn(a){ try { localStorage.setItem('nt-sym-own', JSON.stringify(a.slice(-60))); } catch (e) {} }
 function buildSymPanel(){
   const chip = (t, ring, it) => '<button class="sym-chip' + (ring ? ' ring' : '') + (it ? ' it' : '') + '" data-t="' + t + '"' + (ring ? ' data-ring="1"' : '') + (it ? ' data-it="1"' : '') + '>' + t + '</button>';
   $('#spBody').innerHTML = '<div class="sym-sec">Word class, circled</div><div class="sym-grid">' + SYM_RING.map(t => chip(t, true)).join('') + '</div>' +
     '<div class="sym-sec">Syntax labels</div><div class="sym-grid">' + SYM_LABEL.map(t => chip(t)).join('') + '</div>' +
     '<div class="sym-sec">Morphology</div><div class="sym-grid">' + SYM_AFFIX.map(t => chip(t, false, true)).join('') + '</div>' +
-    '<div class="sym-sec">Your own</div><div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:34px;padding:0 14px">Use</button></div>' +
+    '<div class="sym-sec">Your own</div>' + (symOwn().length ? '<div class="sym-grid" id="symOwnGrid">' + symOwn().map((c, i) => '<span class="sym-own">' + chip(c.t, c.ring) + '<button class="sym-del" data-del="' + i + '" title="Remove from my symbols" aria-label="Remove">×</button></span>').join('') + '</div>' : '<div class="shape-tip" style="padding:0 2px 6px">Symbols you make are kept here, on this device, until you remove them.</div>') + '<div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:34px;padding:0 14px">Use</button></div>' +
     '<div class="shape-tip">Tap the page to place a symbol, or drag to size it: a frame shows its width and height, and it snaps to the size you used last so symbols match.</div>';
+}
+function addOwnSymbol(){
+  const t = ($('#symTxt').value || '').trim(), ring = $('#symRing').checked; if (!t) return;
+  const a = symOwn().filter(c => !(c.t === t && !!c.ring === ring)); a.push({ t, ring }); saveSymOwn(a);
+  buildSymPanel(); pickSymbol(t, ring, false);
+  const g = $('#symOwnGrid'); if (g && g.lastElementChild) g.lastElementChild.scrollIntoView({ block: 'nearest' });
 }
 function symType(){ return INK.shape.k === 'sym' && INK.shape.ring ? 'ring' : 'label'; }
 function syncSymFields(){
@@ -5294,8 +5361,31 @@ function shapeIconSVG(k, o){
 const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['ellipse', 0, 'Circle / oval'], ['rect', 0, 'Rectangle'], ['tri', 0, 'Triangle'], ['star', 0, 'Star'],
   ['brkt', 0, 'Bracket ['], ['brkt', 2, 'Bracket ]'], ['brkt', 1, 'Bracket, lying, open down'], ['brkt', 3, 'Bracket, lying, open up'],
   ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up']];
+function markShapeCur(){ document.querySelectorAll('#shBody .shape-btn').forEach(b => b.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === b.dataset.k && INK.shape.o === +b.dataset.o)); }
+function shapeGeo(){
+  let g = null; try { g = JSON.parse(localStorage.getItem('nt-shape-geo') || 'null'); } catch (e) {}
+  if (g) return g;
+  return window.innerWidth < 600 ? { w: window.innerWidth - 24, h: 300, x: 12, y: window.innerHeight - 340 } : { w: 330, h: 270, x: Math.max(8, window.innerWidth - 700), y: 110 };
+}
+function applyShapeGeo(g, save){
+  const el = $('#shapePanel');
+  g.w = Math.max(240, Math.min(g.w, window.innerWidth - 16)); g.h = Math.max(150, Math.min(g.h, window.innerHeight - 16));
+  g.x = Math.max(8, Math.min(g.x, window.innerWidth - g.w - 8)); g.y = Math.max(8, Math.min(g.y, window.innerHeight - 80));
+  el.style.width = g.w + 'px'; el.style.height = g.h + 'px'; el.style.left = g.x + 'px'; el.style.top = g.y + 'px'; el.style.minHeight = '150px';
+  if (save){ try { localStorage.setItem('nt-shape-geo', JSON.stringify(g)); } catch (e) {} }
+  return g;
+}
+INK.shapeOpen = false; try { INK.shapeOpen = localStorage.getItem('nt-shape-open') === '1'; } catch (e) {}
+function syncShapePanel(){
+  const el = $('#shapePanel'); if (!el) return;
+  const show = !!INK.tool && INK.shapeOpen, was = !el.classList.contains('hidden');
+  el.classList.toggle('hidden', !show); $('#inkShapes').classList.toggle('open', show);
+  if (show && !was){ buildShapePop(); applyShapeGeo(shapeGeo(), false); }
+  if (show) markShapeCur();
+}
+function openShapePanel(open){ INK.shapeOpen = open; try { localStorage.setItem('nt-shape-open', open ? '1' : '0'); } catch (e) {} syncShapePanel(); }
 function buildShapePop(){
-  $('#shapePop').innerHTML = '<div class="shape-grid">' + SHAPES.map(([k, o, label]) => '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>').join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
+  $('#shBody').innerHTML = '<div class="shape-grid">' + SHAPES.map(([k, o, label]) => '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>').join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
 }
 
 /* ---------- paper templates & blank documents ---------- */
@@ -5428,7 +5518,18 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#newDocBtn').addEventListener('click', newDocModal);
   $('#inkBar').addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }, true);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.addEventListener('click', () => setInkTool(b.dataset.tool)));
-  $('#inkShapes').addEventListener('click', () => togglePop($('#shapePop'), $('#inkShapes'), buildShapePop));
+  $('#inkShapes').addEventListener('click', () => openShapePanel(!INK.shapeOpen));
+  $('#shClose').addEventListener('click', () => openShapePanel(false));
+  (function(){
+    const head = $('#shHead'), grip = $('#shResize'); let d = null, rz = null;
+    head.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; e.preventDefault(); const g = shapeGeo(); d = { dx: e.clientX - g.x, dy: e.clientY - g.y, g }; try { head.setPointerCapture(e.pointerId); } catch (er) {} });
+    head.addEventListener('pointermove', e => { if (!d) return; d.g.x = e.clientX - d.dx; d.g.y = e.clientY - d.dy; applyShapeGeo(d.g, false); });
+    const endD = () => { if (d){ applyShapeGeo(d.g, true); d = null; } }; head.addEventListener('pointerup', endD); head.addEventListener('pointercancel', endD);
+    grip.addEventListener('pointerdown', e => { e.preventDefault(); const g = shapeGeo(); rz = { sx: e.clientX, sy: e.clientY, w: g.w, h: g.h, g }; try { grip.setPointerCapture(e.pointerId); } catch (er) {} });
+    grip.addEventListener('pointermove', e => { if (!rz) return; rz.g.w = rz.w + e.clientX - rz.sx; rz.g.h = rz.h + e.clientY - rz.sy; applyShapeGeo(rz.g, false); });
+    const endR = () => { if (rz){ applyShapeGeo(rz.g, true); rz = null; } }; grip.addEventListener('pointerup', endR); grip.addEventListener('pointercancel', endR);
+    window.addEventListener('resize', () => { if (!$('#shapePanel').classList.contains('hidden')) applyShapeGeo(shapeGeo(), false); });
+  })();
   $('#penLogBtn').addEventListener('click', () => {
     openModal('<h3>Pen log</h3><p>Last events from the pencil and touches (newest last).</p><textarea id="penLogTxt" readonly style="width:100%;height:240px;box-sizing:border-box;border:1px solid var(--control);border-radius:12px;padding:10px;font:12px/1.5 ui-monospace,Menlo,monospace;background:var(--surface);color:var(--ink)"></textarea><div class="modal-actions"><button class="btn" id="mCancel">Close</button><button class="btn primary" id="penLogCopy">Copy</button></div>');
     $('#penLogTxt').value = INKLOG.join('\n') || '(no pen events yet — draw something first)';
@@ -5451,9 +5552,10 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#spClose').addEventListener('click', () => openSymPanel(false));
   $('#spBody').addEventListener('click', e => {
     const c = e.target.closest('.sym-chip'); if (c){ pickSymbol(c.dataset.t, !!c.dataset.ring, !!c.dataset.it); return; }
-    if (e.target.closest('#symAdd')) pickSymbol($('#symTxt').value.trim(), $('#symRing').checked, false);
+    if (e.target.closest('#symAdd')) addOwnSymbol();
+    const dl = e.target.closest('.sym-del'); if (dl){ const a = symOwn(); a.splice(+dl.dataset.del, 1); saveSymOwn(a); buildSymPanel(); markSymCur(); return; }
   });
-  $('#spBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'symTxt'){ e.preventDefault(); pickSymbol($('#symTxt').value.trim(), $('#symRing').checked, false); } });
+  $('#spBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'symTxt'){ e.preventDefault(); addOwnSymbol(); } });
   const sizeIn = () => { const w = +$('#spW').value, h = +$('#spH').value; if (w >= 6 && h >= 6) INK.symDims[symType()] = [w, h]; };
   $('#spW').addEventListener('input', sizeIn); $('#spH').addEventListener('input', sizeIn);
   (function(){   // drag by the header, resize by the corner
@@ -5469,9 +5571,9 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   document.addEventListener('selectstart', e => { if (!INK.tool) return; const t = e.target && e.target.nodeType === 3 ? e.target.parentNode : e.target; if (t && t.closest && t.closest('#pagesCol')) e.preventDefault(); }, true);
   document.addEventListener('contextmenu', e => { if (INK.tool && e.target.closest && e.target.closest('.ink-canvas')) e.preventDefault(); });
   document.addEventListener('gesturestart', e => { if (INK.tool) e.preventDefault(); });
-  $('#shapePop').addEventListener('click', e => {
+  $('#shBody').addEventListener('click', e => {
     const b = e.target.closest('.shape-btn'); if (!b) return;
-    INK.shape = { k: b.dataset.k, o: +b.dataset.o }; INK.lastPlacedId = null; INK.lastTap = null; hidePops(); setInkTool('shape');
+    INK.shape = { k: b.dataset.k, o: +b.dataset.o }; INK.lastPlacedId = null; INK.lastTap = null; hidePops(); setInkTool('shape'); markShapeCur();
   });
   $('#inkSwatches').addEventListener('click', e => {
     const add = e.target.closest('[data-addcolor]'); if (add){ openColorPop('ink', add); return; }
