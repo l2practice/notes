@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-03-a" />
+    <meta name="app-build" content="2026-11-03-b" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1117,7 +1117,7 @@
         <input type="file" id="picInput" accept="image/*" multiple class="hidden" />
         <button class="btn" id="drawBtn" title="Draw with a pen, Apple Pencil or mouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Draw</button>
         <button class="btn" id="markBtn" title="Highlighter — highlight anywhere on the page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6.5-6.5-4-4Z"/><path d="m9 11-4.5 4.5V19h4L13 14.5"/><path d="M4 21h16"/></svg>Highlight</button>
-        <button class="btn hidden" id="addPageBtn" title="Add a page at the end"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Page</button>
+        <button class="btn hidden" id="addPageBtn" title="Add a blank page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Page</button>
         <button class="btn" id="exportBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
           Export PDF
@@ -2227,13 +2227,18 @@
             buf = await fetchPdfToDevice(currentReader, (pct, got) => { if (lbl) lbl.textContent = base + (pct !== null ? ' — ' + pct + '%' : ' — ' + Math.round(got / 1048576 * 10) / 10 + ' MB'); });
           }
           pdfDoc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+          if (pdfDoc.numPages < (currentReader.pages || 0) && currentReader.driveFileId && typeof driveLinked !== 'undefined' && driveLinked && driveTokenValid()){
+            // another device added pages: this device still holds the older PDF, so fetch the new one
+            try { const nb = await fetchPdfToDevice(currentReader); if (nb){ pdfDoc.destroy(); pdfDoc = await pdfjsLib.getDocument({ data: nb.slice(0) }).promise; } } catch (er) {}
+          }
+          if (pdfDoc.numPages !== (currentReader.pages || pdfDoc.numPages)) toast('This PDF has ' + pdfDoc.numPages + ' pages but the notes expect ' + currentReader.pages + ' — the newest PDF may still be uploading from your other device.');
           for (let i = 1; i <= pdfDoc.numPages; i++){
             const p = await pdfDoc.getPage(i);
             const vp = p.getViewport({ scale: 1 });
             pageSizes.push({ w: vp.width, h: vp.height });
           }
         }
-        $('#addPageBtn').classList.toggle('hidden', currentReader.kind !== 'blank');
+        $('#addPageBtn').classList.remove('hidden');
         INK.undo.length = 0; INK.redo.length = 0; INK.sel = null; setInkTool(null);
         cancelSmoothZoom();
         overlayFav();
@@ -2260,6 +2265,7 @@
         updatePageInd();
       } catch (e) {
         restoringPage = false;
+        try { console.error('openReader failed:', e && (e.stack || e.message || e)); } catch (er) {}
         const um = e && e.userMsg;
         $('#readerLoading').innerHTML = '<span>' + esc(um || 'Could not open this document.') + '</span>';
         toast(um || 'Could not open the PDF document.');
@@ -2268,7 +2274,7 @@
     function closeReader(fromPop){
       flushReadLog();
       if (typeof updateBlankThumb === 'function') updateBlankThumb();
-      if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; $('#inkBar').classList.add('hidden'); $('#symPanel').classList.add('hidden'); $('#pagesCol').classList.remove('ink-on'); }
+      if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; $('#inkBar').classList.add('hidden'); $('#symPanel').classList.add('hidden'); { const sp = $('#shapePanel'); if (sp) sp.classList.add('hidden'); } $('#pagesCol').classList.remove('ink-on'); }
       if (fromPop !== true && history.state && history.state.nt === 'reader'){ history.back(); return; }
       flushLastPage();
       if (pdfDoc){ pdfDoc.destroy(); pdfDoc = null; }
@@ -5432,6 +5438,55 @@ function updateBlankThumb(){
   if (!isBlank()) return;
   try { currentReader.thumb = blankPageCanvas(1, 0.3).toDataURL('image/jpeg', 0.72); DB.put('docs', currentReader).catch(() => {}); } catch (e) {}
 }
+/* ---- add a blank page to a PDF (the PDF itself gets the page, so export and every device agree) ---- */
+async function insertPdfPage(pos, tpl, bg){
+  const d = currentReader; if (!d || isBlank()) return;
+  if (!window.PDFLib){ toast('The PDF tools did not load — check the internet connection.'); return; }
+  toast('Adding the page…');
+  try {
+    if (typeof saveNow === 'function') await saveNow();
+    const buf = await DB.get('files', d.id); if (!buf){ toast('This PDF is not on this device.'); return; }
+    const ref = pageSizes[Math.max(0, Math.min(pageSizes.length - 1, pos > 0 ? pos - 1 : 0))] || { w: 595, h: 842 }, w = ref.w, h = ref.h;
+    const k = Math.min(2, 1800 / Math.max(w, h)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+    drawPaper(c.getContext('2d'), { tpl, bg, w, h }, c.width / w);
+    const blob = await new Promise(r => c.toBlob(r, 'image/png')), png = new Uint8Array(await blob.arrayBuffer());
+    const pdf = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }), img = await pdf.embedPng(png);
+    pdf.insertPage(pos, [w, h]).drawImage(img, { x: 0, y: 0, width: w, height: h });
+    const out = await pdf.save(), ab = out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+    await DB.put('files', ab, d.id);
+    // everything that belongs to a page number moves along with the pages after the new one
+    const np = pos + 1;
+    (d.notes || []).forEach(n => { if (n.page >= np) n.page++; });
+    const ink = {}; for (const key in (d.ink || {})){ const n = +key; ink[n >= np ? n + 1 : n] = d.ink[key]; } d.ink = ink;
+    d.pages = (d.pages || pageSizes.length) + 1; d.size = ab.byteLength; d.lastPage = np; d.pdfDirty = true;
+    d.updatedAt = d.pageUpdatedAt = Date.now();
+    if (pos === 0){ const t = document.createElement('canvas'); t.width = 180; t.height = Math.round(180 * h / w); t.getContext('2d').drawImage(c, 0, 0, t.width, t.height); d.thumb = t.toDataURL('image/jpeg', 0.72); }
+    await DB.put('docs', d);
+    INK.undo.length = 0; INK.redo.length = 0;
+    const id = d.id; closeReader(true); await openReader(id);
+    setTimeout(() => { try { goToPage(np); } catch (e) {} }, 250);   // show the new page
+    toast('Page ' + np + ' added.');
+  } catch (e) { toast('Could not add the page.'); }
+}
+function addPageModal(){
+  const st = { tpl: 'lined', bg: '#ffffff' }, cur = Math.max(1, Math.min(currentPage || 1, pageSizes.length)), n = pageSizes.length;
+  openModal('<h3>Add a page</h3><p>A new blank page is added to this PDF. Everything after it moves down by one page.</p>' +
+    '<label for="apPos">Where</label><select id="apPos" style="width:100%;height:42px;border:1px solid var(--control);border-radius:12px;padding:0 12px;font-size:15px;background:var(--surface);color:var(--ink)">' +
+    '<option value="after">After page ' + cur + ' (the page you are on)</option><option value="before">Before page ' + cur + '</option><option value="start">At the beginning</option><option value="end">At the end (after page ' + n + ')</option></select>' +
+    '<label>Paper</label><div class="paper-grid" id="apPapers"></div><label>Colour</label><div class="color-row" id="apBgs"></div>' +
+    '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="apGo">Add page</button></div>');
+  const paint = () => document.querySelectorAll('#apPapers canvas').forEach(c => { c.getContext('2d').clearRect(0, 0, c.width, c.height); drawPaper(c.getContext('2d'), { tpl: c.dataset.tpl, bg: st.bg, w: 595, h: 842, lw: 4 }, c.width / 595); });
+  $('#apPapers').innerHTML = PAPERS.map(([k, l]) => '<button class="paper-tile' + (k === st.tpl ? ' cur' : '') + '" data-tpl="' + k + '"><canvas width="105" height="148" data-tpl="' + k + '"></canvas><span>' + l + '</span></button>').join('');
+  $('#apBgs').innerHTML = BGS.map(([c, l]) => '<button class="color-choice' + (c === st.bg ? ' active' : '') + '" data-bg="' + c + '" title="' + l + '" style="background:' + c + ';box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)"></button>').join('');
+  paint();
+  $('#apPapers').addEventListener('click', e => { const t = e.target.closest('.paper-tile'); if (!t) return; st.tpl = t.dataset.tpl; document.querySelectorAll('#apPapers .paper-tile').forEach(x => x.classList.toggle('cur', x === t)); });
+  $('#apBgs').addEventListener('click', e => { const b = e.target.closest('[data-bg]'); if (!b) return; st.bg = b.dataset.bg; document.querySelectorAll('#apBgs .color-choice').forEach(x => x.classList.toggle('active', x === b)); paint(); });
+  $('#mCancel').addEventListener('click', closeModal);
+  $('#apGo').addEventListener('click', () => {
+    const v = $('#apPos').value, pos = v === 'after' ? cur : v === 'before' ? cur - 1 : v === 'start' ? 0 : n;
+    closeModal(); insertPdfPage(pos, st.tpl, st.bg);
+  });
+}
 function addBlankPage(){
   if (!isBlank()) return;
   const d = currentReader; d.pages++; pageSizes.push({ w: d.paper.w, h: d.paper.h });
@@ -5514,7 +5569,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
 (function(){
   $('#drawBtn').addEventListener('click', () => setInkTool(INK.tool && INK.tool !== 'hl' ? null : 'pen'));
   $('#markBtn').addEventListener('click', () => setInkTool(INK.tool === 'hl' ? null : 'hl'));
-  $('#addPageBtn').addEventListener('click', addBlankPage);
+  $('#addPageBtn').addEventListener('click', () => { if (!currentReader) return; if (isBlank()) addBlankPage(); else addPageModal(); });
   $('#newDocBtn').addEventListener('click', newDocModal);
   $('#inkBar').addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }, true);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.addEventListener('click', () => setInkTool(b.dataset.tool)));
