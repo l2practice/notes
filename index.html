@@ -11,7 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-04-d" />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
+    <meta name="app-build" content="2026-11-04-f" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -975,6 +976,76 @@
       .modal input[type=password]{width:100%;box-sizing:border-box;height:40px;border:1px solid var(--control);border-radius:12px;padding:0 14px;background:var(--surface);font-size:14.5px;outline:none;}
       .modal input[type=password]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
       .pw-msg{min-height:20px;margin-top:10px;color:var(--danger);font-size:13px;font-weight:600;}
+      /* ================= Bookshelf (3D) ================= */
+      .shelf-view{--sv-paper:var(--bg);--sv-ink:var(--ink);--sv-acc:var(--accent);--sv-rule:color-mix(in srgb,var(--ink) 88%,transparent);--sv-ease:cubic-bezier(.2,.8,.2,1);--H:min(46vh,31vw);
+        position:fixed;inset:0;z-index:150;background:var(--sv-paper);color:var(--sv-ink);overflow:hidden;font-family:var(--font-ui);-webkit-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;}
+      .shelf-view[hidden]{display:none !important;}
+      @media (pointer:fine){ .shelf-view,.shelf-view *{cursor:none !important;} }
+      .sv-grain{position:fixed;inset:0;z-index:40;pointer-events:none;mix-blend-mode:multiply;opacity:.55;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .42  0 0 0 0 .38  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");}
+      @media (prefers-color-scheme:dark){ .sv-grain{mix-blend-mode:screen;opacity:.25;} }
+      .sv-lbl{font-size:10.5px;line-height:1;letter-spacing:.09em;text-transform:uppercase;font-weight:600;color:inherit;}
+      .sv-box{display:inline-flex;align-items:center;height:21px;padding:0 8px;border:1px solid var(--sv-rule);background:none;color:inherit;font:inherit;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;text-decoration:none;white-space:nowrap;}
+      .sv-top{position:fixed;left:0;right:0;top:0;height:84px;padding:0 32px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;z-index:30;}
+      .sv-top>:first-child{justify-self:start;} .sv-top>:last-child{justify-self:end;}
+      .sv-logo{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--sv-acc);}
+      .sv-logo b{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:22px;letter-spacing:.01em;line-height:1;}
+      .sv-logo span{font-size:9px;font-weight:600;letter-spacing:.34em;padding-left:.34em;text-transform:uppercase;}
+      .sv-tabs{position:fixed;left:50%;transform:translateX(-50%);top:calc(50% - var(--H)/2 - 86px);z-index:30;display:flex;max-width:calc(100vw - 24px);overflow-x:auto;scrollbar-width:none;}
+      .sv-tabs::-webkit-scrollbar{display:none;}
+      .sv-tabs>div{position:relative;display:flex;}
+      .sv-tabs button{position:relative;z-index:1;height:23px;padding:0 11px;margin-left:-1px;border:1px solid var(--sv-rule);background:none;color:inherit;font:inherit;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;transition:color .45s var(--sv-ease);}
+      .sv-tabs button:first-of-type{margin-left:0;}
+      .sv-tabs button.on{color:var(--on-primary,#fff);}
+      .sv-ind{position:absolute;left:0;top:0;height:23px;width:0;background:var(--sv-acc);transition:width .6s var(--sv-ease),transform .6s var(--sv-ease);z-index:0;}
+      .sv-shelf{position:fixed;left:0;right:0;top:calc(50% - var(--H)/2 - 40px);height:calc(var(--H) + 80px);perspective:2200px;perspective-origin:50% 50%;touch-action:pan-y;z-index:10;}
+      .sv-stage{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;}
+      .sv-tape{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d;will-change:transform;}
+      .sv-tape .sp,.sv-tape .cv{position:absolute;top:calc(var(--H)/-2);height:var(--H);backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:2px;}   /* no overflow:hidden here: it makes Chrome skip the turned-out cover when hit-testing */
+      .sv-tape .sp{width:var(--ws);left:calc(var(--ws)/-2);transform:translateZ(calc(var(--d)/2));background-color:var(--c);color:var(--fg);
+        background-image:linear-gradient(90deg,rgba(0,0,0,.30),rgba(255,255,255,.07) 10%,rgba(0,0,0,0) 38%,rgba(0,0,0,.20)),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);}
+      .sv-tape .cv{width:var(--d);left:calc(var(--d)/-2);transform:rotateY(90deg) translateZ(calc(var(--ws)/2));background:#f2efe8 center/cover no-repeat;box-shadow:0 30px 60px -28px rgba(20,16,10,.55);}
+      .sv-tape .sp::after,.sv-tape .cv::after{content:"";position:absolute;inset:0;background:#000;border-radius:inherit;opacity:var(--shade,0);pointer-events:none;}
+      .sp-img{position:absolute;left:7px;right:7px;top:7px;aspect-ratio:1/1;background:center/cover no-repeat #fff;border:1px solid rgba(0,0,0,.35);border-radius:2px;filter:saturate(.9) sepia(.12);}
+      .sp-title{position:absolute;left:0;right:0;top:calc(var(--ws) + 4px);bottom:calc(var(--H)*.27);display:flex;align-items:center;justify-content:center;}
+      .sp-title i{font-style:normal;writing-mode:vertical-rl;font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:calc(var(--ws)*.25);line-height:1.05;letter-spacing:.01em;max-height:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .sp-foot{position:absolute;left:0;right:0;bottom:9px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:calc(var(--ws)*.12);font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
+      .sp-foot em{font-style:normal;writing-mode:vertical-rl;opacity:.85;max-height:calc(var(--H)*.16);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+      .sp-foot b{border:1px solid currentColor;padding:2px 4px;font-size:calc(var(--ws)*.13);line-height:1;}
+      .cv-fall{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:calc(var(--d)*.09);background:var(--c);color:var(--fg);}
+      .cv-fall small{font-size:calc(var(--d)*.04);letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.85;}
+      .cv-fall strong{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:calc(var(--d)*.12);line-height:1.04;word-break:break-word;}
+      .cv-badges{position:absolute;right:calc(var(--d)*.04);bottom:calc(var(--d)*.04);display:flex;gap:4px;}
+      .cv-badges i{width:calc(var(--d)*.075);height:calc(var(--d)*.075);border-radius:50%;display:grid;place-items:center;background:rgba(110,110,110,.7);color:#fff;}
+      .cv-badges i.on{background:#2f9e63;} .cv-badges svg{width:62%;height:62%;}
+      .sv-play{position:fixed;width:42px;height:42px;margin:-21px 0 0 -21px;border-radius:50%;border:1px solid var(--sv-acc);color:var(--sv-acc);background:color-mix(in srgb,var(--sv-paper) 75%,transparent);display:grid;place-items:center;z-index:20;transform:scale(0);padding:0;}
+      .sv-play svg{width:12px;height:12px;margin-left:2px;fill:currentColor;}
+      .sv-cap{position:fixed;left:50%;top:calc(50% + var(--H)/2 + 30px);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none;z-index:20;}
+      .sv-cap .m{position:relative;overflow:hidden;width:min(92vw,760px);text-align:center;}
+      .sv-cap .m>span{display:block;}
+      .sv-cap .m>span.out{position:absolute;left:0;right:0;top:0;}
+      .sv-cap .t{font-family:"Newsreader",Georgia,serif;font-size:31px;line-height:1.14;letter-spacing:-.01em;}
+      .sv-cap .s{color:var(--sv-acc);font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;line-height:1.5;}
+      .sv-cap .y{font-size:11px;font-weight:500;letter-spacing:.08em;line-height:1.5;color:var(--muted);}
+      .sv-arrow{position:fixed;top:calc(50% + var(--H)/2 + 40px);width:44px;height:44px;display:grid;place-items:center;background:none;border:0;color:inherit;z-index:30;padding:0;}
+      .sv-arrow.l{left:20px;} .sv-arrow.r{right:20px;} .sv-arrow svg{width:18px;height:10px;stroke:currentColor;fill:none;stroke-width:1.2;}
+      .sv-foot{position:fixed;left:32px;right:32px;bottom:26px;display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:30;}
+      .sv-empty{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:20;display:none;}
+      .sv-empty h2{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:32px;margin:0 0 8px;} .sv-empty p{margin:0 0 18px;color:var(--muted);}
+      .sv-cursor{position:fixed;left:0;top:0;width:58px;height:58px;margin:-29px 0 0 -29px;z-index:100;pointer-events:none;display:none;will-change:transform;}
+      @media (pointer:fine){ .sv-cursor{display:block;} }
+      .sv-cursor .ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--sv-ink);transition:transform .5s var(--sv-ease),background-color .4s var(--sv-ease),border-color .4s var(--sv-ease);}
+      .sv-cursor .dot{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--sv-ink);transition:transform .4s var(--sv-ease);}
+      .sv-cursor .lab{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:10px;font-weight:600;letter-spacing:.1em;line-height:1.25;color:#fff;transform:scale(0);transition:transform .45s var(--sv-ease);}
+      .sv-cursor.spine .ring{transform:scale(.72);} .sv-cursor.btn .ring{transform:scale(.55);} .sv-cursor.btn .dot{transform:scale(0);}
+      .sv-cursor.open .ring{transform:scale(1.75);background:var(--sv-acc);border-color:var(--sv-acc);} .sv-cursor.open .dot{transform:scale(0);} .sv-cursor.open .lab{transform:scale(1);}
+      .sv-sheet{position:fixed;inset:0;z-index:50;background:var(--bg-reader);}
+      .sv-sheet[hidden]{display:none;}
+      @media (max-width:767px){
+        .shelf-view{--H:min(60vw,40svh);}
+        .sv-top{height:64px;padding:0 16px;} .sv-logo b{font-size:17px;} .sv-logo span{font-size:7.5px;} .sv-top .sv-lbl,.sv-box{font-size:9px;}
+        .sv-tabs{top:calc(50% - var(--H)/2 - 70px);} .sv-tabs button{padding:0 7px;font-size:9px;}
+        .sv-cap .t{font-size:24px;} .sv-arrow.l{left:6px;} .sv-arrow.r{right:6px;} .sv-foot{left:16px;right:16px;bottom:18px;} .sv-foot span{display:none;}
+      }
     </style>
   </head>
   <body>
@@ -1008,6 +1079,25 @@
         <div class="lk-err" id="lockErr" role="alert"></div>
       </div>
     </div>
+    <!-- ================= BOOKSHELF ================= -->
+    <div class="shelf-view" id="shelfView" hidden role="region" aria-label="Bookshelf">
+      <div class="sv-grain" aria-hidden="true"></div>
+      <header class="sv-top">
+        <button type="button" class="sv-box" id="svBack">← Library</button>
+        <div class="sv-logo"><b>Note-taking</b><span>Platform</span></div>
+        <span class="sv-lbl" id="svCount"></span>
+      </header>
+      <nav class="sv-tabs" id="svTabs" aria-label="Folders"><div id="svTabsIn"><i class="sv-ind" id="svInd"></i></div></nav>
+      <section class="sv-shelf" id="svShelf" aria-label="Bookshelf"><div class="sv-stage" id="svStage"></div></section>
+      <div class="sv-empty" id="svEmpty"><h2>Your shelf is empty</h2><p>Import a PDF or start a blank notebook to fill it.</p><button type="button" class="sv-box" id="svImport">Import a PDF</button></div>
+      <button type="button" class="sv-play" id="svPlay" aria-label="Open book"><svg viewBox="0 0 12 12"><path d="M1 0l10 6-10 6z"/></svg></button>
+      <div class="sv-cap" id="svCap" aria-live="polite"><div class="m t" id="svT"></div><div class="m s" id="svS"></div><div class="m y" id="svY"></div></div>
+      <button type="button" class="sv-arrow l" id="svPrev" aria-label="Previous book"><svg viewBox="0 0 18 10"><path d="M5 1 1 5l4 4M1 5h16"/></svg></button>
+      <button type="button" class="sv-arrow r" id="svNext" aria-label="Next book"><svg viewBox="0 0 18 10"><path d="M13 1l4 4-4 4M17 5H1"/></svg></button>
+      <footer class="sv-foot"><span class="sv-lbl">Drag · scroll · ← → to choose</span><button type="button" class="sv-box" id="svOpts">Options</button><span class="sv-lbl">Enter to open</span></footer>
+      <div class="sv-cursor" id="svCur" aria-hidden="true"><i class="ring"></i><i class="dot"></i><span class="lab">OPEN<br>MỞ</span></div>
+      <div class="sv-sheet" id="svSheet" hidden></div>
+    </div>
     <!-- ================= LIBRARY ================= -->
     <div id="libraryView">
       <div class="lib-frame">
@@ -1023,6 +1113,10 @@
           <button class="side-nav-item active" id="navLibBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5Z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
             My Library
+          </button>
+          <button class="side-nav-item" id="navShelfBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18M9 7v14M14 4v17M19 8l-3 12"/><path d="M2 21h20"/></svg>
+            Bookshelf
           </button>
           <button class="side-nav-item" id="navNewsBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
@@ -2382,6 +2476,7 @@
       $('#readerView').classList.add('hidden');
       $('#libraryView').classList.remove('hidden');
       renderLibrary();
+      if (window.__svReturn && typeof shelfOpen === 'function'){ const bid = window.__svReturn; window.__svReturn = null; shelfOpen(bid); }   // opened from the bookshelf: go back to it
     }
     $('#backBtn').addEventListener('click', () => closeReader());
     $('#saveNowBtn').addEventListener('click', saveNow);
@@ -5888,5 +5983,222 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
 })();
 
     </script>
+<script>
+'use strict';
+/* ================= Bookshelf: a long shelf of your documents; the chosen one turns out to show its cover ================= */
+(function(){
+  const $ = (s, r) => (r || document).querySelector(s);
+  const SV = $('#shelfView'), STAGE = $('#svStage'), SHELF = $('#svShelf'), TABS = $('#svTabsIn'), IND = $('#svInd'), CUR = $('#svCur'), SHEET = $('#svSheet'), PLAY = $('#svPlay');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, fine = matchMedia('(pointer:fine)').matches;
+  const EASE = 'cubic-bezier(.2,.8,.2,1)';
+  let shown = false, list = [], N = 0, COPIES = 3, TOTAL = 0, tapes = [], tabs = [];
+  let H = 400, ws = 68, d = 270, gap = 12, W = innerWidth, VH = innerHeight;
+  let s = 0, T = 0, hover = -1, active = -1, mx = 0, my = 0, cx = 0, cy = 0, tiltX = 0, tiltY = 0, last = 0, raf = 0;
+  let onCover = false, isOpening = false, drag = null, dragging = false, suppress = false, wheelTimer = 0, lastTarget = null, lastTab = '';
+  const sm = x => x * x * (3 - 2 * x);
+  const Bf = r => Math.abs(r) < 1 ? (r + Math.sin(Math.PI * r) / Math.PI) / 2 : (r < 0 ? -.5 : .5);
+  const F = r => r * (ws + gap) + (d - ws + 1.6 * gap) * Bf(r);
+  const mod = (a, n) => ((a % n) + n) % n;
+  const esc2 = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ----- data ----- */
+  function sortedDocs(){
+    const fo = new Map(folders.map((f, i) => [f.id, i]));
+    return docs.filter(x => !x.deletedAt).sort((a, b) => {
+      const fa = a.folderId && fo.has(a.folderId) ? fo.get(a.folderId) : 9999, fb = b.folderId && fo.has(b.folderId) ? fo.get(b.folderId) : 9999;
+      return fa - fb || String(a.name).localeCompare(String(b.name));
+    });
+  }
+  const colourOf = doc => { const f = folderOf(doc); return f && f.color ? f.color : '#6b7280'; };
+  const fgOf = c => isDarkColor(c) ? '#f6efe0' : '#1a1712';
+  const folderName = doc => { const f = folderOf(doc); return f ? f.name : 'Uncategorized'; };
+  const cloudSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4.2 4.2 0 0 1-.5 8.5Z"/></svg>';
+  const pcSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>';
+
+  function tapeHTML(doc){
+    const c = colourOf(doc), fg = fgOf(c), blank = doc.kind === 'blank';
+    const img = doc.thumb ? '<span class="sp-img" style="background-image:url(' + doc.thumb + ')"></span>' : '<span class="sp-img" style="background:' + (blank && doc.paper ? doc.paper.bg : '#fff') + '"></span>';
+    const cover = doc.thumb ? '' : '<div class="cv-fall"><small>' + esc2(folderName(doc)) + '</small><strong>' + esc2(doc.name) + '</strong></div>';
+    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + '">' + img + '<span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-foot"><em>' + esc2(folderName(doc)) + '</em><b>' + (blank ? 'NOTE' : 'PDF') + '</b></span></div>' +
+      '<div class="cv" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';background-image:url(' + doc.thumb + ')' : '') + '">' + cover + '<span class="cv-badges"><i class="' + (inCloud(doc) ? 'on' : '') + '">' + cloudSVG + '</i><i class="' + (onDevice(doc) ? 'on' : '') + '">' + pcSVG + '</i></span></div>';
+  }
+
+  /* ----- geometry ----- */
+  function measure(){
+    W = innerWidth; VH = innerHeight;
+    const pr = document.createElement('div'); pr.style.cssText = 'position:absolute;visibility:hidden;width:1px;height:var(--H)'; SV.appendChild(pr); H = pr.offsetHeight || 400; pr.remove();
+    ws = H * 0.17; d = H * 0.68; gap = H * 0.03;
+    STAGE.style.setProperty('--H', H + 'px'); STAGE.style.setProperty('--ws', ws + 'px'); STAGE.style.setProperty('--d', d + 'px');
+  }
+
+  /* ----- build ----- */
+  function build(){
+    list = sortedDocs(); N = list.length;
+    STAGE.innerHTML = ''; tapes = [];
+    $('#svEmpty').style.display = N ? 'none' : 'block';
+    SHELF.style.display = N ? '' : 'none'; $('#svCap').style.display = N ? '' : 'none';
+    $('#svCount').textContent = N + (N === 1 ? ' document' : ' documents');
+    ['svPrev', 'svNext', 'svOpts'].forEach(i => $('#' + i).style.display = N ? '' : 'none'); PLAY.style.display = N ? '' : 'none';
+    buildTabs();
+    if (!N) return;
+    COPIES = N >= 12 ? 3 : (Math.ceil(36 / N / 2) * 2 + 1); TOTAL = N * COPIES;
+    measure();
+    for (let v = 0; v < TOTAL; v++){
+      const el = document.createElement('div'); el.className = 'sv-tape'; el.innerHTML = tapeHTML(list[v % N]);
+      STAGE.appendChild(el);
+      const tp = { el, sp: el.querySelector('.sp'), cv: el.querySelector('.cv'), v, lift: 0, r: 0, hidden: false, tf: '', z: 0, sh1: -1, sh2: -1 };
+      el.addEventListener('pointerenter', () => { hover = v; }); el.addEventListener('pointerleave', () => { if (hover === v) hover = -1; });
+      tapes.push(tp);
+    }
+  }
+  function buildTabs(){
+    TABS.querySelectorAll('button').forEach(b => b.remove());
+    tabs = [{ id: 'all', label: 'All', first: 0 }];
+    const seen = new Set();
+    list.forEach((doc, i) => { const id = doc.folderId && folderOf(doc) ? doc.folderId : 'none'; if (!seen.has(id)){ seen.add(id); tabs.push({ id, label: id === 'none' ? 'Other' : folderOf(doc).name, first: i }); } });
+    tabs.forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.label; b.dataset.tab = t.id; TABS.appendChild(b); });
+  }
+  function setTab(doc){
+    const id = doc ? (doc.folderId && folderOf(doc) ? doc.folderId : 'none') : 'all';
+    lastTab = id; let on = null;
+    TABS.querySelectorAll('button').forEach(b => { const a = b.dataset.tab === id; b.classList.toggle('on', a); if (a) on = b; });
+    if (on){ IND.style.width = on.offsetWidth + 'px'; IND.style.transform = 'translateX(' + on.offsetLeft + 'px)'; if (!reduce) on.scrollIntoView({ block: 'nearest', inline: 'center' }); }
+  }
+
+  /* ----- caption ----- */
+  function swap(mask, text, dir, instant){
+    const sp = document.createElement('span'); sp.textContent = text;
+    const old = Array.from(mask.children); mask.appendChild(sp);
+    if (instant || reduce || !old.length){ old.forEach(o => o.remove()); return; }
+    old.forEach(o => {
+      if (o._leaving) return; o._leaving = true;
+      const cs = getComputedStyle(o).transform; o.classList.add('out');
+      const a = o.animate([{ transform: cs === 'none' ? 'translateY(0)' : cs }, { transform: 'translateY(' + (-dir * 105) + '%)' }], { duration: 650, easing: EASE, fill: 'both' }); a.onfinish = () => o.remove();
+    });
+    sp.animate([{ transform: 'translateY(' + (dir * 105) + '%)' }, { transform: 'translateY(0)' }], { duration: 650, easing: EASE, fill: 'both' });
+  }
+  function setActive(i, dir, instant){
+    active = i; const doc = list[i]; if (!doc) return;
+    const meta = doc.kind === 'blank' ? 'Blank notebook' : (doc.pages || 0) + ' pages';
+    const prog = isFinishedDoc(doc) ? 'Finished' : (doc.lastPage || 1) > 1 ? 'Resume at page ' + doc.lastPage : doc.lastOpenedAt ? 'Opened before' : 'Not opened yet';
+    const notes = doc.notes ? doc.notes.length : 0;
+    swap($('#svT'), doc.name, dir, instant);
+    swap($('#svS'), folderName(doc) + '  /  ' + meta, dir, instant);
+    swap($('#svY'), prog + (notes ? '  ·  ' + notes + (notes === 1 ? ' note' : ' notes') : ''), dir, instant);
+    setTab(doc);
+  }
+
+  /* ----- frame ----- */
+  function frame(t){
+    raf = requestAnimationFrame(frame);
+    const dt = Math.min(.05, ((t - last) / 1000) || .016); last = t;
+    const diff = T - s, k = dragging ? 18 : 5.2;
+    s += Math.abs(diff) < 1e-4 ? diff : diff * (reduce ? 1 : 1 - Math.exp(-k * dt));
+    if (Math.abs(s) > TOTAL * 4){ const sh = Math.round(s / TOTAL) * TOTAL; s -= sh; T -= sh; }
+    const a = mod(Math.round(s), N);
+    if (a !== active) setActive(a, Math.sign(T - s) || 1, false);
+    const cr = SHELF.getBoundingClientRect(), shelfCy = cr.top + cr.height / 2;
+    cx += (mx - cx) * (1 - Math.exp(-16 * dt)); cy += (my - cy) * (1 - Math.exp(-16 * dt));
+    onCover = fine && !isOpening && Math.abs(mx - W / 2) < .55 * d && Math.abs(my - shelfCy) < .55 * H && Math.abs(T - s) < .3;
+    const kt = 1 - Math.exp(-7 * dt), tyT = onCover ? (mx - W / 2) / (.55 * d) * 9 : (mx - W / 2) / W * 5, txT = onCover ? -(my - shelfCy) / (H / 2) * 6 : 0;
+    tiltY += (tyT - tiltY) * (reduce ? 1 : kt); tiltX += (txT - tiltX) * (reduce ? 1 : kt);
+    for (let n = 0; n < tapes.length; n++){
+      const tp = tapes[n], r = mod(tp.v - s + TOTAL / 2, TOTAL) - TOTAL / 2, x = F(r); tp.r = r;
+      if (Math.abs(x) > W / 2 + 1.5 * d){ if (!tp.hidden){ tp.el.style.visibility = 'hidden'; tp.hidden = true; } continue; }
+      if (tp.hidden){ tp.el.style.visibility = ''; tp.hidden = false; }
+      const o = sm(Math.max(0, 1 - Math.abs(r)));
+      const lt = (hover === tp.v && Math.abs(r) > .5) ? 1 : 0; tp.lift += (lt - tp.lift) * (reduce ? 1 : 1 - Math.exp(-12 * dt));
+      const tf = 'translate3d(' + x.toFixed(2) + 'px,' + (-o * .025 * H - tp.lift * .045 * H).toFixed(2) + 'px,' + (o * .2 * H).toFixed(2) + 'px) rotateZ(' + (-4.5 * o).toFixed(3) + 'deg) rotateX(' + (tiltX * o).toFixed(3) + 'deg) rotateY(' + (-90 * o + tiltY * o).toFixed(3) + 'deg)';
+      if (tf !== tp.tf){ tp.el.style.transform = tf; tp.tf = tf; }
+      const z = Math.round(100 - Math.abs(r) * 4); if (z !== tp.z){ tp.el.style.zIndex = z; tp.z = z; }
+      const s1 = Math.round(o * 55) / 100, s2 = Math.round((1 - o) * 72) / 100;
+      if (s1 !== tp.sh1){ tp.sp.style.setProperty('--shade', s1); tp.sh1 = s1; } if (s2 !== tp.sh2){ tp.cv.style.setProperty('--shade', s2); tp.sh2 = s2; }
+    }
+    // play ring: pops in once the shelf settles
+    const ps = isOpening ? 0 : sm(Math.max(0, 1 - Math.abs(T - s) * 3));
+    PLAY.style.left = (W / 2 - .5 * d - 6) + 'px'; PLAY.style.top = (shelfCy + .36 * H) + 'px'; PLAY.style.transform = 'scale(' + ps.toFixed(3) + ')'; PLAY.style.pointerEvents = ps > .6 ? 'auto' : 'none';
+    // cursor
+    if (fine){
+      CUR.style.transform = 'translate3d(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px,0)';
+      const tg = lastTarget, onTape = tg && tg.closest && tg.closest('.sv-tape'), onBtn = tg && tg.closest && tg.closest('button,a,.sv-tabs');
+      CUR.className = 'sv-cursor' + (onCover ? ' open' : (onTape && !onBtn && hover >= 0 && Math.abs(tapes[hover] ? tapes[hover].r : 0) > .5 ? ' spine' : (onBtn ? ' btn' : '')));
+    }
+  }
+
+  /* ----- moving ----- */
+  const go = n => { T = Math.round(T) + n; };
+  function toTab(id){
+    const t = tabs.find(x => x.id === id); if (!t) return;
+    const cur = Math.round(T); let delta = mod(t.first - mod(cur, N), N); if (delta > N / 2) delta -= N; T = cur + delta;
+  }
+
+  /* ----- opening a book: a sheet grows out of the cover to fill the screen, then the reader takes over ----- */
+  function openBook(){
+    if (isOpening || !N) return; isOpening = true; T = Math.round(T);
+    const doc = list[mod(Math.round(s), N)], tp = tapes[mod(Math.round(s), TOTAL)];
+    const rc = tp.cv.getBoundingClientRect();
+    SHEET.hidden = false; SHEET.style.transformOrigin = ((rc.left + rc.right) / 2) + 'px ' + ((rc.top + rc.bottom) / 2) + 'px';
+    const a = SHEET.animate([
+      { clipPath: 'inset(' + rc.top + 'px ' + (W - rc.right) + 'px ' + (VH - rc.bottom) + 'px ' + rc.left + 'px round 3px)', transform: 'rotate(-4.5deg)' },
+      { clipPath: 'inset(0px 0px 0px 0px round 0px)', transform: 'rotate(0deg)' }
+    ], { duration: reduce ? 1 : 1050, easing: 'cubic-bezier(.76,0,.18,1)', fill: 'both' });
+    setTimeout(() => { window.__svReturn = doc.id; openReader(doc.id); }, reduce ? 1 : 650);
+    a.onfinish = () => { SHEET.hidden = true; a.cancel(); isOpening = false; hide(); };
+  }
+  function hide(){ shown = false; SV.hidden = true; cancelAnimationFrame(raf); }
+  function close(){ window.__svReturn = null; hide(); }
+  function show(id){
+    SV.hidden = false; shown = true; isOpening = false; SHEET.hidden = true; hover = -1;
+    build();
+    if (N){
+      let i = Math.max(0, list.findIndex(x => x.id === id)); if (i < 0) i = 0;
+      s = T = i + N * Math.floor(COPIES / 2); active = -1; lastTab = '';
+      setActive(i, 1, true);
+      requestAnimationFrame(() => setTab(list[i]));
+    }
+    cancelAnimationFrame(raf); last = performance.now(); raf = requestAnimationFrame(frame);
+  }
+  window.shelfOpen = show; window.shelfClose = close;
+
+  /* ----- inputs ----- */
+  SV.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; lastTarget = e.target; if (!cx && !cy){ cx = mx; cy = my; } });
+  SV.addEventListener('pointerdown', e => { mx = cx = e.clientX; my = cy = e.clientY; lastTarget = e.target; });
+  SHELF.addEventListener('pointerdown', e => { if (e.button > 0) return; drag = { x: e.clientX, T0: T, id: e.pointerId }; dragging = false; });
+  window.addEventListener('pointermove', e => {
+    if (!drag) return; const dx = e.clientX - drag.x;
+    if (!dragging && Math.abs(dx) > 5){ dragging = true; try { SHELF.setPointerCapture(drag.id); } catch (er) {} }
+    if (dragging) T = drag.T0 - dx / (ws + gap);
+  });
+  const endDrag = () => { if (!drag) return; if (dragging){ T = Math.round(T); suppress = true; setTimeout(() => { suppress = false; }, 0); } drag = null; dragging = false; };
+  window.addEventListener('pointerup', endDrag); window.addEventListener('pointercancel', endDrag);
+  STAGE.addEventListener('click', e => {
+    if (suppress || isOpening) return; const el = e.target.closest('.sv-tape'); if (!el) return;
+    const tp = tapes.find(x => x.el === el); if (!tp) return;
+    if (Math.abs(tp.r) < .5) openBook(); else T = Math.round(T + tp.r);
+  });
+  PLAY.addEventListener('click', openBook);
+  $('#svPrev').addEventListener('click', () => go(-1)); $('#svNext').addEventListener('click', () => go(1));
+  $('#svBack').addEventListener('click', close);
+  $('#svImport').addEventListener('click', () => { close(); const fi = document.getElementById('fileInput'); if (fi) fi.click(); });
+  $('#svOpts').addEventListener('click', () => { const doc = list[mod(Math.round(s), N)]; if (doc) openDocMenu(doc.id, $('#svOpts')); });
+  TABS.addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) toTab(b.dataset.tab); });
+  SV.addEventListener('wheel', e => {
+    if (!shown || isOpening) return; e.preventDefault();
+    const dl = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; T += dl / (ws + gap) * .5;
+    clearTimeout(wheelTimer); wheelTimer = setTimeout(() => { T = Math.round(T); }, 160);
+  }, { passive: false });
+  document.addEventListener('keydown', e => {
+    if (!shown || isOpening || $('#modalRoot').children.length) return;
+    const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+    if (e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); } else if (e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
+    else if (e.key === 'Enter' && tg !== 'BUTTON'){ e.preventDefault(); openBook(); } else if (e.key === 'Escape'){ close(); }
+  });
+  window.addEventListener('resize', () => { if (!shown || !N) return; measure(); setTab(list[active]); });
+
+  /* ----- entry point and the way back from the reader ----- */
+  const nav = $('#navShelfBtn');
+  if (nav) nav.addEventListener('click', () => { if (typeof setNav === 'function') setNav(false); show(); });
+})();
+</script>
   </body>
 </html>
