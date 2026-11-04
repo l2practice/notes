@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-04-i" />
+    <meta name="app-build" content="2026-11-04-j" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -3513,6 +3513,28 @@
         if (filled){ renderLibrary(); }
       } catch (e) { /* covers are a nicety: never fail a sync over them */ }
     }
+    /* A book that is only on Drive has no PDF here, so nothing to make a cover from. Fetch it once, take page 1, keep only the
+       picture (the PDF itself is not stored) and share the cover through the covers file. A few per sync, until all have one. */
+    const coverFails = {};
+    async function driveBackfillCovers(){
+      if (!window.pdfjsLib || (navigator.connection && navigator.connection.saveData)) return;
+      const need = docs.filter(d => !d.deletedAt && !d.thumb && d.kind !== 'blank' && d.driveFileId && !LOCAL.has(d.id) && (d.size || 0) < 30e6 && (coverFails[d.id] || 0) < 2).slice(0, 8);
+      if (!need.length) return;
+      let made = 0;
+      for (let i = 0; i < need.length; i++){
+        const d = need[i];
+        try {
+          setDriveUI('busy', 'Making covers ' + (i + 1) + ' / ' + need.length + ' — ' + d.name);
+          const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + d.driveFileId + '?alt=media');
+          if (!r.ok){ coverFails[d.id] = (coverFails[d.id] || 0) + 1; continue; }
+          const pdf = await pdfjsLib.getDocument({ data: await r.arrayBuffer() }).promise, p1 = await pdf.getPage(1), vp = p1.getViewport({ scale: 0.5 });
+          const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+          await p1.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+          d.thumb = c.toDataURL('image/jpeg', 0.72); await DB.put('docs', d); pdf.destroy(); made++;
+        } catch (e) { coverFails[d.id] = (coverFails[d.id] || 0) + 1; if (e && e.message === 'needs-reauth') break; }
+      }
+      if (made){ renderLibrary(); await driveCoversSync(); }
+    }
     async function drivePull(noProg){
       await driveFindLibFile();
       if (!driveLibFileId) return false;
@@ -3664,6 +3686,7 @@
         await purgeExpired();
         await drivePush();
         await driveCoversSync();
+        await driveBackfillCovers();
         driveLastFingerprint = driveFingerprint();
         const t = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         setDriveUI('on', 'Synced at ' + t + ' — the "' + DRIVE_FOLDER_NAME + '" folder on your Drive holds your PDFs and notes file. Open the app on another device and connect the same Google account to see the same library.');
