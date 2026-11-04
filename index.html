@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-04-f" />
+    <meta name="app-build" content="2026-11-04-g" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1005,6 +1005,7 @@
         background-image:linear-gradient(90deg,rgba(0,0,0,.30),rgba(255,255,255,.07) 10%,rgba(0,0,0,0) 38%,rgba(0,0,0,.20)),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);}
       .sv-tape .cv{width:var(--d);left:calc(var(--d)/-2);transform:rotateY(90deg) translateZ(calc(var(--ws)/2));background:#f2efe8 center/cover no-repeat;box-shadow:0 30px 60px -28px rgba(20,16,10,.55);}
       .sv-tape .sp::after,.sv-tape .cv::after{content:"";position:absolute;inset:0;background:#000;border-radius:inherit;opacity:var(--shade,0);pointer-events:none;}
+      .sv-tape .sp::before{content:"";position:absolute;inset:0;background:var(--thumb,none) left center/800% 100% no-repeat;opacity:.45;mix-blend-mode:multiply;pointer-events:none;}
       .sp-img{position:absolute;left:7px;right:7px;top:7px;aspect-ratio:1/1;background:center/cover no-repeat #fff;border:1px solid rgba(0,0,0,.35);border-radius:2px;filter:saturate(.9) sepia(.12);}
       .sp-title{position:absolute;left:0;right:0;top:calc(var(--ws) + 4px);bottom:calc(var(--H)*.27);display:flex;align-items:center;justify-content:center;}
       .sp-title i{font-style:normal;writing-mode:vertical-rl;font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:calc(var(--ws)*.25);line-height:1.05;letter-spacing:.01em;max-height:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -6019,8 +6020,34 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
     const c = colourOf(doc), fg = fgOf(c), blank = doc.kind === 'blank';
     const img = doc.thumb ? '<span class="sp-img" style="background-image:url(' + doc.thumb + ')"></span>' : '<span class="sp-img" style="background:' + (blank && doc.paper ? doc.paper.bg : '#fff') + '"></span>';
     const cover = doc.thumb ? '' : '<div class="cv-fall"><small>' + esc2(folderName(doc)) + '</small><strong>' + esc2(doc.name) + '</strong></div>';
-    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + '">' + img + '<span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-foot"><em>' + esc2(folderName(doc)) + '</em><b>' + (blank ? 'NOTE' : 'PDF') + '</b></span></div>' +
+    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';--thumb:url(' + doc.thumb + ')' : '') + '">' + img + '<span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-foot"><em>' + esc2(folderName(doc)) + '</em><b>' + (blank ? 'NOTE' : 'PDF') + '</b></span></div>' +
       '<div class="cv" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';background-image:url(' + doc.thumb + ')' : '') + '">' + cover + '<span class="cv-badges"><i class="' + (inCloud(doc) ? 'on' : '') + '">' + cloudSVG + '</i><i class="' + (onDevice(doc) ? 'on' : '') + '">' + pcSVG + '</i></span></div>';
+  }
+
+  /* the spine takes its colour from the cover: the average of the page's inked (non-white) pixels, kept dark enough to read the title */
+  const colCache = new Map();
+  function coverColour(doc){
+    if (!doc.thumb) return Promise.resolve(null);
+    const key = doc.id + ':' + doc.thumb.length; if (colCache.has(key)) return Promise.resolve(colCache.get(key));
+    return new Promise(res => {
+      const im = new Image(); im.onload = () => {
+        try {
+          const c = document.createElement('canvas'); c.width = c.height = 24; const x = c.getContext('2d'); x.drawImage(im, 0, 0, 24, 24);
+          const dd = x.getImageData(0, 0, 24, 24).data; let r = 0, g = 0, b = 0, n = 0;
+          for (let i = 0; i < dd.length; i += 4){ const l = .299 * dd[i] + .587 * dd[i + 1] + .114 * dd[i + 2]; if (l < 225){ r += dd[i]; g += dd[i + 1]; b += dd[i + 2]; n++; } }
+          if (n < 12){ colCache.set(key, null); res(null); return; }
+          r /= n; g /= n; b /= n; const l = .299 * r + .587 * g + .114 * b, k = l > 120 ? 120 / l : 1;   // dark enough for light lettering
+          const hex = '#' + [r * k, g * k, b * k].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+          colCache.set(key, hex); res(hex);
+        } catch (e) { res(null); }
+      }; im.onerror = () => res(null); im.src = doc.thumb;
+    });
+  }
+  function colourise(){
+    list.forEach((doc, i) => coverColour(doc).then(hex => {
+      if (!hex || !shown) return;
+      tapes.forEach(tp => { if (tp.v % N === i){ tp.sp.style.setProperty('--c', hex); tp.sp.style.setProperty('--fg', fgOf(hex)); } });
+    }));
   }
 
   /* ----- geometry ----- */
@@ -6050,6 +6077,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
       el.addEventListener('pointerenter', () => { hover = v; }); el.addEventListener('pointerleave', () => { if (hover === v) hover = -1; });
       tapes.push(tp);
     }
+    colourise();
   }
   function buildTabs(){
     TABS.querySelectorAll('button').forEach(b => b.remove());
