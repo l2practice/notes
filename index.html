@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-03-d" />
+    <meta name="app-build" content="2026-11-04-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4453,6 +4453,7 @@ function shapePaths(st){
   const k = st.k, x = st.x, y = st.y, w = st.bw || 0, h = st.bh || 0;
   if (k === 'sym' || k === 'img') return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x + w / 2, y + h / 2]]];
   if (k === 'line') return [[[x, y], [st.x2, st.y2]]];
+  if (k === 'caret') return [[[x, y], [st.x2, st.y2], [st.x3, st.y3]]];
   if (k === 'arrow'){
     const a = Math.atan2(st.y2 - y, st.x2 - x), L = Math.max(9, (st.sw || 2) * 4.5), s = .45;
     const hd = an => [st.x2 - L * Math.cos(an), st.y2 - L * Math.sin(an)];
@@ -4489,16 +4490,17 @@ function bboxOf(st){
     for (let i = 0; i < st.pts.length; i += 3){ a = Math.min(a, st.pts[i]); c = Math.max(c, st.pts[i]); b = Math.min(b, st.pts[i + 1]); d = Math.max(d, st.pts[i + 1]); }
     return { x: a, y: b, w: c - a, h: d - b }; }
   if (st.k === 'line' || st.k === 'arrow') return { x: Math.min(st.x, st.x2), y: Math.min(st.y, st.y2), w: Math.abs(st.x2 - st.x), h: Math.abs(st.y2 - st.y) };
+  if (st.k === 'caret'){ const a = Math.min(st.x, st.x2, st.x3), b = Math.min(st.y, st.y2, st.y3); return { x: a, y: b, w: Math.max(st.x, st.x2, st.x3) - a, h: Math.max(st.y, st.y2, st.y3) - b }; }
   return { x: st.x, y: st.y, w: st.bw, h: st.bh };
 }
 function moveStroke(st, dx, dy){
   if (st.pts){ for (let i = 0; i < st.pts.length; i += 3){ st.pts[i] += dx; st.pts[i + 1] += dy; } return; }
-  st.x += dx; st.y += dy; if (st.x2 !== undefined){ st.x2 += dx; st.y2 += dy; }
+  st.x += dx; st.y += dy; if (st.x2 !== undefined){ st.x2 += dx; st.y2 += dy; } if (st.x3 !== undefined){ st.x3 += dx; st.y3 += dy; }
 }
 function fitStroke(st, ob, nb){
   const sx = ob.w ? nb.w / ob.w : 1, sy = ob.h ? nb.h / ob.h : 1;
   if (st.pts){ for (let i = 0; i < st.pts.length; i += 3){ st.pts[i] = nb.x + (st.pts[i] - ob.x) * sx; st.pts[i + 1] = nb.y + (st.pts[i + 1] - ob.y) * sy; } }
-  else if (st.x2 !== undefined){ st.x = nb.x + (st.x - ob.x) * sx; st.y = nb.y + (st.y - ob.y) * sy; st.x2 = nb.x + (st.x2 - ob.x) * sx; st.y2 = nb.y + (st.y2 - ob.y) * sy; }
+  else if (st.x2 !== undefined){ st.x = nb.x + (st.x - ob.x) * sx; st.y = nb.y + (st.y - ob.y) * sy; st.x2 = nb.x + (st.x2 - ob.x) * sx; st.y2 = nb.y + (st.y2 - ob.y) * sy; if (st.x3 !== undefined){ st.x3 = nb.x + (st.x3 - ob.x) * sx; st.y3 = nb.y + (st.y3 - ob.y) * sy; } }
   else { st.x = nb.x; st.y = nb.y; st.bw = nb.w; st.bh = nb.h; }
 }
 
@@ -4591,6 +4593,39 @@ function paintCommitted(ctxI, ctxH, p, k, skip){
   inkList(p).forEach(st => { if (skip && skip.has(st.id)) return; try { drawStroke(st.t === 'hl' ? ctxH : ctxI, st, k); } catch (er) { inkLog('DRAWERR', null, (st.id || '?') + ' ' + (st.t || '') + (st.k || '') + ' ' + er.message); } });   // one bad stroke must never stop the ones after it
 }
 const isLine = st => st.k === 'line' || st.k === 'arrow';
+/* the inverted V (caret): left foot (x,y) -> apex (x2,y2) -> right foot (x3,y3); every corner can be dragged */
+const isCaret = st => st.k === 'caret';
+const isPolyShape = st => isLine(st) || isCaret(st);
+const polyPts = st => isCaret(st) ? [[st.x, st.y], [st.x2, st.y2], [st.x3, st.y3]] : [[st.x, st.y], [st.x2, st.y2]];
+const caretLens = st => [Math.hypot(st.x2 - st.x, st.y2 - st.y), Math.hypot(st.x3 - st.x2, st.y3 - st.y2)];
+const caretEqual = st => { const [a, b] = caretLens(st); return Math.abs(a - b) <= Math.max(1.2, 0.012 * Math.max(a, b)); };
+function caretSnapRight(st){   // the right side is pulled to the left side's length when it gets close; longer or shorter is left alone
+  const [a, b] = caretLens(st); if (b > 0 && Math.abs(a - b) <= Math.max(5, 0.04 * a)){ const f = a / b; st.x3 = r1(st.x2 + (st.x3 - st.x2) * f); st.y3 = r1(st.y2 + (st.y3 - st.y2) * f); }
+}
+function caretBadge(ctx, L, st, showEq){
+  const [a, b] = caretLens(st), eq = showEq && caretEqual(st);
+  const v1 = [st.x - st.x2, st.y - st.y2], v2 = [st.x3 - st.x2, st.y3 - st.y2], cs = (v1[0] * v2[0] + v1[1] * v2[1]) / ((a * b) || 1), deg = Math.round(Math.acos(Math.max(-1, Math.min(1, cs))) * 180 / Math.PI);
+  const bb = bboxOf(st);
+  sizeBadge(ctx, L, bb, false, Math.round(a) + ' · ' + Math.round(b) + ' pt · ' + deg + '°' + (eq ? '  =  equal' : ''));
+  if (eq){
+    const k = L.k, r = k / (scale || 1), acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#d4664f';
+    ctx.save(); ctx.strokeStyle = acc; ctx.lineWidth = 2.2 * r; ctx.lineCap = 'round';
+    [[[st.x, st.y], [st.x2, st.y2]], [[st.x2, st.y2], [st.x3, st.y3]]].forEach(([p0, p1]) => {   // the same tick on both sides, like in geometry
+      const mx = (p0[0] + p1[0]) / 2, my = (p0[1] + p1[1]) / 2, dx = p1[0] - p0[0], dy = p1[1] - p0[1], l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l, t = 7 / (scale || 1);
+      ctx.beginPath(); ctx.moveTo((mx - nx * t) * k, (my - ny * t) * k); ctx.lineTo((mx + nx * t) * k, (my + ny * t) * k); ctx.stroke();
+    });
+    ctx.restore();
+    if (!INK._eqOn){ INK._eqOn = true; try { navigator.vibrate && navigator.vibrate(10); } catch (e) {} }
+  } else INK._eqOn = false;
+}
+function caretFromDrag(x0, y0, x, y, apex){
+  const s = { t: 'shape', id: uid(), k: 'caret', o: 0, c: INK.color.pen, sw: INK.width.pen };
+  s.x = r1(x0); s.y = r1(y0);
+  if (apex){ s.x2 = r1(apex[0]); s.y2 = r1(apex[1]); s.x3 = r1(x); s.y3 = r1(y); caretSnapRight(s); }
+  else { s.x2 = r1(x); s.y2 = r1(y); s.x3 = r1(2 * x - x0); s.y3 = r1(y0); }   // before the pause: a symmetric inverted V
+  return s;
+}
+function caretDefault(x, y){ const s = caretFromDrag(x - 38, y + 34, x, y - 34, null); return s; }
 function selList(){ if (!INK.sel) return []; const l = inkList(INK.sel.p); return INK.sel.ids.map(id => l.find(s => s.id === id)).filter(Boolean); }
 function groupBox(arr){
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
@@ -4608,11 +4643,11 @@ function pointInPoly(x, y, poly){
 function drawSel(ctx, p, k){
   if ((INK.tool !== 'select' && INK.tool !== 'shape') || !INK.sel || INK.sel.p !== p) return;
   const arr = selList(); if (!arr.length) return;
-  const single = arr.length === 1 && isLine(arr[0]), b = groupBox(arr), pad = 4 / (scale || 1);
+  const single = arr.length === 1 && isPolyShape(arr[0]), b = groupBox(arr), pad = 4 / (scale || 1);
   const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d7a64';
   ctx.save(); ctx.strokeStyle = acc; ctx.fillStyle = '#fff'; ctx.lineWidth = 1.5;
   if (!single){ ctx.setLineDash([5, 4]); ctx.strokeRect((b.x - pad) * k, (b.y - pad) * k, (b.w + 2 * pad) * k, (b.h + 2 * pad) * k); ctx.setLineDash([]); }
-  const pts = single ? [[arr[0].x, arr[0].y], [arr[0].x2, arr[0].y2]] : [[b.x - pad, b.y - pad], [b.x + b.w + pad, b.y - pad], [b.x - pad, b.y + b.h + pad], [b.x + b.w + pad, b.y + b.h + pad]];
+  const pts = single ? polyPts(arr[0]) : [[b.x - pad, b.y - pad], [b.x + b.w + pad, b.y - pad], [b.x - pad, b.y + b.h + pad], [b.x + b.w + pad, b.y + b.h + pad]];
   pts.forEach(q => { ctx.beginPath(); ctx.arc(q[0] * k, q[1] * k, 5.5, 0, 7); ctx.fill(); ctx.stroke(); });
   ctx.restore();
 }
@@ -4688,10 +4723,12 @@ function compose(p){
   const ls = INK.live && INK.live.p === p ? INK.live.st : null;
   if (ls && ls.t === 'shape' && G && (G.kind === 'shape' || G.kind === 'draw')){
     if (ls.bw !== undefined) sizeBadge(ci, L, { x: ls.x, y: ls.y, w: ls.bw, h: ls.bh }, true);
+    else if (ls.k === 'caret') caretBadge(ci, L, ls, !!(G && G.apex));
     else if (ls.x2 !== undefined) lineBadge(ci, L, ls);
   } else if (G && G.kind === 'resize' && G.moved){
     const arr = selList();
-    if (arr.length === 1 && isLine(arr[0])) lineBadge(ci, L, arr[0]);
+    if (arr.length === 1 && isCaret(arr[0])) caretBadge(ci, L, arr[0], true);
+    else if (arr.length === 1 && isLine(arr[0])) lineBadge(ci, L, arr[0]);
     else if (arr.length) sizeBadge(ci, L, groupBox(arr), false);
   }
   drawSel(ci, p, L.k);
@@ -5127,7 +5164,11 @@ function inkStep(e, x, y, cv){
     c.beginPath(); c.moveTo(lx * k, ly * k); c.lineTo(fx * k, fy * k); c.stroke();
     c.beginPath(); c.arc(fx * k, fy * k, c.lineWidth / 2, 0, 7); c.fill();
   } else if (G.kind === 'shape'){
-    G.moved = true; INK.live.st = makeShape(G.x0, G.y0, x, y); compose(p);
+    G.moved = true;
+    if (INK.shape.k === 'caret'){   // up to the apex, pause there (the apex locks), then pull down to the right foot
+      INK.live.st = caretFromDrag(G.x0, G.y0, x, y, G.apex); compose(p);
+      if (!G.apex){ G.cx = x; G.cy = y; clearTimeout(G.timer); G.timer = setTimeout(() => { if (G && G.kind === 'shape' && !G.apex && Math.hypot(G.cx - G.x0, G.cy - G.y0) * scale > 14){ G.apex = [G.cx, G.cy]; try { navigator.vibrate && navigator.vibrate(12); } catch (er) {} INK.live.st = caretFromDrag(G.x0, G.y0, G.cx, G.cy, G.apex); compose(G.p); } }, 260); }
+    } else { INK.live.st = makeShape(G.x0, G.y0, x, y); compose(p); }
   } else if (G.kind === 'erase'){ eraseAt(p, x, y); }
   else if (G.kind === 'lasso'){
     const l = G.pts[G.pts.length - 1]; if (Math.hypot(x - l[0], y - l[1]) * scale > 3){ G.pts.push([x, y]); compose(p); }
@@ -5140,9 +5181,9 @@ function inkStep(e, x, y, cv){
     const arr = selList(); if (!arr.length) return;
     if (!G.moved){ G.moved = true; pushUndo(p); }
     const ob = G.ob;
-    if (G.h === 'p1' || G.h === 'p2'){
+    if (G.h === 'p1' || G.h === 'p2' || G.h === 'p3'){
       const base = clone(G.origs[0]);
-      if (G.h === 'p1'){ base.x = r1(x); base.y = r1(y); } else { base.x2 = r1(x); base.y2 = r1(y); }
+      if (G.h === 'p1'){ base.x = r1(x); base.y = r1(y); } else if (G.h === 'p3'){ base.x3 = r1(x); base.y3 = r1(y); if (isCaret(base)) caretSnapRight(base); } else { base.x2 = r1(x); base.y2 = r1(y); }
       copyInto(arr[0], base);
     } else {
       const ox = (G.h === 'nw' || G.h === 'sw') ? ob.x + ob.w : ob.x, oy = (G.h === 'nw' || G.h === 'ne') ? ob.y + ob.h : ob.y;
@@ -5188,7 +5229,8 @@ function inkUp(e, cv, cancelled){
         INK.lastTap = null;
       }
       if (tiny){ const x = g.x0, y = g.y0, v = (INK.shape.o & 1) === 0;
-        if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
+        if (st.k === 'caret') st = caretDefault(x, y);
+        else if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
         else {
           const d = INK.shapeDims[(st.x2 !== undefined) ? 'line' : shapeKey(st)];
           if (st.x2 !== undefined) st = makeShape(x, y, x + (d ? d[0] : 90), y);
@@ -5196,6 +5238,7 @@ function inkUp(e, cv, cancelled){
           else st = (st.k === 'brkt' || st.k === 'brace') ? (v ? makeShape(x, y, x + 16, y + 110) : makeShape(x, y, x + 110, y + 16)) : makeShape(x, y, x + 80, y + 80);
         } }
       if (st.k === 'sym'){ INK.symDims[st.ring ? 'ring' : 'label'] = [st.bw, st.bh]; syncSymFields(); }
+      else if (st.k === 'caret'){ /* corners are free: nothing to remember */ }
       else if (st.x2 !== undefined){ INK.shapeDims.line = [Math.hypot(st.x2 - st.x, st.y2 - st.y)]; saveShapeDims(); }
       else if (st.bw !== undefined){ INK.shapeDims[shapeKey(st)] = [st.bw, st.bh]; saveShapeDims(); }
       undoAdd(p, st); inkList(p, true).push(st); scheduleSave();   // the shape tool stays selected, ready for the next one
@@ -5263,10 +5306,10 @@ function eraseAt(p, x, y){
   setInkList(p, out); redrawInk(p);
 }
 function hitHandle(arr, x, y, tol){
-  if (arr.length === 1 && isLine(arr[0])){
-    const st = arr[0];
-    if (Math.hypot(x - st.x, y - st.y) <= tol) return 'p1';
-    if (Math.hypot(x - st.x2, y - st.y2) <= tol) return 'p2'; return null;
+  if (arr.length === 1 && isPolyShape(arr[0])){
+    const pts = polyPts(arr[0]);
+    for (let i = pts.length - 1; i >= 0; i--) if (Math.hypot(x - pts[i][0], y - pts[i][1]) <= tol) return 'p' + (i + 1);   // the apex of a caret is p2
+    return null;
   }
   const b = groupBox(arr), pad = 4 / scale;
   for (const [h, hx, hy] of [['nw', b.x - pad, b.y - pad], ['ne', b.x + b.w + pad, b.y - pad], ['sw', b.x - pad, b.y + b.h + pad], ['se', b.x + b.w + pad, b.y + b.h + pad]]) if (Math.hypot(x - hx, y - hy) <= tol) return h;
@@ -5279,7 +5322,7 @@ function selectDown(p, x, y, opts){
   if (arr.length){
     const h = hitHandle(arr, x, y, tol * 1.3);
     if (h){ G = { kind: 'resize', p, h, ob: groupBox(arr), origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return true; }
-    const b = groupBox(arr), single = arr.length === 1 && isLine(arr[0]);
+    const b = groupBox(arr), single = arr.length === 1 && isPolyShape(arr[0]);
     const inBox = !single && x >= b.x - pad && x <= b.x + b.w + pad && y >= b.y - pad && y <= b.y + b.h + pad && (!opts || arr.every(s => s.k === 'sym' || s.k === 'img'));
     if (inBox || arr.some(s => strokeHit(s, x, y, tol))){
       G = { kind: 'move', p, x0: x, y0: y, origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return true;
@@ -5428,12 +5471,12 @@ function syncSymPanel(){
 function openSymPanel(open){ INK.symOpen = open; try { localStorage.setItem('nt-sym-open', open ? '1' : '0'); } catch (e) {} syncSymPanel(); }
 function shapeIconSVG(k, o){
   const vert = (o & 1) === 0, bk = k === 'brkt' || k === 'brace';
-  const st = bk ? (vert ? { x: 9, y: 3, bw: 10, bh: 22 } : { x: 3, y: 9, bw: 22, bh: 10 }) : (k === 'line' || k === 'arrow') ? { x: 4, y: 24, x2: 24, y2: 4 } : { x: 4, y: 4, bw: 20, bh: 20 };
+  const st = k === 'caret' ? { x: 3, y: 24, x2: 14, y2: 4, x3: 25, y3: 24 } : bk ? (vert ? { x: 9, y: 3, bw: 10, bh: 22 } : { x: 3, y: 9, bw: 22, bh: 10 }) : (k === 'line' || k === 'arrow') ? { x: 4, y: 24, x2: 24, y2: 4 } : { x: 4, y: 4, bw: 20, bh: 20 };
   Object.assign(st, { k, o, sw: 2 });
   const d = shapePaths(st).map(poly => poly.map((q, i) => (i ? 'L' : 'M') + r1(q[0]) + ' ' + r1(q[1])).join('')).join('');
   return '<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>';
 }
-const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['ellipse', 0, 'Circle / oval'], ['rect', 0, 'Rectangle'], ['tri', 0, 'Triangle'], ['star', 0, 'Star'],
+const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['caret', 0, 'Inverted V — draw up to the top, pause, then pull down; every corner can be dragged'], ['ellipse', 0, 'Circle / oval'], ['rect', 0, 'Rectangle'], ['tri', 0, 'Triangle'], ['star', 0, 'Star'],
   ['brkt', 0, 'Bracket ['], ['brkt', 2, 'Bracket ]'], ['brkt', 1, 'Bracket, lying, open down'], ['brkt', 3, 'Bracket, lying, open up'],
   ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up']];
 function markShapeCur(){ document.querySelectorAll('#shBody .shape-btn').forEach(b => b.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === b.dataset.k && INK.shape.o === +b.dataset.o)); }
