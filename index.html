@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-04-j" />
+    <meta name="app-build" content="2026-11-04-k" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -3492,25 +3492,51 @@
       if (!up.ok) throw new Error('upload-failed');
       return id;
     }
-    /* Covers are not inside the library file (they are big), so they travel in their own file: any device that has a cover
-       puts it there, any device without one takes it from there. */
-    const DRIVE_COVERS_NAME = 'notes-covers.json';
+    /* Covers live in their own "Covers" folder on Drive, one small picture per book (<id>.jpg, about 15-40 KB).
+       A device that already has a cover puts it there; a device without one downloads just the missing pictures,
+       a few at a time. Covers are kept in this browser afterwards, so the library opens with every cover already in place. */
+    const DRIVE_COVERS_DIR = 'Covers';
+    let driveCoversDirId = null;
+    async function driveCoversDir(){
+      if (driveCoversDirId) return driveCoversDirId;
+      const q = encodeURIComponent("name='" + DRIVE_COVERS_DIR + "' and '" + driveFolderId + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false");
+      const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&orderBy=createdTime&fields=files(id)');
+      const f = ((await r.json()).files || [])[0];
+      if (f){ driveCoversDirId = f.id; return f.id; }
+      const cr = await driveFetch('https://www.googleapis.com/drive/v3/files', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DRIVE_COVERS_DIR, mimeType: 'application/vnd.google-apps.folder', parents: [driveFolderId] }) });
+      driveCoversDirId = (await cr.json()).id; return driveCoversDirId;
+    }
+    async function driveCoverIndex(dir){
+      const idx = new Map(); let tok = '';
+      do {
+        const q = encodeURIComponent("'" + dir + "' in parents and trashed=false");
+        const r = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&pageSize=1000&fields=nextPageToken,files(id,name)' + (tok ? '&pageToken=' + encodeURIComponent(tok) : ''));
+        const j = await r.json(); (j.files || []).forEach(f => { if (!idx.has(f.name)) idx.set(f.name, f.id); }); tok = j.nextPageToken || '';
+      } while (tok);
+      return idx;
+    }
+    async function pool(items, n, fn){ let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length){ const it = items[i++]; try { await fn(it); } catch (e) { if (e && e.message === 'needs-reauth') throw e; } } })); }
+    const blobToDataURL = blob => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(blob); });
     async function driveCoversSync(){
       try {
-        let known = new Set(); try { known = new Set(JSON.parse(localStorage.getItem('nt-covers-up') || '[]')); } catch (e) {}
+        let known = new Set(); try { known = new Set(JSON.parse(localStorage.getItem('nt-covers-up2') || '[]')); } catch (e) {}
         const live = docs.filter(d => !d.deletedAt), missing = live.filter(d => !d.thumb), fresh = live.filter(d => d.thumb && !known.has(d.id));
         if (!missing.length && !fresh.length) return;
-        const q = encodeURIComponent("name='" + DRIVE_COVERS_NAME + "' and trashed=false");
-        const lr = await driveFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&orderBy=createdTime&fields=files(id)');
-        const files = (await lr.json()).files || []; let fid = files.length ? files[0].id : null, remote = {};
-        if (fid){ const g = await driveFetch('https://www.googleapis.com/drive/v3/files/' + fid + '?alt=media'); if (g.ok){ try { remote = await g.json() || {}; } catch (e) { remote = {}; } } }
-        let filled = 0, changed = false;
-        for (const d of missing){ if (remote[d.id]){ d.thumb = remote[d.id]; await DB.put('docs', d); filled++; } }
-        for (const d of fresh){ if (remote[d.id] !== d.thumb){ remote[d.id] = d.thumb; changed = true; } }
-        const alive = new Set(live.map(d => d.id)); for (const id in remote) if (!alive.has(id)){ delete remote[id]; changed = true; }
-        if (changed) fid = await driveUploadMedia({ name: DRIVE_COVERS_NAME, parents: [driveFolderId] }, new Blob([JSON.stringify(remote)], { type: 'application/json' }), fid);
-        known = new Set(Object.keys(remote)); try { localStorage.setItem('nt-covers-up', JSON.stringify([...known])); } catch (e) {}
-        if (filled){ renderLibrary(); }
+        const dir = await driveCoversDir(), idx = await driveCoverIndex(dir);
+        const pull = missing.filter(d => idx.has(d.id + '.jpg')), push = fresh.filter(d => !idx.has(d.id + '.jpg')), done = new Set();
+        let n = 0;
+        await pool(pull, 4, async d => {
+          setDriveUI('busy', 'Covers ' + (++n) + ' / ' + pull.length + ' — ' + d.name);
+          const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + idx.get(d.id + '.jpg') + '?alt=media'); if (!r.ok) return;
+          d.thumb = await blobToDataURL(await r.blob()); await DB.put('docs', d);
+        });
+        await pool(push, 3, async d => {
+          const blob = await (await fetch(d.thumb)).blob();
+          await driveUploadMedia({ name: d.id + '.jpg', mimeType: 'image/jpeg', parents: [dir] }, blob, null); done.add(d.id);
+        });
+        live.forEach(d => { if (d.thumb && (idx.has(d.id + '.jpg') || done.has(d.id))) known.add(d.id); });
+        try { localStorage.setItem('nt-covers-up2', JSON.stringify([...known])); } catch (e) {}
+        if (pull.length) renderLibrary();
       } catch (e) { /* covers are a nicety: never fail a sync over them */ }
     }
     /* A book that is only on Drive has no PDF here, so nothing to make a cover from. Fetch it once, take page 1, keep only the
