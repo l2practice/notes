@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-04-a" />
+    <meta name="app-build" content="2026-11-04-c" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -928,40 +928,85 @@
       .drive-banner .btn{height:38px;padding:0 16px;flex:none;}
       @media (max-width:560px){ .drive-banner{border-radius:22px;top:10px;} .db-txt span{display:none;} }
       /* password gate */
-      .lock{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(60% 50% at 20% 15%,rgba(212,102,79,.22),transparent 70%),var(--bg);}
+      .lock{position:fixed;inset:0;z-index:2000;display:none;flex-direction:column;overflow:hidden;color:#fff;background:#0b0908;font-family:var(--font-ui);}
       html.locked .lock{display:flex;}
       html.locked body > :not(.lock):not(script){display:none !important;}
-      .lock-card{width:100%;max-width:400px;background:var(--surface);border-radius:30px;padding:34px 30px 30px;box-shadow:var(--shadow-lg);text-align:center;}
-      .lock-mark{width:60px;height:60px;border-radius:20px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;margin:0 auto 18px;}
-      .lock-mark svg{width:28px;height:28px;}
-      .lock-card h1{margin:0 0 4px;font-size:25px;font-weight:800;letter-spacing:-.03em;}
-      .lock-card p{margin:0 0 22px;color:var(--muted);font-size:14.5px;}
-      .lock-field{position:relative;}
-      .lock-field input{width:100%;box-sizing:border-box;height:52px;border:1.5px solid transparent;border-radius:999px;background:var(--surface-2);padding:0 52px 0 22px;font-size:16px;color:var(--ink);outline:none;}
-      .lock-field input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(212,102,79,.25);}
-      .lock-field button{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--muted);}
-      .lock-field button:hover{background:var(--active);color:var(--ink);} .lock-field button svg{width:19px;height:19px;}
-      .lock-err{min-height:22px;margin:10px 0 6px;color:var(--danger);font-size:13.5px;font-weight:600;}
-      .lock-go{width:100%;height:52px;font-size:16px;position:relative;}
-      .lock-go .go{position:absolute;right:8px;top:8px;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;}
-      .lock-go .go svg{width:17px;height:17px;}
-      .lock-card.shake{animation:lock-shake .35s;}
+      .lk-bg{position:absolute;inset:0;background:#0b0908 url(lock-bg.jpg) center/cover no-repeat;transform:scale(1.04);animation:lk-drift 26s ease-in-out infinite alternate;}
+      .lk-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,5,.72) 0%,rgba(6,5,5,.28) 34%,rgba(6,5,5,.30) 58%,rgba(6,5,5,.86) 100%),radial-gradient(70% 60% at 50% 42%,rgba(0,0,0,.0),rgba(0,0,0,.35));}
+      @keyframes lk-drift{from{transform:scale(1.04) translate3d(0,0,0);}to{transform:scale(1.1) translate3d(-1.2%,-.8%,0);}}
+      @media (prefers-reduced-motion:reduce){.lk-bg{animation:none;}}
+      .lk-nav{position:relative;z-index:2;display:flex;align-items:center;gap:22px;padding:22px clamp(18px,5vw,64px);}
+      .lk-brand{font-size:21px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;} .lk-brand span{font-weight:500;opacity:.85;}
+      .lk-info{margin-left:auto;display:flex;align-items:center;gap:clamp(14px,2.6vw,34px);font-size:14.5px;font-weight:500;color:rgba(255,255,255,.92);}
+      .lk-info .it{display:flex;align-items:center;gap:7px;white-space:nowrap;background:none;border:0;color:inherit;font:inherit;padding:0;cursor:default;}
+      .lk-info .it svg{width:16px;height:16px;opacity:.85;flex:none;} .lk-info button.it{cursor:pointer;} .lk-info button.it:hover{color:#fff;text-decoration:underline;text-underline-offset:3px;}
+      .lk-info .tnum{font-variant-numeric:tabular-nums;}
+      .lk-explore{height:42px;padding:0 22px;border-radius:999px;border:1.5px solid rgba(255,255,255,.85);color:#fff;font-weight:700;font-size:15px;background:rgba(255,255,255,.06);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:pointer;transition:background .2s,color .2s,transform .2s;}
+      .lk-explore:hover{background:#fff;color:#0f2a43;} .lk-explore:active{transform:scale(.97);}
+      .lk-hero{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 clamp(18px,5vw,64px);}
+      .lk-eyebrow{display:flex;align-items:center;gap:14px;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.92);}
+      .lk-eyebrow i{display:block;width:clamp(24px,6vw,70px);height:1.5px;background:#d99a4a;}
+      .lock h1{margin:clamp(12px,2.4vh,26px) 0 0;font-size:clamp(40px,8.2vw,112px);line-height:.98;font-weight:800;letter-spacing:-.05em;text-shadow:0 2px 30px rgba(0,0,0,.45);max-width:15ch;}
+      .lock h1 em{font-style:normal;color:#9fd6f0;}
+      .lk-sub{margin:clamp(14px,3vh,30px) 0 0;max-width:640px;font-size:clamp(15px,1.5vw,19px);line-height:1.55;color:rgba(255,255,255,.92);text-shadow:0 1px 14px rgba(0,0,0,.55);}
+      .lk-dock{position:relative;z-index:2;padding:0 clamp(14px,5vw,64px) clamp(22px,5vh,48px);display:flex;flex-direction:column;align-items:center;gap:10px;}
+      .lk-bar{width:100%;max-width:960px;display:flex;align-items:stretch;background:rgba(250,251,252,.95);color:#15202b;border-radius:999px;padding:8px 8px 8px 10px;box-shadow:0 20px 60px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);}
+      .lk-cells{flex:1;display:grid;grid-template-columns:repeat(4,1fr);min-width:0;}
+      .lk-cell{padding:6px 22px;min-width:0;border-left:1px solid rgba(21,32,43,.10);display:flex;flex-direction:column;justify-content:center;gap:3px;text-align:left;}
+      .lk-cell:first-child{border-left:0;}
+      .lk-cell small{font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#6b7785;}
+      .lk-cell b{font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .lk-pass{display:none;flex:1;position:relative;align-items:center;min-width:0;}
+      .lk-pass input{width:100%;height:56px;border:0;background:transparent;padding:0 54px 0 24px;font-size:17px;color:#15202b;outline:none;}
+      .lk-pass input::placeholder{color:#6b7785;}
+      .lk-pass button{position:absolute;right:6px;top:10px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#6b7785;background:none;border:0;cursor:pointer;} .lk-pass button:hover{background:rgba(21,32,43,.07);} .lk-pass svg{width:19px;height:19px;}
+      .lock.open .lk-cells{display:none;} .lock.open .lk-pass{display:flex;}
+      .lk-go{flex:none;height:56px;padding:0 28px;border-radius:999px;border:0;background:#0f2a43;color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px;cursor:pointer;transition:transform .15s,background .2s;white-space:nowrap;}
+      .lk-go:hover{background:#163a5c;} .lk-go:active{transform:scale(.97);} .lk-go:disabled{opacity:.6;}
+      .lk-go svg{width:18px;height:18px;}
+      .lk-err{min-height:22px;color:#ffd0c8;font-size:14px;font-weight:600;text-shadow:0 1px 8px rgba(0,0,0,.6);text-align:center;}
+      .lk-bar.shake{animation:lock-shake .35s;}
       @keyframes lock-shake{20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+      @media (max-width:860px){
+        .lk-nav{flex-wrap:wrap;gap:10px 14px;padding-top:16px;} .lk-info{order:3;width:100%;margin-left:0;gap:16px;font-size:13px;justify-content:space-between;} .lk-explore{margin-left:auto;height:38px;padding:0 16px;font-size:14px;}
+        .lk-bar{border-radius:26px;flex-direction:column;padding:10px;gap:8px;} .lk-cells{grid-template-columns:1fr 1fr;} .lk-cell{padding:8px 14px;} .lk-cell:nth-child(3){border-left:0;} .lk-cell:nth-child(n+3){border-top:1px solid rgba(21,32,43,.10);}
+        .lk-go{width:100%;justify-content:center;} .lk-pass input{height:52px;} .lk-cell b{white-space:normal;font-size:14px;} .lk-date{display:none;}
+      }
       .modal input[type=password]{width:100%;box-sizing:border-box;height:40px;border:1px solid var(--control);border-radius:12px;padding:0 14px;background:var(--surface);font-size:14.5px;outline:none;}
       .modal input[type=password]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
       .pw-msg{min-height:20px;margin-top:10px;color:var(--danger);font-size:13px;font-weight:600;}
     </style>
   </head>
   <body>
-    <div class="lock" id="lockScreen" role="dialog" aria-modal="true" aria-label="Enter password">
-      <form class="lock-card" id="lockForm" autocomplete="on">
-        <div class="lock-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
-        <h1>Note-taking App</h1>
-        <p>Enter the password to open your notes.</p>
-        <div class="lock-field"><input type="password" id="lockInput" placeholder="Password" autocomplete="current-password" autocapitalize="off" spellcheck="false" aria-label="Password" /><button type="button" id="lockEye" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-        <div class="lock-err" id="lockErr" role="alert"></div>
-        <button class="btn primary lock-go" type="submit" id="lockGo">Unlock<span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button>
-      </form>
+    <div class="lock" id="lockScreen" role="dialog" aria-modal="true" aria-label="Sign in">
+      <div class="lk-bg" aria-hidden="true"></div>
+      <header class="lk-nav">
+        <div class="lk-brand">Note-taking <span>Platform</span></div>
+        <nav class="lk-info" aria-label="Weather, location and time">
+          <span class="it" title="Weather"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 1 1 .6-8.96A5.5 5.5 0 0 1 18.3 11 3.8 3.8 0 0 1 17.5 18H7Z"/></svg><span id="lkWeather">Weather…</span></span>
+          <button type="button" class="it" id="lkLoc" title="Tap to use this device's location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 0 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></svg><span id="lkPlace">Location…</span></button>
+          <span class="it" title="Local time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="lk-date" id="lkDate"></span><span class="tnum" id="lkTime">--:--:--</span></span>
+        </nav>
+        <button type="button" class="lk-explore" id="lkExplore">Explore</button>
+      </header>
+      <main class="lk-hero">
+        <div class="lk-eyebrow"><i></i><span>Read · Annotate · Sync · Anywhere</span><i></i></div>
+        <h1>Where reading ends, your notes <em>begin</em></h1>
+        <p class="lk-sub">A calm place for your PDFs and handwriting — written with Apple Pencil, kept on your Google Drive, and open on every device you teach from.</p>
+      </main>
+      <div class="lk-dock">
+        <form class="lk-bar" id="lockForm" autocomplete="on">
+          <div class="lk-cells">
+            <div class="lk-cell"><small>Read</small><b>PDFs &amp; blank pages</b></div>
+            <div class="lk-cell"><small>Write</small><b>Pencil &amp; shapes</b></div>
+            <div class="lk-cell"><small>Sync</small><b>Google Drive</b></div>
+            <div class="lk-cell"><small>Current event</small><b id="lkEvent">—</b></div>
+          </div>
+          <div class="lk-pass"><input type="password" id="lockInput" placeholder="Password" autocomplete="current-password" autocapitalize="off" spellcheck="false" aria-label="Password" /><button type="button" id="lockEye" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+          <button class="lk-go" type="submit" id="lockGo">Log in<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+        </form>
+        <div class="lk-err" id="lockErr" role="alert"></div>
+      </div>
     </div>
     <!-- ================= LIBRARY ================= -->
     <div id="libraryView">
@@ -1066,6 +1111,9 @@
               </div>
             </div>
           </div>
+            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Google Calendar on the sign-in screen <span class="drive-badge" id="calBadge">Off</span></div>
+              <div class="drive-sub" id="calInfo">Shows your current (or next) event in the “Current event” box. It asks Google for read-only access to your calendar. Turn on the Google Calendar API in your Google Cloud project first.</div></div>
+              <div class="drive-actions"><button class="btn" id="calToggle">Turn on</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Always-on connection <span class="drive-badge" id="wkBadge">Off</span></div>
               <div class="drive-sub" id="wkInfo">Keeps Google Drive connected without asking you to reconnect every hour. It uses a small free Google Apps Script that you create once — see apps-script/HUONG-DAN.md in the project.</div>
               <div style="display:grid;gap:8px;margin-top:10px;max-width:520px">
@@ -1280,7 +1328,42 @@
       const form = document.getElementById('lockForm'), input = document.getElementById('lockInput'), err = document.getElementById('lockErr'), go = document.getElementById('lockGo');
       let fails = 0, until = 0;
       const focus = () => { try { input.focus(); } catch (e) {} };
-      if (document.documentElement.classList.contains('locked')) setTimeout(focus, 50);
+      input.disabled = false;
+      const lock = document.getElementById('lockScreen');
+      const openPass = () => { lock.classList.add('open'); input.disabled = false; setTimeout(focus, 30); };
+      document.getElementById('lkExplore').addEventListener('click', openPass);
+      // live info on the sign-in screen: time, place, weather (and your next calendar event once Google is connected)
+      const clock = () => { const d = new Date(); document.getElementById('lkDate').textContent = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · '; document.getElementById('lkTime').textContent = d.toLocaleTimeString('en-GB'); };
+      clock(); setInterval(clock, 1000);
+      try { const ev = JSON.parse(localStorage.getItem('nt-cal-last') || 'null'); if (ev && ev.text) document.getElementById('lkEvent').textContent = ev.text; } catch (er) {}
+      (function(){
+        const WX = { 0: 'Clear', 1: 'Mostly clear', 2: 'Partly cloudy', 3: 'Overcast', 45: 'Fog', 48: 'Fog', 51: 'Light drizzle', 53: 'Drizzle', 55: 'Drizzle', 61: 'Light rain', 63: 'Rain', 65: 'Heavy rain', 71: 'Snow', 73: 'Snow', 75: 'Snow', 80: 'Showers', 81: 'Showers', 82: 'Heavy showers', 95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm' };
+        const J = async u => (await fetch(u)).json();
+        const saved = () => { try { return JSON.parse(localStorage.getItem('nt-loc') || 'null'); } catch (er) { return null; } };
+        const place = document.getElementById('lkPlace'), wx = document.getElementById('lkWeather');
+        async function where(){
+          const s = saved(); if (s) return s;
+          const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').split('/').pop().replace(/_/g, ' ');   // no permission needed: the city of this time zone
+          try { const r = (await J('https://geocoding-api.open-meteo.com/v1/search?count=1&name=' + encodeURIComponent(tz))).results; if (r && r[0]) return { name: r[0].name + ', ' + (r[0].country || ''), lat: r[0].latitude, lon: r[0].longitude, guess: true }; } catch (er) {}
+          return { name: tz || 'Local', lat: null, lon: null, guess: true };
+        }
+        async function weather(){
+          const w = await where(); place.textContent = w.name || 'Local';
+          if (w.lat == null){ wx.textContent = 'Weather unavailable'; return; }
+          try { const c = (await J('https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code&latitude=' + w.lat + '&longitude=' + w.lon)).current; wx.textContent = Math.round(c.temperature_2m) + '°C · ' + (WX[c.weather_code] || 'Weather'); }
+          catch (er) { wx.textContent = 'Weather offline'; }
+        }
+        document.getElementById('lkLoc').addEventListener('click', () => {
+          if (!navigator.geolocation){ return; } place.textContent = 'Locating…';
+          navigator.geolocation.getCurrentPosition(async pos => {
+            let name = 'My location'; try { const r = await J('https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=en&latitude=' + pos.coords.latitude + '&longitude=' + pos.coords.longitude); name = [r.city || r.locality, r.countryName].filter(Boolean).join(', ') || name; } catch (er) {}
+            try { localStorage.setItem('nt-loc', JSON.stringify({ name, lat: pos.coords.latitude, lon: pos.coords.longitude })); } catch (er) {}
+            weather();
+          }, () => weather(), { timeout: 8000, maximumAge: 600000 });
+        });
+        weather(); setInterval(weather, 600000);
+      })();
+      if (document.documentElement.classList.contains('locked')) setTimeout(() => { try { document.getElementById('lkExplore').focus(); } catch (er) {} }, 50);
       document.getElementById('lockEye').addEventListener('click', () => { input.type = input.type === 'password' ? 'text' : 'password'; focus(); });
       const unlock = () => {
         try { sessionStorage.setItem('nt-unlocked', '1'); } catch (er) {}
@@ -1301,6 +1384,7 @@
       }
       form.addEventListener('submit', async e => {
         e.preventDefault();
+        if (!lock.classList.contains('open') && !gMode){ openPass(); return; }   // Log in / Explore first reveals the password field
         if (gMode){ await googleStep(); return; }
         const wait = Math.ceil((until - Date.now()) / 1000);
         if (wait > 0){ err.textContent = 'Too many attempts. Try again in ' + wait + ' s.'; return; }
@@ -1309,7 +1393,7 @@
         go.disabled = false;
         if (ok){
           if (needGoogle() && typeof workerCfg === 'function' && workerCfg()){ try { await driveWorkerRenew(); } catch (er) {} }
-          if (needGoogle()){ gMode = true; input.disabled = true; go.firstChild.nodeValue = 'Reconnect with Google'; await googleStep(); return; }
+          if (needGoogle()){ gMode = true; lock.classList.add('open'); input.disabled = true; go.firstChild.nodeValue = 'Reconnect with Google'; await googleStep(); return; }
           unlock();
         } else {
           fails++; if (fails >= 3) until = Date.now() + Math.min(30, Math.pow(2, fails - 2)) * 1000;
@@ -1593,6 +1677,7 @@
       [['navHomeBtn', 'home'], ['navLibBtn', 'library'], ['navSettingsBtn', 'settings'], ['navBinBtn', 'bin']].forEach(([id, v]) => { const b = document.getElementById(id); if (b) b.classList.toggle('active', libView === v); });
       if (libView === 'settings' && typeof storRefresh === 'function') storRefresh();
       if (libView === 'settings' && typeof wkRefresh === 'function') wkRefresh();
+      if (libView === 'settings' && typeof calUI === 'function') calUI();
       if (libView === 'home'){ renderHome(); return; }
       if (libView === 'bin'){ renderBin(); return; }
       if (libView !== 'library') return;
@@ -3142,6 +3227,27 @@
         }, 250);
       });
     }
+    /* ----- Google Calendar event on the sign-in screen (optional; asks for read-only calendar access) ----- */
+    function calOn(){ try { return localStorage.getItem('nt-cal') === '1'; } catch (e) { return false; } }
+    function calShow(text){ try { localStorage.setItem('nt-cal-last', JSON.stringify({ text, t: Date.now() })); } catch (e) {} const el = document.getElementById('lkEvent'); if (el) el.textContent = text; }
+    async function calRefresh(){
+      if (!calOn() || !driveTokenValid()) return;
+      const now = new Date(), q = 'singleEvents=true&orderBy=startTime&maxResults=8&timeMin=' + encodeURIComponent(new Date(now.getTime() - 12 * 3600000).toISOString()) + '&timeMax=' + encodeURIComponent(new Date(now.getTime() + 3 * 86400000).toISOString());
+      try {
+        const r = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?' + q, { headers: { 'Authorization': 'Bearer ' + driveToken } });
+        if (!r.ok){ calShow(r.status === 403 ? 'Calendar: allow access in Settings' : r.status === 401 ? 'Calendar: reconnect Google' : 'Calendar unavailable'); return; }
+        const items = ((await r.json()).items || []).filter(e => e.status !== 'cancelled').map(e => {
+          const allDay = !e.start.dateTime, st = new Date(e.start.dateTime || e.start.date + 'T00:00:00'), en = new Date(e.end.dateTime || e.end.date + 'T00:00:00');
+          return { title: e.summary || '(no title)', st, en, allDay };
+        });
+        const hm = d => d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        const cur = items.find(e => e.st <= now && now < e.en && !(e.allDay && false)), nxt = items.find(e => e.st > now);
+        if (cur) calShow(cur.title + (cur.allDay ? ' · all day' : ' · ' + hm(cur.st) + '–' + hm(cur.en)));
+        else if (nxt){ const today = nxt.st.toDateString() === now.toDateString(); calShow('Next · ' + (today ? '' : nxt.st.toLocaleDateString('en-GB', { weekday: 'short' }) + ' ') + (nxt.allDay ? 'all day' : hm(nxt.st)) + ' ' + nxt.title); }
+        else calShow('No events soon');
+      } catch (e) { /* offline: keep the last text */ }
+    }
+    setInterval(calRefresh, 300000);
     /* ----- always-on connection: a Google Apps Script web app keeps the refresh token and hands out fresh access tokens ----- */
     function workerCfg(){ try { const c = JSON.parse(localStorage.getItem('nt-worker') || 'null'); if (c && c.url && c.key) return c; } catch (e) {} return null; }
     async function workerCall(action){ const c = workerCfg(); const r = await fetch(c.url + (c.url.indexOf('?') < 0 ? '?' : '&') + 'action=' + action + '&key=' + encodeURIComponent(c.key), { cache: 'no-store' }); return r.json(); }
@@ -3152,7 +3258,7 @@
         const j = await workerCall('token');
         if (!j.ok || !j.access_token){ workerState = j.error || 'error'; return false; }
         driveToken = j.access_token; driveTokenExp = Date.now() + (j.expires_in || 3600) * 1000 - 60000;
-        driveLinked = true; driveLostNotified = false; workerState = 'ok'; drivePersist(); hideDriveBanner();
+        driveLinked = true; driveLostNotified = false; workerState = 'ok'; drivePersist(); hideDriveBanner(); calRefresh();
         return true;
       } catch (e) { workerState = 'offline'; return false; }
     }
@@ -3164,9 +3270,9 @@
       return new Promise((resolve, reject) => {
         const client = google.accounts.oauth2.initTokenClient({
           client_id: cid,
-          scope: 'https://www.googleapis.com/auth/drive.file',
+          scope: 'https://www.googleapis.com/auth/drive.file' + (calOn() ? ' https://www.googleapis.com/auth/calendar.readonly' : ''),
           callback: resp => {
-            if (resp && resp.access_token){ driveToken = resp.access_token; driveTokenExp = Date.now() + (resp.expires_in || 3600) * 1000 - 60000; driveLinked = true; driveLostNotified = false; drivePersist(); hideDriveBanner(); resolve(driveToken); }
+            if (resp && resp.access_token){ driveToken = resp.access_token; driveTokenExp = Date.now() + (resp.expires_in || 3600) * 1000 - 60000; driveLinked = true; driveLostNotified = false; drivePersist(); hideDriveBanner(); calRefresh(); resolve(driveToken); }
             else reject(new Error('no-token'));
           },
           error_callback: () => reject(new Error('oauth-error'))
@@ -3581,6 +3687,14 @@
       } catch (e) { badge.textContent = 'Unreachable'; badge.className = 'drive-badge'; info.textContent = 'Could not reach the web app. Check the address (https://script.google.com/macros/s/…/exec) and that it is deployed for “Anyone”.'; }
     }
     window.wkRefresh = wkRefresh;
+    function calUI(){ const on = calOn(); $('#calBadge').textContent = on ? 'On' : 'Off'; $('#calBadge').className = 'drive-badge' + (on ? ' on' : ''); $('#calToggle').textContent = on ? 'Turn off' : 'Turn on'; }
+    window.calUI = calUI;
+    $('#calToggle').addEventListener('click', async () => {
+      if (calOn()){ try { localStorage.removeItem('nt-cal'); localStorage.removeItem('nt-cal-last'); } catch (e) {} const el = document.getElementById('lkEvent'); if (el) el.textContent = '—'; calUI(); toast('Calendar removed from the sign-in screen.'); return; }
+      try { localStorage.setItem('nt-cal', '1'); } catch (e) {}
+      calUI(); toast('Choose your Google account and allow calendar access…');
+      try { await driveRequestToken('consent'); await calRefresh(); toast('Calendar connected.'); } catch (e) { try { localStorage.removeItem('nt-cal'); } catch (er) {} calUI(); toast('Calendar was not connected.'); }
+    });
     let wkLinking = false;
     $('#wkSave').addEventListener('click', () => {
       const url = $('#wkUrl').value.trim(), key = $('#wkKey').value.trim();
