@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-05-g" />
+    <meta name="app-build" content="2026-11-05-h" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -491,8 +491,8 @@
       #pagesCol.ink-on.tool-select .ink-canvas{cursor:default;}
       #pagesCol.ink-on .notes-layer{pointer-events:none;}
       .ink-range{width:92px;accent-color:var(--ink);}
-      .shape-grid{display:grid;grid-template-columns:repeat(7,34px);gap:4px;padding:2px;}
-      .shape-btn{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);}
+      .shape-grid{display:flex;flex-wrap:wrap;gap:4px;padding:2px;}   /* the shapes re-flow to the width of the panel */
+      .shape-btn{flex:none;width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);}
       .shape-btn:hover{background:var(--active);} .shape-btn.cur{background:var(--active);color:var(--ink);box-shadow:inset 0 0 0 1px var(--control);}
       .shape-btn svg{width:24px;height:24px;}
       #symPop{width:292px;padding:8px;}
@@ -506,6 +506,7 @@
       .sym-custom{display:flex;align-items:center;gap:8px;padding:2px;}
       .sym-custom input[type=text]{width:90px;height:30px;border:1px solid var(--control);border-radius:6px;padding:0 8px;font-size:13px;background:var(--surface);color:var(--ink);}
       .sym-custom label{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:4px;}
+      #shBody .shape-tip{max-width:none;}
       .shape-tip{font-size:12px;color:var(--muted);max-width:262px;padding:8px 6px 4px;line-height:1.45;}
       .paper-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
       .paper-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border-radius:8px;border:1px solid var(--line);font-size:12px;color:var(--ink-2);}
