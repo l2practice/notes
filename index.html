@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-04-k" />
+    <meta name="app-build" content="2026-11-05-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -998,7 +998,7 @@
       .sv-tabs button:first-of-type{margin-left:0;}
       .sv-tabs button.on{color:var(--on-primary,#fff);}
       .sv-ind{position:absolute;left:0;top:0;height:23px;width:0;background:var(--sv-acc);transition:width .6s var(--sv-ease),transform .6s var(--sv-ease);z-index:0;}
-      .sv-shelf{position:fixed;left:0;right:0;top:calc(50% - var(--H)/2 - 40px);height:calc(var(--H) + 80px);perspective:2200px;perspective-origin:50% 50%;touch-action:pan-y;z-index:10;}
+      .sv-shelf{position:fixed;left:0;right:0;top:calc(50% - var(--H)/2 - 40px);height:calc(var(--H) + 80px);perspective:3200px;perspective-origin:50% 50%;touch-action:pan-y;z-index:10;}
       .sv-stage{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d;}
       .sv-tape{position:absolute;left:0;top:0;width:0;height:0;transform-style:preserve-3d;will-change:transform;}
       .sv-tape .sp,.sv-tape .cv{position:absolute;top:calc(var(--H)/-2);height:var(--H);backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:2px;}   /* no overflow:hidden here: it makes Chrome skip the turned-out cover when hit-testing */
@@ -1006,16 +1006,21 @@
         background-image:linear-gradient(90deg,rgba(0,0,0,.30),rgba(255,255,255,.07) 10%,rgba(0,0,0,0) 38%,rgba(0,0,0,.20)),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);}
       .sv-tape .cv{width:var(--d);left:calc(var(--d)/-2);transform:rotateY(90deg) translateZ(calc(var(--ws)/2));background:#f2efe8 center/cover no-repeat;box-shadow:0 30px 60px -28px rgba(20,16,10,.55);}
       .sv-tape .sp::after,.sv-tape .cv::after{content:"";position:absolute;inset:0;background:#000;border-radius:inherit;opacity:var(--shade,0);pointer-events:none;}
-      .sv-tape .sp::before{content:"";position:absolute;inset:0;background:var(--thumb,none) left center/800% 100% no-repeat;opacity:.45;mix-blend-mode:multiply;pointer-events:none;}
-      .sp-img{position:absolute;left:7px;right:7px;top:7px;aspect-ratio:1/1;background:center/cover no-repeat #fff;border:1px solid rgba(0,0,0,.35);border-radius:2px;filter:saturate(.9) sepia(.12);}
-      .sp-title{position:absolute;left:0;right:0;top:calc(var(--ws) + 16px);bottom:calc(var(--H)*.27 + 8px);display:flex;align-items:center;justify-content:center;}
-      .sp-title i{display:block;font-style:normal;writing-mode:vertical-rl;font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:calc(var(--ws)*.22);line-height:1.1;letter-spacing:.01em;max-height:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-        background:rgba(250,245,232,.94);color:#1b1712;padding:.7em .38em;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),0 1px 2px rgba(0,0,0,.35);}
-      .sp-band{position:absolute;left:5px;right:5px;height:3px;border-top:1px solid rgba(255,226,150,.65);border-bottom:1px solid rgba(0,0,0,.35);}
-      .sp-band.t{top:calc(var(--ws) + 9px);} .sp-band.b{bottom:calc(var(--H)*.27 - 2px);}
-      .sp-foot{position:absolute;left:0;right:0;bottom:9px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:calc(var(--ws)*.12);font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
-      .sp-foot em{font-style:normal;writing-mode:vertical-rl;opacity:.85;max-height:calc(var(--H)*.16);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-      .sp-foot b{border:1px solid currentColor;padding:2px 4px;font-size:calc(var(--ws)*.13);line-height:1;}
+      /* thin spines, like real books standing close together */
+      .sv-tape .sp::before{content:"";position:absolute;inset:0;background:var(--thumb,none) left center/800% 100% no-repeat;opacity:.4;mix-blend-mode:multiply;pointer-events:none;}
+      .sp-img{position:absolute;left:3px;right:3px;top:4px;aspect-ratio:1/1;background:center/cover no-repeat #fff;border:1px solid rgba(0,0,0,.35);border-radius:1px;filter:saturate(.9) sepia(.12);}
+      .sp-title{position:absolute;left:0;right:0;top:calc(var(--ws) + 10px);bottom:calc(var(--H)*.16 + 8px);display:flex;align-items:center;justify-content:center;}
+      .sp-title i{display:block;font-style:normal;writing-mode:vertical-rl;font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:calc(var(--ws)*.4);line-height:1.1;letter-spacing:.01em;max-height:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+        background:rgba(250,245,232,.94);color:#1b1712;padding:.6em .26em;border-radius:1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28);}
+      .sp-band{position:absolute;left:2px;right:2px;height:2px;border-top:1px solid rgba(255,226,150,.65);border-bottom:1px solid rgba(0,0,0,.35);}
+      .sp-band.t{top:calc(var(--ws) + 6px);} .sp-band.b{bottom:calc(var(--H)*.16 + 1px);}
+      .sp-foot{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;font-size:calc(var(--ws)*.3);font-weight:700;letter-spacing:.1em;}
+      .sp-foot b{writing-mode:vertical-rl;font-weight:700;opacity:.9;}
+      /* your own designed jackets: the spine picture is used as it is; the file name goes where the sub-title was */
+      .sv-tape .sp.jk{background:var(--jk) center/100% 100% no-repeat;}
+      .sv-tape .sp.jk::before{display:none;}
+      .jk-name{position:absolute;left:0;right:0;top:calc(var(--z0)*100%);height:calc((var(--z1) - var(--z0))*100%);display:flex;justify-content:center;}
+      .jk-name i{display:block;font-style:normal;writing-mode:vertical-rl;font-family:var(--font-ui);font-weight:600;font-size:calc(var(--ws)*.3);line-height:1.18;color:var(--ink);max-height:100%;overflow:hidden;word-break:break-word;text-align:start;}
       .cv-fall{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:calc(var(--d)*.09);background:var(--c);color:var(--fg);}
       .cv-fall small{font-size:calc(var(--d)*.04);letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.85;}
       .cv-fall strong{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:calc(var(--d)*.12);line-height:1.04;word-break:break-word;}
@@ -1044,6 +1049,26 @@
       .sv-cursor.spine .ring{transform:scale(.72);} .sv-cursor.btn .ring{transform:scale(.55);} .sv-cursor.btn .dot{transform:scale(0);}
       .sv-cursor.open .ring{transform:scale(1.75);background:var(--sv-acc);border-color:var(--sv-acc);} .sv-cursor.open .dot{transform:scale(0);} .sv-cursor.open .lab{transform:scale(1);}
       .sv-sheet{position:fixed;inset:0;z-index:50;background:var(--bg-reader);}
+      /* the page that opens out of a chosen cover: poster bleeds in like ink, text rises line by line */
+      .sv-detail{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--sv-paper) 82%,#fff);display:flex;flex-direction:column;overflow:hidden;}
+      .sv-detail[hidden]{display:none;}
+      .sd-close{position:absolute;left:32px;top:31px;z-index:3;}
+      .sd-logo{position:absolute;left:0;right:0;top:0;height:84px;display:flex;justify-content:center;align-items:center;pointer-events:none;}
+      .sd-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:4vw;padding:110px 6vw 56px 7vw;}
+      .sd-text{align-self:center;max-width:520px;display:flex;flex-direction:column;gap:18px;}
+      .dm{overflow:hidden;} .dm>*{display:block;will-change:transform;}
+      .sd-sub{color:var(--sv-acc);font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;line-height:1.5;}
+      .sd-title{font-family:"Newsreader",Georgia,serif;font-weight:400;font-size:clamp(44px,5.4vw,84px);line-height:1;letter-spacing:-.025em;margin:0;overflow-wrap:anywhere;}
+      .sd-meta{color:var(--muted);font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;line-height:1.5;}
+      .sd-para{font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.5;max-width:42ch;margin:0;}
+      .sd-cred{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:15px;color:var(--muted);margin:0;}
+      .sd-btn{height:44px;padding:0 20px;border:1px solid var(--sv-acc);color:var(--sv-acc);background:none;font:600 10.5px/1 var(--font-ui);letter-spacing:.09em;text-transform:uppercase;margin-top:10px;white-space:nowrap;}
+      .sd-poster{align-self:center;justify-self:center;height:min(100%,78vh);aspect-ratio:600/850;}
+      .sd-poster svg{width:100%;height:100%;display:block;filter:drop-shadow(0 26px 36px rgba(20,16,10,.35));}
+      @media (max-width:767px){
+        .sd-close{left:16px;top:21px;} .sd-logo{height:64px;} .sd-grid{grid-template-columns:1fr;padding:84px 22px 40px;gap:24px;overflow-y:auto;}
+        .sd-poster{order:-1;height:46svh;} .sd-title{font-size:42px;} .sd-para{font-size:16px;}
+      }
       .sv-sheet[hidden]{display:none;}
       @media (max-width:767px){
         .shelf-view{--H:min(60vw,40svh);}
@@ -1102,6 +1127,29 @@
       <footer class="sv-foot"><span class="sv-lbl">Drag · scroll · ← → to choose</span><button type="button" class="sv-box" id="svOpts">Options</button><span class="sv-lbl">Enter to open</span></footer>
       <div class="sv-cursor" id="svCur" aria-hidden="true"><i class="ring"></i><i class="dot"></i><span class="lab">OPEN<br>MỞ</span></div>
       <div class="sv-sheet" id="svSheet" hidden></div>
+      <div class="sv-detail" id="svDetail" role="dialog" aria-modal="true" aria-label="Book" hidden>
+        <button type="button" class="sv-box sd-close" id="sdClose">Close / Đóng</button>
+        <div class="sd-logo"><div class="sv-logo"><b>Note-taking</b><span>Platform</span></div></div>
+        <div class="sd-grid">
+          <div class="sd-text">
+            <div class="dm"><span class="sd-sub" id="sdSub"></span></div>
+            <div class="dm"><h2 class="sd-title" id="sdTitle"></h2></div>
+            <div class="dm"><span class="sd-meta" id="sdMeta"></span></div>
+            <div class="dm"><p class="sd-para" id="sdPara"></p></div>
+            <div class="dm"><p class="sd-cred" id="sdCred"></p></div>
+            <div class="dm"><button type="button" class="sd-btn" id="sdOpen">Open the book / Mở sách</button></div>
+          </div>
+          <div class="sd-poster">
+            <svg id="sdSvg" viewBox="0 0 600 850" aria-hidden="true">
+              <defs>
+                <filter id="inkF" x="-50%" y="-50%" width="200%" height="200%"><feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="120" xChannelSelector="R" yChannelSelector="G"/></filter>
+                <mask id="inkM" maskUnits="userSpaceOnUse" x="-300" y="-300" width="1200" height="1450"><g filter="url(#inkF)" id="sdBlobs"><circle cx="190" cy="310" r="0" fill="#fff"/><circle cx="430" cy="570" r="0" fill="#fff"/><circle cx="317" cy="113" r="0" fill="#fff"/><circle cx="114" cy="720" r="0" fill="#fff"/><circle cx="506" cy="236" r="0" fill="#fff"/><circle cx="329" cy="812" r="0" fill="#fff"/><circle cx="291" cy="444" r="0" fill="#fff"/></g></mask>
+              </defs>
+              <g mask="url(#inkM)"><image id="sdImg" href="" x="0" y="0" width="600" height="850" preserveAspectRatio="xMidYMid slice"/></g>
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- ================= LIBRARY ================= -->
     <div id="libraryView">
@@ -6092,11 +6140,34 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   const cloudSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5a4.2 4.2 0 0 1-.5 8.5Z"/></svg>';
   const pcSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>';
 
+  /* Your designed jackets (jackets/<name>-spine.jpg and -front.jpg). A book gets one when its folder or file name matches a rule.
+     zone = where the file name is written on the spine (fractions of its height), ink = its colour. Add a jacket here to add a design. */
+  const JK = {
+    writing:  { spine: 'jackets/writing-spine.jpg',  front: 'jackets/writing-front.jpg',  zone: [.46, .825], ink: '#3b2a1e' },
+    vocab:    { spine: 'jackets/vocab-spine.jpg',    front: 'jackets/vocab-front.jpg',    zone: [.655, .84], ink: '#2b2b2b' },
+    speaking: { spine: 'jackets/speaking-spine.jpg', front: 'jackets/speaking-front.jpg', zone: [.65, .82],  ink: '#167a91' }
+  };
+  const JK_RULES = [[/writing/i, 'writing'], [/vocab/i, 'vocab'], [/speaking/i, 'speaking']];
+  function jacketOf(doc){ const hay = folderName(doc) + ' ' + doc.name; for (const r of JK_RULES) if (r[0].test(hay)) return JK[r[1]]; return null; }
+  function fallbackCover(doc){
+    const c = colourOf(doc), fg = fgOf(c), words = String(doc.name).split(/\s+/), lines = []; let cur = '';
+    words.forEach(w => { if ((cur + ' ' + w).trim().length > 16 && cur){ lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); }); if (cur) lines.push(cur);
+    const txt = lines.slice(0, 6).map((l, i) => '<text x="46" y="' + (150 + i * 62) + '" font-family="Georgia,serif" font-size="52" font-weight="700" fill="' + fg + '">' + esc2(l) + '</text>').join('');
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 850"><rect width="600" height="850" fill="' + c + '"/>' + txt + '</svg>');
+  }
+  const coverSrc = doc => { const jk = jacketOf(doc); return jk ? jk.front : (doc.thumb || fallbackCover(doc)); };
+
   function tapeHTML(doc){
-    const c = colourOf(doc), fg = fgOf(c), blank = doc.kind === 'blank';
+    const jk = jacketOf(doc);
+    if (jk){
+      const badges = '<span class="cv-badges"><i class="' + (inCloud(doc) ? 'on' : '') + '">' + cloudSVG + '</i><i class="' + (onDevice(doc) ? 'on' : '') + '">' + pcSVG + '</i></span>';
+      return '<div class="sp jk" style="--jk:url(' + jk.spine + ');--z0:' + jk.zone[0] + ';--z1:' + jk.zone[1] + ';--ink:' + jk.ink + '"><span class="jk-name"><i>' + esc2(doc.name) + '</i></span></div>' +
+        '<div class="cv" style="background-image:url(' + jk.front + ')">' + badges + '</div>';
+    }
+    const c = colourOf(doc), fg = fgOf(c), blank = doc.kind === 'blank', year = new Date(doc.createdAt || Date.now()).getFullYear();
     const img = doc.thumb ? '<span class="sp-img" style="background-image:url(' + doc.thumb + ')"></span>' : '<span class="sp-img" style="background:' + (blank && doc.paper ? doc.paper.bg : '#fff') + '"></span>';
     const cover = doc.thumb ? '' : '<div class="cv-fall"><small>' + esc2(folderName(doc)) + '</small><strong>' + esc2(doc.name) + '</strong></div>';
-    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';--thumb:url(' + doc.thumb + ')' : '') + '">' + img + '<span class="sp-band t"></span><span class="sp-band b"></span><span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-foot"><em>' + esc2(folderName(doc)) + '</em><b>' + (blank ? 'NOTE' : 'PDF') + '</b></span></div>' +
+    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';--thumb:url(' + doc.thumb + ')' : '') + '">' + img + '<span class="sp-band t"></span><span class="sp-band b"></span><span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-foot"><b>' + year + '</b></span></div>' +
       '<div class="cv" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';background-image:url(' + doc.thumb + ')' : '') + '">' + cover + '<span class="cv-badges"><i class="' + (inCloud(doc) ? 'on' : '') + '">' + cloudSVG + '</i><i class="' + (onDevice(doc) ? 'on' : '') + '">' + pcSVG + '</i></span></div>';
   }
 
@@ -6120,17 +6191,17 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
     });
   }
   function colourise(){
-    list.forEach((doc, i) => coverColour(doc).then(hex => {
+    list.forEach((doc, i) => { if (jacketOf(doc)) return; coverColour(doc).then(hex => {
       if (!hex || !shown) return;
       tapes.forEach(tp => { if (tp.v % N === i){ tp.sp.style.setProperty('--c', hex); tp.sp.style.setProperty('--fg', fgOf(hex)); } });
-    }));
+    }); });
   }
 
   /* ----- geometry ----- */
   function measure(){
     W = innerWidth; VH = innerHeight;
     const pr = document.createElement('div'); pr.style.cssText = 'position:absolute;visibility:hidden;width:1px;height:var(--H)'; SV.appendChild(pr); H = pr.offsetHeight || 400; pr.remove();
-    ws = H * 0.17; d = H * 0.68; gap = H * 0.03;
+    ws = H * 0.075; d = H * 0.62; gap = H * 0.004;
     STAGE.style.setProperty('--H', H + 'px'); STAGE.style.setProperty('--ws', ws + 'px'); STAGE.style.setProperty('--d', d + 'px');
   }
 
@@ -6215,7 +6286,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
       const tf = 'translate3d(' + x.toFixed(2) + 'px,' + (-o * .025 * H - tp.lift * .045 * H).toFixed(2) + 'px,' + (o * .2 * H).toFixed(2) + 'px) rotateZ(' + (-4.5 * o).toFixed(3) + 'deg) rotateX(' + (tiltX * o).toFixed(3) + 'deg) rotateY(' + (-90 * o + tiltY * o).toFixed(3) + 'deg)';
       if (tf !== tp.tf){ tp.el.style.transform = tf; tp.tf = tf; }
       const z = Math.round(100 - Math.abs(r) * 4); if (z !== tp.z){ tp.el.style.zIndex = z; tp.z = z; }
-      const s1 = Math.round(o * 55) / 100, s2 = Math.round((1 - o) * 72) / 100;
+      const s1 = Math.round(o * 55) / 100, s2 = Math.round((1 - o) * 80) / 100;
       if (s1 !== tp.sh1){ tp.sp.style.setProperty('--shade', s1); tp.sh1 = s1; } if (s2 !== tp.sh2){ tp.cv.style.setProperty('--shade', s2); tp.sh2 = s2; }
     }
     // play ring: pops in once the shelf settles
@@ -6236,23 +6307,54 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
     const cur = Math.round(T); let delta = mod(t.first - mod(cur, N), N); if (delta > N / 2) delta -= N; T = cur + delta;
   }
 
-  /* ----- opening a book: a sheet grows out of the cover to fill the screen, then the reader takes over ----- */
-  function openBook(){
-    if (isOpening || !N) return; isOpening = true; T = Math.round(T);
-    const doc = list[mod(Math.round(s), N)], tp = tapes[mod(Math.round(s), TOTAL)];
-    const rc = tp.cv.getBoundingClientRect();
-    SHEET.hidden = false; SHEET.style.transformOrigin = ((rc.left + rc.right) / 2) + 'px ' + ((rc.top + rc.bottom) / 2) + 'px';
-    const a = SHEET.animate([
-      { clipPath: 'inset(' + rc.top + 'px ' + (W - rc.right) + 'px ' + (VH - rc.bottom) + 'px ' + rc.left + 'px round 3px)', transform: 'rotate(-4.5deg)' },
-      { clipPath: 'inset(0px 0px 0px 0px round 0px)', transform: 'rotate(0deg)' }
-    ], { duration: reduce ? 1 : 1050, easing: 'cubic-bezier(.76,0,.18,1)', fill: 'both' });
-    setTimeout(() => { window.__svReturn = doc.id; openReader(doc.id); }, reduce ? 1 : 650);
-    a.onfinish = () => { SHEET.hidden = true; a.cancel(); isOpening = false; hide(); };
+  /* ----- choosing a book: its page opens first (cover and information); the button opens the book itself ----- */
+  const DET = $('#svDetail'), SDI = $('#sdImg'), BL = Array.from(DET.querySelectorAll('#sdBlobs circle'));
+  const BLOB_DELAY = [0, 120, 220, 300, 360, 420, 180];
+  let detailOpen = false, detAnims = [], inkRaf = 0, detDoc = null;
+  const rectOfActive = () => tapes[mod(Math.round(s), TOTAL)].cv.getBoundingClientRect();
+  const insetOf = rc => 'inset(' + rc.top + 'px ' + (W - rc.right) + 'px ' + (VH - rc.bottom) + 'px ' + rc.left + 'px round 3px)';
+  function fillDetail(doc){
+    const blank = doc.kind === 'blank', pages = doc.pages || 0, notes = doc.notes ? doc.notes.length : 0;
+    $('#sdSub').textContent = folderName(doc) + '  /  ' + (blank ? 'Notebook' : 'PDF');
+    $('#sdTitle').textContent = doc.name;
+    $('#sdMeta').textContent = [pages + ' pages', blank ? '' : fmtSize(doc.size), blank ? 'Blank paper' : 'Document'].filter(Boolean).join('  /  ');
+    const parts = [];
+    parts.push(isFinishedDoc(doc) ? 'You have finished this book.' : (doc.lastPage || 1) > 1 ? 'You are on page ' + doc.lastPage + ' of ' + pages + '.' : 'Not opened yet — ' + pages + ' pages are waiting.');
+    if (doc.lastOpenedAt) parts.push('Last opened ' + new Date(doc.lastOpenedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + '.');
+    if (notes) parts.push(notes + (notes === 1 ? ' note' : ' notes') + ' on its pages.');
+    $('#sdPara').textContent = parts.join(' ');
+    $('#sdCred').textContent = (inCloud(doc) ? 'Safe on Google Drive' : 'Not on Google Drive yet') + ' · ' + (onDevice(doc) ? 'stored on this device.' : 'only on Drive, it downloads when you open it.');
+    SDI.setAttribute('href', coverSrc(doc));
+  }
+  function openDetail(){
+    if (detailOpen || !N) return; detailOpen = true; isOpening = true; T = Math.round(T);
+    detDoc = list[mod(Math.round(s), N)]; fillDetail(detDoc);
+    const rc = rectOfActive(); DET.hidden = false; DET.style.transformOrigin = ((rc.left + rc.right) / 2) + 'px ' + ((rc.top + rc.bottom) / 2) + 'px';
+    BL.forEach(c => c.setAttribute('r', 0));
+    detAnims.forEach(x => x.cancel());
+    detAnims = [DET.animate([{ clipPath: insetOf(rc), transform: 'rotate(-4.5deg)' }, { clipPath: 'inset(0px 0px 0px 0px round 0px)', transform: 'rotate(0deg)' }], { duration: reduce ? 1 : 1050, easing: 'cubic-bezier(.76,0,.18,1)', fill: 'both' })];
+    DET.querySelectorAll('.dm > *').forEach((el, k) => detAnims.push(el.animate([{ transform: 'translateY(110%)' }, { transform: 'translateY(0)' }], { duration: reduce ? 1 : 900, delay: reduce ? 0 : 620 + k * 75, easing: EASE, fill: 'both' })));
+    const t0 = performance.now() + (reduce ? -5000 : 520); cancelAnimationFrame(inkRaf);
+    const tick = now => { let live = false; BL.forEach((c, k) => { const p = Math.min(1, Math.max(0, (now - t0 - BLOB_DELAY[k]) / 1250)); c.setAttribute('r', (820 * (1 - Math.pow(1 - p, 3))).toFixed(1)); if (p < 1) live = true; }); if (live) inkRaf = requestAnimationFrame(tick); };
+    inkRaf = requestAnimationFrame(tick);
+    setTimeout(() => { try { $('#sdOpen').focus({ preventScroll: true }); } catch (e) {} }, reduce ? 10 : 1100);
+  }
+  function resetDetail(){ cancelAnimationFrame(inkRaf); DET.hidden = true; detAnims.forEach(x => x.cancel()); detAnims = []; detailOpen = false; isOpening = false; }
+  function closeDetail(){
+    if (!detailOpen) return; cancelAnimationFrame(inkRaf);
+    const rc = rectOfActive(); DET.style.transformOrigin = ((rc.left + rc.right) / 2) + 'px ' + ((rc.top + rc.bottom) / 2) + 'px';
+    const a = DET.animate([{ clipPath: 'inset(0px 0px 0px 0px round 0px)', transform: 'rotate(0deg)' }, { clipPath: insetOf(rc), transform: 'rotate(-4.5deg)' }], { duration: reduce ? 1 : 850, easing: 'cubic-bezier(.76,0,.18,1)', fill: 'both' });
+    a.onfinish = () => { resetDetail(); a.cancel(); };
+  }
+  function launchReader(){
+    if (!detDoc) return; const id = detDoc.id; window.__svReturn = id; openReader(id);
+    setTimeout(() => { resetDetail(); hide(); }, reduce ? 1 : 350);
   }
   function hide(){ shown = false; SV.hidden = true; cancelAnimationFrame(raf); }
   function close(){ window.__svReturn = null; hide(); }
   function show(id){
-    SV.hidden = false; shown = true; isOpening = false; SHEET.hidden = true; hover = -1;
+    SV.hidden = false; shown = true; isOpening = false; detailOpen = false; DET.hidden = true; SHEET.hidden = true; hover = -1;
+    Object.keys(JK).forEach(k => { new Image().src = JK[k].spine; new Image().src = JK[k].front; });
     build();
     if (N){
       let i = Math.max(0, list.findIndex(x => x.id === id)); if (i < 0) i = 0;
@@ -6278,9 +6380,10 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   STAGE.addEventListener('click', e => {
     if (suppress || isOpening) return; const el = e.target.closest('.sv-tape'); if (!el) return;
     const tp = tapes.find(x => x.el === el); if (!tp) return;
-    if (Math.abs(tp.r) < .5) openBook(); else T = Math.round(T + tp.r);
+    if (Math.abs(tp.r) < .5) openDetail(); else T = Math.round(T + tp.r);
   });
-  PLAY.addEventListener('click', openBook);
+  PLAY.addEventListener('click', openDetail);
+  $('#sdOpen').addEventListener('click', launchReader); $('#sdClose').addEventListener('click', closeDetail);
   $('#svPrev').addEventListener('click', () => go(-1)); $('#svNext').addEventListener('click', () => go(1));
   $('#svBack').addEventListener('click', close);
   $('#svImport').addEventListener('click', () => { close(); const fi = document.getElementById('fileInput'); if (fi) fi.click(); });
@@ -6292,10 +6395,12 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
     clearTimeout(wheelTimer); wheelTimer = setTimeout(() => { T = Math.round(T); }, 160);
   }, { passive: false });
   document.addEventListener('keydown', e => {
-    if (!shown || isOpening || $('#modalRoot').children.length) return;
+    if (!shown || $('#modalRoot').children.length) return;
     const tg = e.target && e.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+    if (detailOpen){ if (e.key === 'Escape'){ e.preventDefault(); closeDetail(); } else if (e.key === 'Enter' && tg !== 'BUTTON'){ e.preventDefault(); launchReader(); } return; }
+    if (isOpening) return;
     if (e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); } else if (e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
-    else if (e.key === 'Enter' && tg !== 'BUTTON'){ e.preventDefault(); openBook(); } else if (e.key === 'Escape'){ close(); }
+    else if (e.key === 'Enter' && tg !== 'BUTTON'){ e.preventDefault(); openDetail(); } else if (e.key === 'Escape'){ close(); }
   });
   window.addEventListener('resize', () => { if (!shown || !N) return; measure(); setTab(list[active]); });
 
