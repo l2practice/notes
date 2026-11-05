@@ -12,13 +12,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-05-h" />
+    <meta name="app-build" content="2026-11-05-i" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
         try {
           if (!/^https?:$/.test(location.protocol) || sessionStorage.getItem('nt-reloaded')) return;
-          fetch(location.pathname, { cache: 'no-store' }).then(function(r){ return r.text(); }).then(function(t){
+          fetch(location.pathname, { cache: 'no-cache' }).then(function(r){ return r.text(); }).then(function(t){
             var m = t.match(/name="app-build" content="([^"]+)"/);
             if (m && m[1] !== document.querySelector('meta[name="app-build"]').content){ sessionStorage.setItem('nt-reloaded', '1'); location.reload(); }
           }).catch(function(){});
@@ -1266,6 +1266,9 @@
               <div class="drive-actions"><button class="btn primary" id="wkSave">Save and check</button><button class="btn" id="wkLink">Link Google Drive</button><button class="btn" id="wkOff">Remove</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Pen diagnostics</div><div class="drive-sub">If a stroke ever goes missing, open this right after and send me the text — it shows what the pencil reported and why a touch was ignored.</div></div><div class="drive-actions"><button class="btn" id="penLogBtn">Show pen log</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">App password</div><div class="drive-sub">The app asks for a password each time it is opened in a new tab. Changing it applies to this browser.</div></div><div class="drive-actions"><button class="btn" id="pwChangeBtn">Change password</button><button class="btn" id="pwLockBtn">Lock now</button></div></div>
+            <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Save mobile data <span class="drive-badge" id="saverBadge">Off</span></div>
+              <div class="drive-sub">For teaching on 4G or 5G: turns off automatic downloads (a book's page, covers), checks Google Drive for changes every 2 minutes instead of 20 seconds, and asks before downloading a book over 10 MB (30 MB when this is off).</div></div>
+              <div class="drive-actions"><button class="btn" id="saverBtn">Turn on</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Device storage</div><div class="drive-sub" id="storInfo">Checking…</div></div><div class="drive-actions"><button class="btn" id="storFreeBtn">Move all to Drive</button></div></div>
             <div class="drive-card" style="margin-top:16px"><div class="drive-main"><div class="drive-title">Recycle Bin</div><div class="drive-sub">Deleted documents wait here for 90 days before they are removed everywhere.</div></div><div class="drive-actions"><button class="btn" id="settingsBinBtn">Open Recycle Bin</button></div></div>
             <p class="page-sub" style="margin-top:14px">On another device: open this app, tap <b>Connect Google Drive</b> and sign in with the same Google account. Folders, documents and notes stay in step, and deleting a document here removes it everywhere.</p>
@@ -1505,7 +1508,7 @@
             weather();
           }, () => weather(), { timeout: 8000, maximumAge: 600000 });
         });
-        weather(); setInterval(weather, 600000);
+        weather(); setInterval(() => { if (localStorage.getItem('nt-saver') !== '1') weather(); }, 600000);
       })();
       if (document.documentElement.classList.contains('locked')) setTimeout(() => { try { document.getElementById('lkExplore').focus(); } catch (er) {} }, 50);
       document.getElementById('lockEye').addEventListener('click', () => { input.classList.toggle('show'); focus(); });
@@ -1583,6 +1586,15 @@
       keys(name){ return new Promise((res, rej) => { const q = DB._store(name, 'readonly').getAllKeys(); q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error); }); }
     };
     /* OneDrive-style files: which PDFs are on THIS device, and which this device always keeps */
+    const dataSaverOn = () => { try { return localStorage.getItem('nt-saver') === '1'; } catch (e) { return false; } };
+    function confirmBigDownload(doc){
+      const lim = (dataSaverOn() ? 10 : 30) * 1048576;
+      if (!doc || (doc.size || 0) < lim) return Promise.resolve(true);
+      return new Promise(res => {
+        openModal('<h3>Download this book?</h3><p>“' + esc(doc.name) + '” is ' + fmtSize(doc.size) + '. On mobile data that much of your plan is used.</p><div class="modal-actions"><button class="btn" id="mCancel">Not now</button><button class="btn primary" id="dlOk">Download</button></div>');
+        $('#mCancel').addEventListener('click', () => { closeModal(); res(false); }); $('#dlOk').addEventListener('click', () => { closeModal(); res(true); });
+      });
+    }
     const LOCAL = new Set();
     const KEEP = new Set(); try { JSON.parse(localStorage.getItem('nt-keep') || '[]').forEach(k => KEEP.add(k)); } catch (e) {}
     const saveKeep = () => { try { localStorage.setItem('nt-keep', JSON.stringify([...KEEP])); } catch (e) {} };
@@ -1825,6 +1837,7 @@
       { const mg = document.querySelector('.mobile-greet'); if (mg) mg.classList.toggle('on-home', libView === 'home'); }
       [['navHomeBtn', 'home'], ['navLibBtn', 'library'], ['navSettingsBtn', 'settings'], ['navBinBtn', 'bin']].forEach(([id, v]) => { const b = document.getElementById(id); if (b) b.classList.toggle('active', libView === v); });
       if (libView === 'settings' && typeof storRefresh === 'function') storRefresh();
+      if (libView === 'settings' && typeof saverUI === 'function') saverUI();
       if (libView === 'settings' && typeof wkRefresh === 'function') wkRefresh();
       if (libView === 'settings' && typeof calUI === 'function') calUI();
       if (libView === 'home'){ renderHome(); return; }
@@ -2261,6 +2274,9 @@
       });
     });
     window.storRefresh = storRefresh;
+    function saverUI(){ const on = dataSaverOn(); $('#saverBadge').textContent = on ? 'On' : 'Off'; $('#saverBadge').className = 'drive-badge' + (on ? ' on' : ''); $('#saverBtn').textContent = on ? 'Turn off' : 'Turn on'; }
+    window.saverUI = saverUI;
+    $('#saverBtn').addEventListener('click', () => { try { localStorage.setItem('nt-saver', dataSaverOn() ? '0' : '1'); } catch (e) {} saverUI(); toast(dataSaverOn() ? 'Saving mobile data.' : 'Automatic downloads are back on.'); });
     $('#binView').addEventListener('click', e => {
       const r = e.target.closest('[data-restore]'), pu = e.target.closest('[data-purge]');
       if (r){ const d = docs.find(x => x.id === r.dataset.restore); if (d) restoreDoc(d).then(() => { renderLibrary(); toast('Restored.'); }); }
@@ -2465,6 +2481,7 @@
         else {
           let buf = await DB.get('files', docId);
           if (!buf){
+            if (!(await confirmBigDownload(currentReader))){ const er = new Error('cancelled'); er.userMsg = 'Download cancelled. The book stays on Google Drive.'; throw er; }
             const lbl = $('#readerLoading span'); const base = 'Downloading from Google Drive';
             if (lbl) lbl.textContent = base + '…';
             buf = await fetchPdfToDevice(currentReader, (pct, got) => { if (lbl) lbl.textContent = base + (pct !== null ? ' — ' + pct + '%' : ' — ' + Math.round(got / 1048576 * 10) / 10 + ' MB'); });
@@ -3592,7 +3609,7 @@
        picture (the PDF itself is not stored) and share the cover through the covers file. A few per sync, until all have one. */
     const coverFails = {};
     async function driveBackfillCovers(){
-      if (!window.pdfjsLib || (navigator.connection && navigator.connection.saveData)) return;
+      if (!window.pdfjsLib || dataSaverOn() || (navigator.connection && navigator.connection.saveData)) return;
       const need = docs.filter(d => !d.deletedAt && !d.thumb && d.kind !== 'blank' && d.driveFileId && !LOCAL.has(d.id) && (d.size || 0) < 30e6 && (coverFails[d.id] || 0) < 2).slice(0, 8);
       if (!need.length) return;
       let made = 0;
@@ -3610,14 +3627,35 @@
       }
       if (made){ renderLibrary(); await driveCoversSync(); }
     }
+    /* The library file holds every note and drawing, so it is the biggest thing that travels. It is sent gzip-compressed (about 3-4 times smaller)
+       and downloaded only when it has changed since this device last saw it. Older plain-JSON copies are still read. */
+    async function libToBlob(lib){
+      const raw = JSON.stringify(lib);
+      if (typeof CompressionStream === 'function'){ try { const z = await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('gzip'))).blob(); return new Blob([z], { type: 'application/octet-stream' }); } catch (e) {} }
+      return new Blob([raw], { type: 'application/json' });
+    }
+    async function libFromResponse(r){
+      const u8 = new Uint8Array(await r.arrayBuffer());
+      if (u8[0] === 0x1f && u8[1] === 0x8b) return JSON.parse(await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
+      return JSON.parse(new TextDecoder().decode(u8));
+    }
+    const libSeen = () => { try { return localStorage.getItem('nt-lib-mod') || ''; } catch (e) { return ''; } };
+    const setLibSeen = v => { try { localStorage.setItem('nt-lib-mod', v || ''); } catch (e) {} };
+    async function libUnchanged(){
+      if (!driveLibModified || driveLibModified !== libSeen() || !docs.length || driveLibExtra.length) return false;
+      if (docs.some(d => KEEP.has(d.id) && d.driveFileId && d.kind !== 'blank' && !LOCAL.has(d.id))) return false;
+      for (const d of docs){ if (d.deletedAt || !d.imgs) continue; for (const id in d.imgs){ const m = d.imgs[id]; if (m.fid && !(await DB.get('files', 'img:' + id))) return false; } }
+      return true;
+    }
     async function drivePull(noProg){
       await driveFindLibFile();
       if (!driveLibFileId) return false;
+      if (await libUnchanged()) return true;   // nothing new on Drive: no download at all
       const remotes = [];
       for (const fid of [driveLibFileId].concat(driveLibExtra)){
         const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + fid + '?alt=media');
         if (!r.ok) continue;
-        try { const j = await r.json(); if (j && Array.isArray(j.docs)) remotes.push(j); } catch (e) {}
+        try { const j = await libFromResponse(r); if (j && Array.isArray(j.docs)) remotes.push(j); } catch (e) {}
       }
       if (!remotes.length) return false;
       const remote = combineRemotes(remotes);
@@ -3693,6 +3731,7 @@
         }
       }
       if (!noProg) syncProgress(0, 1 + toDl.length, 1 + toDl.length, 'Download complete');
+      setLibSeen(driveLibModified);
       if (changed){ renderLibrary(); if (typeof ensureDocThumbs === 'function') ensureDocThumbs(); }
       return true;
     }
@@ -3736,11 +3775,12 @@
       syncProgress(1, todo.length, total, 'Saving library');
       await drivePull(true);   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
       const lib = { version: 1, updatedAt: Date.now(), folders: folders, deletedFolders: deletedFolderIds(), deletedDocs: deletedDocList().map(t => t.id), docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
-      const blob = new Blob([JSON.stringify(lib)], { type: 'application/json' });
+      const blob = await libToBlob(lib);
       driveLibFileId = await driveUploadMedia({ name: DRIVE_LIB_NAME, parents: [driveFolderId] }, blob, driveLibFileId);
       for (const id of driveLibExtra){ try { await driveFetch('https://www.googleapis.com/drive/v3/files/' + id, { method: 'DELETE' }); } catch (e) {} }   // duplicate copies are merged into the main one now
       driveLibExtra = [];
       await driveFindLibFile();   // so our own upload is not mistaken for a change from the other device
+      setLibSeen(driveLibModified);
       syncProgress(1, total, total, 'Library saved');
     }
     async function driveSyncNow(manual, force){
@@ -3857,8 +3897,11 @@
       if (selectedNoteId && !findNote(selectedNoteId)) selectNote(null);
       toast('Updated from your other device.');
     }
+    let lastPollAt = 0;
     async function drivePoll(){
       if (!driveTokenValid() || driveSyncing || document.hidden || !driveFolderId) return;
+      if (dataSaverOn() && Date.now() - lastPollAt < 120000) return;   // saving mobile data: check for changes every 2 minutes, not every 20 seconds
+      lastPollAt = Date.now();
       if (editingId || dragCtx || createCtx || (typeof G !== 'undefined' && G)) return;
       try {
         const prev = driveLibModified;
@@ -6359,7 +6402,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   }
   /* a book that is only on Drive starts downloading as soon as its page is open, so it is ready when you press Open */
   function prefetchPdf(doc){
-    if (!doc || doc.kind === 'blank' || onDevice(doc) || !doc.driveFileId || typeof driveLinked === 'undefined' || !driveLinked || !driveTokenValid()) return;
+    if (!doc || doc.kind === 'blank' || onDevice(doc) || !doc.driveFileId || typeof driveLinked === 'undefined' || !driveLinked || !driveTokenValid() || dataSaverOn() || (doc.size || 0) > 30 * 1048576) return;
     const cred = $('#sdCred'), done = () => { const i = list.indexOf(doc); tapes.forEach(tp => { if (tp.v % N === i){ const b = tp.cv.querySelectorAll('.cv-badges i')[1]; if (b) b.classList.add('on'); } }); if (detDoc === doc && detailOpen) fillCred(doc); };
     fetchPdfToDevice(doc, pct => { if (detDoc === doc && detailOpen) cred.textContent = 'Downloading to this device' + (pct !== null ? ' — ' + pct + '%' : '…'); }).then(done).catch(() => {});
   }
