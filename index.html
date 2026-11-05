@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-05-d" />
+    <meta name="app-build" content="2026-11-05-e" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -5190,6 +5190,14 @@ let lastDownId = null;
 function inkLog(kind, e, note){ INKLOG.push(new Date().toISOString().slice(11, 23) + ' ' + kind + ' ' + (e ? e.pointerType + '#' + e.pointerId + ' p=' + (e.pressure !== undefined ? (+e.pressure).toFixed(2) : '-') + ' w=' + (e.width || 0) + ' h=' + (e.height || 0) + ' btn=' + e.button : '') + (note ? ' ' + note : '') + (G ? ' [G:' + G.kind + ']' : '')); if (INKLOG.length > 200) INKLOG.shift(); }
 window.addEventListener('error', e => { try { inkLog('JSERR', null, (e.message || '') + ' @' + (e.lineno || '?') + ':' + (e.colno || '?')); } catch (er) {} });   // any script error shows up in the pen log
 window.addEventListener('unhandledrejection', e => { try { inkLog('JSERR', null, 'promise: ' + ((e.reason && e.reason.message) || e.reason)); } catch (er) {} });
+/* keyboard diagnostics for text boxes: what the keyboard really sends when you type or press Enter */
+(function(){
+  const inBox = e => e.target && e.target.closest && e.target.closest('.note-text');
+  document.addEventListener('keydown', e => { if (inBox(e) && (e.key === 'Enter' || e.key === 'Process' || e.isComposing)) inkLog('KEY', null, 'down key=' + e.key + ' code=' + e.code + ' keyCode=' + e.keyCode + ' composing=' + e.isComposing + ' prevented=' + e.defaultPrevented); }, true);
+  document.addEventListener('beforeinput', e => { if (inBox(e) && /Paragraph|LineBreak|Composition/.test(e.inputType)) inkLog('KEY', null, 'beforeinput ' + e.inputType + ' composing=' + e.isComposing + ' cancelable=' + e.cancelable); }, true);
+  document.addEventListener('compositionstart', e => { if (inBox(e)) inkLog('KEY', null, 'composition start'); }, true);
+  document.addEventListener('compositionend', e => { if (inBox(e)) inkLog('KEY', null, 'composition end "' + (e.data || '') + '"'); }, true);
+})();
 const INKAUDIT = {};   // page -> { arr, ids }: watches the stored strokes and logs when one disappears that the user did not remove
 let legitUntil = 0;
 setInterval(() => {
