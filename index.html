@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-05-a" />
+    <meta name="app-build" content="2026-11-05-b" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1016,6 +1016,19 @@
       .sp-band.t{top:calc(var(--ws) + 6px);} .sp-band.b{bottom:calc(var(--H)*.16 + 1px);}
       .sp-foot{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;font-size:calc(var(--ws)*.3);font-weight:700;letter-spacing:.1em;}
       .sp-foot b{writing-mode:vertical-rl;font-weight:700;opacity:.9;}
+      /* the standard spine for books without a jacket */
+      .sv-tape .sp.tpl{background:linear-gradient(to bottom,var(--tc,#8b5a3c) 0 3%,#f0dd9c 3% 19%,#b6ab97 19% 81%,#f0dd9c 81% 82.2%,var(--tc,#7d4b33) 82.2% 100%);color:#6a3b1c;}
+      .sv-tape .sp.tpl::before{display:none;}
+      .tp-top{position:absolute;left:0;right:0;top:3%;height:16%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#6a3b1c;}
+      .tp-top i{display:block;width:calc(var(--ws)*.56);height:calc(var(--ws)*.56);} .tp-top svg{width:100%;height:100%;}
+      .tp-top em{font-style:normal;font-weight:700;font-size:calc(var(--ws)*.26);line-height:1;}
+      .tp-mid{position:absolute;left:0;right:0;top:19%;bottom:18%;display:flex;justify-content:center;gap:calc(var(--ws)*.06);padding:calc(var(--H)*.02) 0;overflow:hidden;}
+      .tp-mid i{font-style:normal;writing-mode:vertical-rl;max-height:100%;overflow:hidden;word-break:break-word;}
+      .tp-t{order:1;font-weight:800;font-size:calc(var(--ws)*.3);line-height:1.12;letter-spacing:.02em;text-transform:uppercase;color:#6a3b1c;}
+      .tp-a{order:2;font-weight:500;font-size:calc(var(--ws)*.2);line-height:1.2;color:#7a6c58;}
+      .tp-mid{flex-direction:row-reverse;}
+      .tp-bot{position:absolute;left:0;right:0;bottom:0;height:17.8%;display:flex;align-items:center;justify-content:center;color:#f0dd9c;}
+      .tp-bot svg{width:calc(var(--ws)*.52);height:calc(var(--ws)*.52);}
       /* your own designed jackets: the spine picture is used as it is; the file name goes where the sub-title was */
       .sv-tape .sp.jk{background:var(--jk) center/100% 100% no-repeat;}
       .sv-tape .sp.jk::before{display:none;}
@@ -6143,11 +6156,17 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   /* Your designed jackets (jackets/<name>-spine.jpg and -front.jpg). A book gets one when its folder or file name matches a rule.
      zone = where the file name is written on the spine (fractions of its height), ink = its colour. Add a jacket here to add a design. */
   const JK = {
-    writing:  { spine: 'jackets/writing-spine.jpg',  front: 'jackets/writing-front.jpg',  zone: [.46, .825], ink: '#3b2a1e' },
-    vocab:    { spine: 'jackets/vocab-spine.jpg',    front: 'jackets/vocab-front.jpg',    zone: [.655, .84], ink: '#2b2b2b' },
-    speaking: { spine: 'jackets/speaking-spine.jpg', front: 'jackets/speaking-front.jpg', zone: [.65, .82],  ink: '#167a91' }
+    writing:    { spine: 'jackets/writing-spine.jpg',    front: 'jackets/writing-front.jpg',    zone: [.46, .825],  ink: '#3b2a1e' },
+    vocab:      { spine: 'jackets/vocab-spine.jpg',      front: 'jackets/vocab-front.jpg',      zone: [.655, .84],  ink: '#2b2b2b' },
+    speaking:   { spine: 'jackets/speaking-spine.jpg',   front: 'jackets/speaking-front.jpg',   zone: [.65, .82],   ink: '#167a91' },
+    speaking2:  { spine: 'jackets/speaking2-spine.jpg',  front: 'jackets/speaking2-front.jpg',  zone: [.515, .754], ink: '#c0501a' },
+    listening3: { spine: 'jackets/listening3-spine.jpg', front: 'jackets/listening3-front.jpg', zone: [.411, .758], ink: '#3d3d3d' },
+    listening6: { spine: 'jackets/listening6-spine.jpg', front: 'jackets/listening6-front.jpg', zone: [.636, .823], ink: '#1f5a78' },
+    reading:    { spine: 'jackets/reading-spine.jpg',    front: 'jackets/reading-front.jpg',    zone: [.484, .798], ink: '#3b2a1e' }
   };
-  const JK_RULES = [[/writing/i, 'writing'], [/vocab/i, 'vocab'], [/speaking/i, 'speaking']];
+  // the first rule that matches the folder + file name wins
+  const JK_RULES = [[/listening\s*6|listening tests|collection of listening/i, 'listening6'], [/listening\s*3/i, 'listening3'], [/reading/i, 'reading'],
+    [/writing/i, 'writing'], [/vocab/i, 'vocab'], [/dnu\W*speaking/i, 'speaking2'], [/speaking/i, 'speaking']];
   function jacketOf(doc){ const hay = folderName(doc) + ' ' + doc.name; for (const r of JK_RULES) if (r[0].test(hay)) return JK[r[1]]; return null; }
   function fallbackCover(doc){
     const c = colourOf(doc), fg = fgOf(c), words = String(doc.name).split(/\s+/), lines = []; let cur = '';
@@ -6164,11 +6183,13 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
       return '<div class="sp jk" style="--jk:url(' + jk.spine + ');--z0:' + jk.zone[0] + ';--z1:' + jk.zone[1] + ';--ink:' + jk.ink + '"><span class="jk-name"><i>' + esc2(doc.name) + '</i></span></div>' +
         '<div class="cv" style="background-image:url(' + jk.front + ')">' + badges + '</div>';
     }
-    const c = colourOf(doc), fg = fgOf(c), blank = doc.kind === 'blank', year = new Date(doc.createdAt || Date.now()).getFullYear();
-    const img = doc.thumb ? '<span class="sp-img" style="background-image:url(' + doc.thumb + ')"></span>' : '<span class="sp-img" style="background:' + (blank && doc.paper ? doc.paper.bg : '#fff') + '"></span>';
-    const cover = doc.thumb ? '' : '<div class="cv-fall"><small>' + esc2(folderName(doc)) + '</small><strong>' + esc2(doc.name) + '</strong></div>';
-    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';--thumb:url(' + doc.thumb + ')' : '') + '">' + img + '<span class="sp-band t"></span><span class="sp-band b"></span><span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-foot"><b>' + year + '</b></span></div>' +
-      '<div class="cv" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';background-image:url(' + doc.thumb + ')' : '') + '">' + cover + '<span class="cv-badges"><i class="' + (inCloud(doc) ? 'on' : '') + '">' + cloudSVG + '</i><i class="' + (onDevice(doc) ? 'on' : '') + '">' + pcSVG + '</i></span></div>';
+    // no jacket: the standard spine (top: series icon and volume; middle: title and folder; bottom: mark)
+    const c = colourOf(doc), blank = doc.kind === 'blank', vm = /(?:listening|reading|writing|speaking|book|vol\.?|part|tập)\s*(\d+)/i.exec(doc.name);
+    const bookSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M3 20V9.5c3.2-.8 6-.2 9 1.6 3-1.8 5.8-2.4 9-1.6V20c-3.2-.8-6-.2-9 1.6-3-1.8-5.8-2.4-9-1.6Z"/><path d="M12 11v10"/></svg>';
+    const mark = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V6.5A1.5 1.5 0 0 1 5.5 5H11v15"/><path d="M13 5h5.5A1.5 1.5 0 0 1 20 6.5V20"/><path d="M13 20c-.6-1-1.4-1.5-2-1.5"/><path d="M15 9l3-3M16 12l3-3"/></svg>';
+    return '<div class="sp tpl" style="--tc:' + c + '"><span class="tp-top"><i>' + bookSVG + '</i><em>' + (vm ? vm[1] : '') + '</em></span>' +
+      '<span class="tp-mid"><i class="tp-t">' + esc2(doc.name) + '</i><i class="tp-a">' + esc2(folderName(doc)) + '</i></span><span class="tp-bot">' + mark + '</span></div>' +
+      '<div class="cv" style="--c:' + c + ';--fg:' + fgOf(c) + (doc.thumb ? ';background-image:url(' + doc.thumb + ')' : '') + '">' + (doc.thumb ? '' : '<div class="cv-fall"><small>' + esc2(folderName(doc)) + '</small><strong>' + esc2(doc.name) + '</strong></div>') + '<span class="cv-badges"><i class="' + (inCloud(doc) ? 'on' : '') + '">' + cloudSVG + '</i><i class="' + (onDevice(doc) ? 'on' : '') + '">' + pcSVG + '</i></span></div>';
   }
 
   /* the spine takes its colour from the cover: the average of the page's inked (non-white) pixels, kept dark enough to read the title */
@@ -6201,7 +6222,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   function measure(){
     W = innerWidth; VH = innerHeight;
     const pr = document.createElement('div'); pr.style.cssText = 'position:absolute;visibility:hidden;width:1px;height:var(--H)'; SV.appendChild(pr); H = pr.offsetHeight || 400; pr.remove();
-    ws = H * 0.075; d = H * 0.62; gap = H * 0.004;
+    ws = H * 0.085; d = H * 0.62; gap = H * 0.085;   // gap = the air between neighbouring books
     STAGE.style.setProperty('--H', H + 'px'); STAGE.style.setProperty('--ws', ws + 'px'); STAGE.style.setProperty('--d', d + 'px');
   }
 
@@ -6224,7 +6245,6 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
       el.addEventListener('pointerenter', () => { hover = v; }); el.addEventListener('pointerleave', () => { if (hover === v) hover = -1; });
       tapes.push(tp);
     }
-    colourise();
   }
   function buildTabs(){
     TABS.querySelectorAll('button').forEach(b => b.remove());
