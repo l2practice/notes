@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-05-f" />
+    <meta name="app-build" content="2026-11-05-g" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1013,9 +1013,9 @@
         background:rgba(250,245,232,.94);color:#1b1712;padding:.7em .38em;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28),0 1px 2px rgba(0,0,0,.35);}
       .sp-band{position:absolute;left:5px;right:5px;height:3px;border-top:1px solid rgba(255,226,150,.65);border-bottom:1px solid rgba(0,0,0,.35);}
       .sp-band.t{top:calc(var(--ws) + 9px);} .sp-band.b{bottom:calc(var(--H)*.27 - 2px);}
-      .sp-foot{position:absolute;left:0;right:0;bottom:9px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:calc(var(--ws)*.12);font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
-      .sp-foot em{font-style:normal;writing-mode:vertical-rl;opacity:.85;max-height:calc(var(--H)*.16);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-      .sp-foot b{border:1px solid currentColor;padding:2px 4px;font-size:calc(var(--ws)*.13);line-height:1;}
+      .sp-tail{position:absolute;left:0;right:0;bottom:9px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:calc(var(--ws)*.12);font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
+      .sp-tail em{font-style:normal;writing-mode:vertical-rl;opacity:.85;max-height:calc(var(--H)*.16);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+      .sp-tail b{border:1px solid currentColor;padding:2px 4px;font-size:calc(var(--ws)*.13);line-height:1;}
       .cv-fall{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:calc(var(--d)*.09);background:var(--c);color:var(--fg);}
       .cv-fall small{font-size:calc(var(--d)*.04);letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.85;}
       .cv-fall strong{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:calc(var(--d)*.12);line-height:1.04;word-break:break-word;}
@@ -6182,7 +6182,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
     const c = colourOf(doc), fg = fgOf(c), blank = doc.kind === 'blank';
     const img = doc.thumb ? '<span class="sp-img" style="background-image:url(' + doc.thumb + ')"></span>' : '<span class="sp-img" style="background:' + (blank && doc.paper ? doc.paper.bg : '#fff') + '"></span>';
     const cover = doc.thumb ? '' : '<div class="cv-fall"><small>' + esc2(folderName(doc)) + '</small><strong>' + esc2(doc.name) + '</strong></div>';
-    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';--thumb:url(' + doc.thumb + ')' : '') + '">' + img + '<span class="sp-band t"></span><span class="sp-band b"></span><span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-foot"><em>' + esc2(folderName(doc)) + '</em><b>' + (blank ? 'NOTE' : 'PDF') + '</b></span></div>' +
+    return '<div class="sp" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';--thumb:url(' + doc.thumb + ')' : '') + '">' + img + '<span class="sp-band t"></span><span class="sp-band b"></span><span class="sp-title"><i>' + esc2(doc.name) + '</i></span><span class="sp-tail"><em>' + esc2(folderName(doc)) + '</em><b>' + (blank ? 'NOTE' : 'PDF') + '</b></span></div>' +
       '<div class="cv" style="--c:' + c + ';--fg:' + fg + (doc.thumb ? ';background-image:url(' + doc.thumb + ')' : '') + '">' + cover + '<span class="cv-badges"><i class="' + (inCloud(doc) ? 'on' : '') + '">' + cloudSVG + '</i><i class="' + (onDevice(doc) ? 'on' : '') + '">' + pcSVG + '</i></span></div>';
   }
 
