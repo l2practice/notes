@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-05-i" />
+    <meta name="app-build" content="2026-11-05-k" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1734,12 +1734,12 @@
     }
     function folderOf(d){ return d.folderId ? folders.find(f => f.id === d.folderId) : null; }
     function isFinishedDoc(d){ return !!(d.lastOpenedAt && d.pages > 0 && (d.lastPage || 1) >= d.pages); }
-    function isReadingDoc(d){ if (isFinishedDoc(d)) return false; return (d.lastPage || 1) > 1 || (d.notes && d.notes.length > 0) || !!d.lastOpenedAt; }
+    function isReadingDoc(d){ if (isFinishedDoc(d)) return false; return (d.lastPage || 1) > 1 || docNotesN(d) > 0 || !!d.lastOpenedAt; }
     function bookCardHTML(d){
       const f = folderOf(d);
       const spine = f ? f.color : '#6b7280';
       const fname = f ? f.name : 'Uncategorized';
-      const notesN = d.notes ? d.notes.length : 0;
+      const notesN = docNotesN(d);
       const cover = d.thumb
         ? '<img class="cover-img" src="' + d.thumb + '" alt="Cover — first page of ' + esc(d.name) + '" />'
         : '<span class="book-fallback" style="background:' + spine + '"><span class="bf-title">' + esc(d.name) + '</span><span class="bf-pages">' + d.pages + ' pages</span></span>';
@@ -1888,6 +1888,8 @@
     function dayKey(t){ const d = new Date(t || Date.now()); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
     function docSecs(d){ let t = 0; const l = d.readLog || {}; for (const k in l) t += l[k] || 0; return t; }
     function fmtDur(sec){ const m = Math.round(sec / 60); if (m < 60) return m + ' min'; return Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min'; }
+    const docNotesN = d => d.annCnt ? d.annCnt.n : (d.notes ? d.notes.length : 0);
+    const docInkN = d => d.annCnt ? d.annCnt.ink : inkCount(d);
     function inkCount(d){ let n = 0; if (d.ink) for (const k in d.ink) n += (d.ink[k] || []).length; return n; }
     function niceMax(v){ const steps = [10, 20, 30, 60, 90, 120, 180, 240, 360, 480]; return steps.find(x => x >= v) || Math.ceil(v / 60) * 60; }
     let homeRange = 30, homeTab = 'recent';
@@ -1973,7 +1975,7 @@
       const reached = d => d.lastOpenedAt ? Math.min(d.lastPage || 1, d.pages || 1) : 0;
       const pagesRead = live.reduce((a, d) => a + reached(d), 0);
       const secs = live.reduce((a, d) => a + docSecs(d), 0);
-      const marks = live.reduce((a, d) => a + (d.notes ? d.notes.length : 0) + inkCount(d), 0);
+      const marks = live.reduce((a, d) => a + docNotesN(d) + docInkN(d), 0);
       const hr = new Date().getHours(), greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
       const recent = live.filter(d => d.lastOpenedAt).sort((a, b) => b.lastOpenedAt - a.lastOpenedAt);
       const heroDocs = (recent.length ? recent : live.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))).slice(0, 3);
@@ -2070,6 +2072,7 @@
       for (const id in (doc.imgs || {})){ await DB.del('files', 'img:' + id); addDocTombstone('img:' + id, doc.imgs[id].fid); }
       docs = docs.filter(x => x.id !== doc.id);
       addDocTombstone(doc.id, doc.driveFileId);
+      for (const k in (doc.annParts || {})) if (doc.annParts[k].f) addDocTombstone('ann:' + doc.id + ':' + k, doc.annParts[k].f);
       if (typeof queueDriveSync === 'function') queueDriveSync();
     }
     async function purgeExpired(){
@@ -2474,6 +2477,9 @@
           const fresh = docs.find(d => d.id === docId);
           if (fresh){ currentReader = fresh; $('#readerTitle').textContent = fresh.name; setSaveStatus(false, fresh.updatedAt); }
         } catch (e) { /* mo ban local neu dong bo loi */ }
+      }
+      if (currentReader && currentReader.annStale && Object.keys(currentReader.annStale).length){
+        try { await fetchAnnotations(currentReader); } catch (e) { toast('Showing the notes saved on this device — the newest ones load when you are online.'); }
       }
       try {
         pageSizes = [];
@@ -3639,6 +3645,44 @@
       if (u8[0] === 0x1f && u8[1] === 0x8b) return JSON.parse(await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
       return JSON.parse(new TextDecoder().decode(u8));
     }
+    /* NOTES AND DRAWINGS travel as small separate files, so writing sends only what changed:
+         ann-<book>-notes.json.gz      the text boxes of the book
+         ann-<book>-ink<page>.json.gz  the drawing of ONE page
+       The library file only lists them (a hash and a Drive file id per part). A part that changed on another device is marked
+       "stale" here and its file is fetched when you open the book (or in the background when "Save mobile data" is off). */
+    function localParts(d){
+      const m = {}; if ((d.notes || []).length) m.notes = hashStr(JSON.stringify(d.notes));
+      const ink = d.ink || {}; for (const p in ink) if ((ink[p] || []).length) m['ink:' + p] = hashStr(JSON.stringify(ink[p]));
+      return m;
+    }
+    function hashStr(str){ let h = 2166136261 >>> 0; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h.toString(36) + ':' + str.length; }
+    const partPayload = (d, k) => k === 'notes' ? { notes: d.notes || [] } : { strokes: (d.ink || {})[k.slice(4)] || [] };
+    function applyPart(d, k, j){
+      if (k === 'notes'){ d.notes = (j && j.notes) || []; return; }
+      const pg = k.slice(4); if (!d.ink) d.ink = {};
+      if (j && (j.strokes || []).length) d.ink[pg] = j.strokes; else delete d.ink[pg];
+    }
+    function inlineParts(rd){   // a library file from an older app version carries the notes and drawings inside it
+      const m = {}; if ((rd.notes || []).length) m.notes = { h: hashStr(JSON.stringify(rd.notes)), f: '', j: { notes: rd.notes } };
+      for (const p in (rd.ink || {})) if ((rd.ink[p] || []).length) m['ink:' + p] = { h: hashStr(JSON.stringify(rd.ink[p])), f: '', j: { strokes: rd.ink[p] } };
+      return m;
+    }
+    function stripAnn(r){ const m = Object.assign({}, r); ['notes', 'ink', 'annParts', 'annStale', 'annCnt', 'annN', 'annInk'].forEach(k => delete m[k]); return m; }
+    async function fetchAnnotations(doc){
+      const st = doc.annStale; if (!st || !Object.keys(st).length) return true;
+      const lp = localParts(doc); if (!doc.annParts) doc.annParts = {};
+      await pool(Object.keys(st), 4, async k => {
+        const a = st[k], bH = (doc.annParts[k] && doc.annParts[k].h) || '';
+        if (!a.force && (lp[k] || '') !== bH){ delete st[k]; return; }   // edited here meanwhile: the newer local copy wins and goes out on the next sync
+        let j = null;
+        if (a.f){ const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + a.f + '?alt=media'); if (!r.ok) throw new Error('part'); j = await libFromResponse(r); }
+        applyPart(doc, k, j); doc.annParts[k] = { h: a.h, f: a.f }; delete st[k];
+      });
+      if (!Object.keys(st).length){ delete doc.annStale; delete doc.annCnt; }
+      await DB.put('docs', doc);
+      if (currentReader && currentReader.id === doc.id) driveChangedDocs.push(doc.id);
+      return !doc.annStale;
+    }
     const libSeen = () => { try { return localStorage.getItem('nt-lib-mod') || ''; } catch (e) { return ''; } };
     const setLibSeen = v => { try { localStorage.setItem('nt-lib-mod', v || ''); } catch (e) {} };
     async function libUnchanged(){
@@ -3690,21 +3734,43 @@
       for (const rd of remote.docs){
         if (dtomb.has(rd.id)) continue;
         const ld = docs.find(d => d.id === rd.id);
+        const busy = !!ld && currentReader && currentReader.id === ld.id && typeof G !== 'undefined' && G, localUpdated = ld ? (ld.updatedAt || 0) : 0;
         const contentNewer = !ld || (rd.updatedAt || 0) > (ld.updatedAt || 0), pageNewer = !!ld && (rd.pageUpdatedAt || 0) > (ld.pageUpdatedAt || 0);
         if (contentNewer || pageNewer){
-          if (!ld){ const merged = Object.assign({}, rd); docs.push(merged); await DB.put('docs', merged); changed = true; driveChangedDocs.push(rd.id); }
+          if (!ld){ const merged = stripAnn(rd); merged.notes = []; merged.ink = {}; docs.push(merged); await DB.put('docs', merged); changed = true; driveChangedDocs.push(rd.id); }
           else {
             // another device only moved the page: that must not bring back its older notes and drawings
-            const busy = currentReader && currentReader.id === ld.id && typeof G !== 'undefined' && G;
             if (contentNewer && !busy){
               const keep = { lastPage: ld.lastPage, pageUpdatedAt: ld.pageUpdatedAt, lastOpenedAt: ld.lastOpenedAt };
-              Object.assign(ld, rd);
+              Object.assign(ld, stripAnn(rd));
               if (!pageNewer){ ld.lastPage = keep.lastPage; ld.pageUpdatedAt = keep.pageUpdatedAt; if ((keep.lastOpenedAt || 0) > (ld.lastOpenedAt || 0)) ld.lastOpenedAt = keep.lastOpenedAt; }
               driveChangedDocs.push(rd.id);
             } else if (pageNewer){ ld.lastPage = rd.lastPage; ld.pageUpdatedAt = rd.pageUpdatedAt; if ((rd.lastOpenedAt || 0) > (ld.lastOpenedAt || 0)) ld.lastOpenedAt = rd.lastOpenedAt; }
             await DB.put('docs', ld); changed = true;
           }
         }
+        // notes and drawings: each part is compared by content (not by date), so opening a book on one device never hides what another device wrote
+        { const t = docs.find(d => d.id === rd.id);
+          if (t){
+            const inline = rd.notes !== undefined || rd.ink !== undefined, rp = inline ? inlineParts(rd) : (rd.annParts || {}), lp = localParts(t);
+            if (!t.annParts) t.annParts = {}; if (!t.annStale) t.annStale = {};
+            const base = t.annParts, keys = new Set(Object.keys(rp).concat(Object.keys(lp), Object.keys(base))); let touched = false;
+            for (const k of keys){
+              const rH = (rp[k] && rp[k].h) || '', rF = (rp[k] && rp[k].f) || '', lH = lp[k] || '', bH = (base[k] && base[k].h) || '';
+              if (rF && (!base[k] || base[k].f !== rF)){ base[k] = Object.assign({ h: bH }, base[k] || {}, { f: rF }); touched = true; }
+              if (rH === lH){ if (bH !== lH || t.annStale[k]){ base[k] = { h: lH, f: rF || (base[k] && base[k].f) || '' }; delete t.annStale[k]; touched = true; } continue; }
+              if (!inline && rH && !rF) continue;   // listed without a file: nothing to fetch, keep what this device has
+              const remoteChanged = rH !== bH, localChanged = lH !== bH;
+              const adopt = remoteChanged && (!localChanged || (rd.updatedAt || 0) > localUpdated);
+              if (adopt && !busy){
+                if (inline){ applyPart(t, k, rp[k] && rp[k].j); base[k] = { h: rH, f: '' }; delete t.annStale[k]; }
+                else t.annStale[k] = { h: rH, f: rF, force: localChanged };   // force: both sides changed and the other device's copy is newer
+                touched = true; driveChangedDocs.push(rd.id);
+              } else if (remoteChanged && localChanged && t.annStale[k]){ delete t.annStale[k]; touched = true; }
+            }
+            if (Object.keys(t.annStale).length) t.annCnt = { n: rd.annN || 0, ink: rd.annInk || 0 }; else { delete t.annStale; delete t.annCnt; }
+            if (touched){ await DB.put('docs', t); changed = true; }
+          } }
         const target = docs.find(d => d.id === rd.id);
         if (target && rd.readLog){   // reading time: keep the larger figure per day from either device
           const ml = Object.assign({}, target.readLog || {}); let diff = false;
@@ -3714,6 +3780,8 @@
         const localBuf = await DB.get('files', rd.id);
         if (!localBuf && target && target.driveFileId && target.kind !== 'blank' && KEEP.has(target.id)) toDl.push(target);   // PDFs come down on demand (or when marked Always keep)
       }
+      { const stale = docs.filter(d => d.annStale && !d.deletedAt && (!dataSaverOn() || (currentReader && currentReader.id === d.id)));
+        if (stale.length){ let k = 0; for (const d of stale){ if (!noProg) syncProgress(0, 1, 1 + stale.length, 'Notes ' + (++k) + ' / ' + stale.length + ' — ' + d.name); try { await fetchAnnotations(d); changed = true; } catch (e) { if (e && e.message === 'needs-reauth') throw e; } } } }
       if (!noProg) syncProgress(0, 1, 1 + toDl.length, toDl.length ? 'Library loaded — ' + toDl.length + (toDl.length === 1 ? ' document to download' : ' documents to download') : 'Library loaded');
       for (let i = 0; i < toDl.length; i++){
         const t = toDl[i];
@@ -3772,9 +3840,24 @@
           await DB.put('docs', d);
         }
       }
+      // notes and drawings: only the parts that changed since the last sync are sent, each as one small compressed file
+      for (const d of docs){
+        const lp = localParts(d); if (!d.annParts) d.annParts = {}; const st = d.annStale || {}, ks = new Set(Object.keys(lp).concat(Object.keys(d.annParts))); let dirty = false;
+        for (const k of ks){
+          if (st[k]) continue;   // a newer copy of this part is on Drive; nothing of ours to send
+          const lH = lp[k] || '', b = d.annParts[k] || {}, bH = b.h || ''; if (lH === bH && (b.f || !lH)) continue;   // unchanged (a part with no file on Drive yet is still sent)
+          if (lH){
+            syncProgress(1, todo.length, total, 'Sending notes — ' + d.name);
+            const fid = await driveUploadMedia({ name: 'ann-' + d.id + '-' + (k === 'notes' ? 'notes' : 'ink' + k.slice(4)) + '.json.gz', parents: [driveFolderId] }, await libToBlob(partPayload(d, k)), b.f || null);
+            d.annParts[k] = { h: lH, f: fid };
+          } else d.annParts[k] = { h: '', f: b.f || '' };   // emptied: the other devices must learn that too
+          dirty = true;
+        }
+        if (dirty) await DB.put('docs', d);
+      }
       syncProgress(1, todo.length, total, 'Saving library');
       await drivePull(true);   // pick up anything the other device wrote while the PDFs were uploading, so its changes are never overwritten
-      const lib = { version: 1, updatedAt: Date.now(), folders: folders, deletedFolders: deletedFolderIds(), deletedDocs: deletedDocList().map(t => t.id), docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; return c; }) };
+      const lib = { version: 1, updatedAt: Date.now(), folders: folders, deletedFolders: deletedFolderIds(), deletedDocs: deletedDocList().map(t => t.id), docs: docs.map(d => { const c = Object.assign({}, d); delete c.thumb; delete c.notes; delete c.ink; delete c.annStale; delete c.annCnt; const parts = {}, st = d.annStale || {}; new Set(Object.keys(d.annParts || {}).concat(Object.keys(st))).forEach(k => { const x = st[k] || d.annParts[k]; if (x && (x.h || x.f)) parts[k] = { h: x.h || '', f: x.f || '' }; }); c.annParts = parts; c.annN = d.annCnt ? d.annCnt.n : (d.notes ? d.notes.length : 0); c.annInk = d.annCnt ? d.annCnt.ink : inkCount(d); return c; }) };
       const blob = await libToBlob(lib);
       driveLibFileId = await driveUploadMedia({ name: DRIVE_LIB_NAME, parents: [driveFolderId] }, blob, driveLibFileId);
       for (const id of driveLibExtra){ try { await driveFetch('https://www.googleapis.com/drive/v3/files/' + id, { method: 'DELETE' }); } catch (e) {} }   // duplicate copies are merged into the main one now
