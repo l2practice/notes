@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <script>try { if (sessionStorage.getItem('nt-unlocked') !== '1') document.documentElement.classList.add('locked'); } catch (e) { document.documentElement.classList.add('locked'); }</script>
+    <script>try { var _ok = sessionStorage.getItem('nt-unlocked') === '1', _t = +localStorage.getItem('nt-unlocked-at') || 0; if (!_ok && !(_t && Date.now() - _t < 4 * 3600 * 1000 && Date.now() >= _t)) document.documentElement.classList.add('locked'); } catch (e) { document.documentElement.classList.add('locked'); }</script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="icon.svg" />
@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-c" />
+    <meta name="app-build" content="2026-11-06-d" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1556,6 +1556,7 @@
       document.getElementById('lockEye').addEventListener('click', () => { input.classList.toggle('show'); focus(); });
       const unlock = () => {
         try { sessionStorage.setItem('nt-unlocked', '1'); } catch (er) {}
+        try { localStorage.setItem('nt-unlocked-at', String(Date.now())); } catch (er) {}
         input.value = ''; document.documentElement.classList.remove('locked');
         const f = window.__afterUnlock; window.__afterUnlock = null; if (f) f();
       };
@@ -2290,7 +2291,7 @@
       ['pwCur', 'pwNew', 'pwNew2'].forEach(id => $('#' + id).addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); save(); } }));
     }
     $('#pwChangeBtn').addEventListener('click', pwModal);
-    $('#pwLockBtn').addEventListener('click', () => { try { sessionStorage.removeItem('nt-unlocked'); } catch (e) {} location.reload(); });
+    $('#pwLockBtn').addEventListener('click', () => { try { sessionStorage.removeItem('nt-unlocked'); localStorage.removeItem('nt-unlocked-at'); } catch (e) {} location.reload(); });
     const goBin = () => { libView = 'bin'; renderLibrary(); window.scrollTo({ top: 0 }); };
     $('#navBinBtn').addEventListener('click', goBin);
     $('#settingsBinBtn').addEventListener('click', goBin);
