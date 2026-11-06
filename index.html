@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-g" />
+    <meta name="app-build" content="2026-11-06-h" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -525,6 +525,9 @@
       .shape-btn{flex:none;width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);}
       .shape-btn:hover{background:var(--active);} .shape-btn.cur{background:var(--active);color:var(--ink);box-shadow:inset 0 0 0 1px var(--control);}
       .shape-btn svg{width:24px;height:24px;}
+      .ls-row{display:flex;gap:4px;padding:2px 2px 6px;margin-bottom:4px;border-bottom:1px solid var(--line);}
+      .ls-btn{flex:1;height:30px;border-radius:6px;color:var(--ink-2);display:flex;align-items:center;justify-content:center;}
+      .ls-btn svg{width:40px;height:12px;} .ls-btn:hover{background:var(--active);} .ls-btn.cur{background:var(--active);color:var(--ink);box-shadow:inset 0 0 0 1px var(--control);}
       .shape-sep{flex:0 0 100%;height:1px;background:var(--line);margin:3px 0;}
       #symPop{width:292px;padding:8px;}
       .sym-sec{font-size:12px;font-weight:600;color:var(--muted);padding:6px 4px 3px;}
@@ -5152,7 +5155,7 @@ function saveShapeDims(){ try { localStorage.setItem('nt-shape-dims', JSON.strin
 const shapeKey = st => st.k + ((st.k === 'brkt' || st.k === 'brace') ? (st.o || 0) : '');
 try { INK.symOpen = localStorage.getItem('nt-sym-open') === '1'; } catch (e) {}
 const INK_SW = { pen: ['#111111', '#D45060', '#2D7495'], hl: ['#FFD43B', '#7ED957', '#FF8FB1'] };
-const INK_RANGE = { pen: [0.5, 14, 0.5], hl: [6, 44, 1], er: [2, 30, 1] };
+const INK_RANGE = { pen: [0.4, 14, 0.2], hl: [6, 44, 1], er: [2, 30, 1] };
 let G = null;                  // the gesture in progress
 let lastPenAt = 0; const palmIds = new Set();   // palm protection
 const INKCACHE = {};           // page -> { ink, hl } off-screen layers while interacting
@@ -5327,6 +5330,18 @@ function drawImgObj(ctx, st, k){
   ctx.save(); ctx.fillStyle = 'rgba(128,128,128,.18)'; ctx.fillRect(x, y, w, h); ctx.restore();
 }
 const minLW = k => 1.3 * k / (scale || 1);   // never thinner than ~1.3 screen pixels, whatever the zoom
+const LINE_STYLES = [['solid', 'Solid line', ''], ['dash', 'Dashed', '7 5'], ['long', 'Long dashes', '13 6'], ['dot', 'Dotted', '0.5 5.5'], ['dashdot', 'Dash-dot', '10 4 1 4']];
+function dashFor(ls, w, k){
+  const w1 = Math.max(w, 1.4) * k;
+  switch (ls){
+    case 'dash': return [4 * w1, 3 * w1];
+    case 'long': return [8 * w1, 3.5 * w1];
+    case 'dot': return [0.01, 2.2 * w1];
+    case 'dashdot': return [6 * w1, 2.5 * w1, 0.01, 2.5 * w1];
+  }
+  return [];
+}
+const SOLID_PARTS = { arrow: [1], axes: [1, 3], rtri: [1], angle: [1] };   // arrow heads and the right-angle mark stay solid
 function drawStroke(ctx, st, k){
   if (st.k === 'img'){ drawImgObj(ctx, st, k); return; }
   if (st.k === 'sym'){ drawSym(ctx, st, k); return; }
@@ -5355,8 +5370,13 @@ function drawStroke(ctx, st, k){
     }
     return;
   }
-  ctx.lineWidth = Math.max(st.sw * k, minLW(k));
-  shapePaths(st).forEach(poly => { ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(q[0] * k, q[1] * k) : ctx.moveTo(q[0] * k, q[1] * k)); ctx.stroke(); });
+  ctx.lineWidth = Math.max(st.sw * k, 0.55 * k / (scale || 1));
+  const dash = st.ls ? dashFor(st.ls, st.sw, k) : [], solid = SOLID_PARTS[st.k] || [];
+  shapePaths(st).forEach((poly, pi) => {
+    ctx.setLineDash(dash.length && solid.indexOf(pi) < 0 ? dash : []);
+    ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(q[0] * k, q[1] * k) : ctx.moveTo(q[0] * k, q[1] * k)); ctx.stroke();
+  });
+  ctx.setLineDash([]);
 }
 function isDarkColor(c){ const m = /^#?([0-9a-f]{6})$/i.exec(c || ''); if (!m) return false; const v = parseInt(m[1], 16); return (0.299 * (v >> 16) + 0.587 * ((v >> 8) & 255) + 0.114 * (v & 255)) < 90; }
 /* everything onto a plain canvas (export, thumbnails): highlighter blends like a real marker */
@@ -5408,7 +5428,7 @@ function caretBadge(ctx, L, st, showEq){
   } else INK._eqOn = false;
 }
 function caretFromDrag(x0, y0, x, y, apex, sym){
-  const s = { t: 'shape', id: uid(), k: 'caret', o: 0, c: INK.color.pen, sw: INK.width.pen };
+  const s = { t: 'shape', id: uid(), k: 'caret', o: 0, c: INK.color.pen, sw: INK.width.pen }; if (INK.ls) s.ls = INK.ls;
   s.x = r1(x0); s.y = r1(y0);
   if (apex){ s.x2 = r1(apex[0]); s.y2 = r1(apex[1]); s.x3 = r1(x); s.y3 = r1(y); caretSnapRight(s); }
   else if (sym){ s.x2 = r1(x); s.y2 = r1(y); s.x3 = r1(2 * x - x0); s.y3 = r1(y0); }   // lifted without pausing: a symmetric inverted V
@@ -5691,7 +5711,7 @@ setInterval(() => {
   }
 }, 150);
 function makeShape(x0, y0, x1, y1){
-  const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen };
+  const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen }; if (INK.ls && INK.shape.k !== 'sym') s.ls = INK.ls;
   if (s.k === 'line' || s.k === 'arrow'){
     let dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
     if (len > 0){
@@ -6200,8 +6220,8 @@ function syncToolUI(){
 function syncInkBar(){
   const kind = inkKind(), rg = INK_RANGE[kind], sl = $('#inkW');
   let w = INK.width[kind];
-  if (INK.tool === 'select'){ const a = selList(); if (a.length) w = a[0].sw; }
-  sl.min = rg[0]; sl.max = rg[1]; sl.step = rg[2]; sl.value = w; $('#inkWVal').textContent = w;
+  if (INK.tool === 'select' || (INK.tool === 'shape' && INK.sel)){ const a = selList(); if (a.length) w = a[0].sw; }
+  sl.min = rg[0]; sl.max = rg[1]; sl.step = rg[2]; sl.value = w; $('#inkWVal').textContent = fmtW(w);
   sl.title = kind === 'er' ? 'Eraser size' : 'Thickness';
   buildInkSwatches(); syncUndoUI();
   $('#inkDel').classList.toggle('hidden', !(INK.sel && (INK.tool === 'select' || INK.tool === 'shape')));
@@ -6230,12 +6250,13 @@ function setInkTool(t){
 }
 function setInkWidth(v){
   const kind = inkKind(); INK.width[kind] = v;
-  if (INK.tool === 'select' && INK.sel){
+  if ((INK.tool === 'select' || INK.tool === 'shape') && INK.sel){
     const arr = selList();
     if (arr.length){ if (!INK._wu){ pushUndo(INK.sel.p); INK._wu = true; } arr.forEach(st => { st.sw = v; }); redrawInk(INK.sel.p); scheduleSave(); }
   }
-  $('#inkWVal').textContent = v;
+  $('#inkWVal').textContent = fmtW(v);
 }
+function fmtW(v){ return String(Math.round(v * 10) / 10); }
 function setInkColor(hex){
   const kind = inkKind(); if (kind === 'er') return; INK.color[kind] = hex;
   if (INK.tool === 'select' && INK.sel){ const arr = selList(); if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.c = hex; }); redrawInk(INK.sel.p); scheduleSave(); } }
@@ -6326,8 +6347,21 @@ function syncShapePanel(){
   if (show) markShapeCur();
 }
 function openShapePanel(open){ INK.shapeOpen = open; try { localStorage.setItem('nt-shape-open', open ? '1' : '0'); } catch (e) {} syncShapePanel(); }
+INK.ls = ''; try { INK.ls = localStorage.getItem('nt-line-style') || ''; } catch (e) {}
+function lineStyleRow(){
+  return '<div class="ls-row" title="Line style for shapes (applies to the shape you just drew or selected, and to the next ones)">' + LINE_STYLES.map(([id, label, da]) =>
+    '<button class="ls-btn' + ((INK.ls || 'solid') === id ? ' cur' : '') + '" data-ls="' + id + '" title="' + label + '"><svg viewBox="0 0 40 12"><path d="M3 6H37" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"' + (da ? ' stroke-dasharray="' + da + '"' : '') + '/></svg></button>').join('') + '</div>';
+}
+function setLineStyle(id){
+  INK.ls = id === 'solid' ? '' : id; try { localStorage.setItem('nt-line-style', INK.ls); } catch (e) {}
+  document.querySelectorAll('#shBody .ls-btn').forEach(b => b.classList.toggle('cur', b.dataset.ls === id));
+  if ((INK.tool === 'select' || INK.tool === 'shape') && INK.sel){
+    const arr = selList().filter(s => s.t === 'shape' && s.k !== 'sym' && s.k !== 'img');
+    if (arr.length){ pushUndo(INK.sel.p); arr.forEach(s => { if (INK.ls) s.ls = INK.ls; else delete s.ls; }); redrawInk(INK.sel.p); scheduleSave(); }
+  }
+}
 function buildShapePop(){
-  $('#shBody').innerHTML = '<div class="shape-grid">' + SHAPES.map(it => { if (!it) return '<div class="shape-sep"></div>'; const [k, o, label] = it; return '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>'; }).join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
+  $('#shBody').innerHTML = lineStyleRow() + '<div class="shape-grid">' + SHAPES.map(it => { if (!it) return '<div class="shape-sep"></div>'; const [k, o, label] = it; return '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>'; }).join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
 }
 
 /* ---------- paper templates & blank documents ---------- */
@@ -6563,6 +6597,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   document.addEventListener('contextmenu', e => { if (INK.tool && e.target.closest && e.target.closest('.ink-canvas')) e.preventDefault(); });
   document.addEventListener('gesturestart', e => { if (INK.tool) e.preventDefault(); });
   $('#shBody').addEventListener('click', e => {
+    const ls = e.target.closest('.ls-btn'); if (ls){ setLineStyle(ls.dataset.ls); return; }
     const b = e.target.closest('.shape-btn'); if (!b) return;
     INK.shape = { k: b.dataset.k, o: +b.dataset.o }; INK.lastPlacedId = null; INK.lastTap = null; hidePops(); setInkTool('shape'); markShapeCur();
   });
