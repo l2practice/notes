@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-e" />
+    <meta name="app-build" content="2026-11-06-f" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -519,11 +519,13 @@
       #pagesCol.ink-on .ink-canvas{pointer-events:auto;touch-action:none;cursor:crosshair;}
       #pagesCol.ink-on.tool-select .ink-canvas{cursor:default;}
       #pagesCol.ink-on .notes-layer{pointer-events:none;}
+      #pagesCol.ink-on .notes-layer .note{pointer-events:none;}   /* drawing tools reach the page through the text boxes */
       .ink-range{width:92px;accent-color:var(--ink);}
       .shape-grid{display:flex;flex-wrap:wrap;gap:4px;padding:2px;}   /* the shapes re-flow to the width of the panel */
       .shape-btn{flex:none;width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);}
       .shape-btn:hover{background:var(--active);} .shape-btn.cur{background:var(--active);color:var(--ink);box-shadow:inset 0 0 0 1px var(--control);}
       .shape-btn svg{width:24px;height:24px;}
+      .shape-sep{flex:0 0 100%;height:1px;background:var(--line);margin:3px 0;}
       #symPop{width:292px;padding:8px;}
       .sym-sec{font-size:12px;font-weight:600;color:var(--muted);padding:6px 4px 3px;}
       .sym-grid{display:flex;flex-wrap:wrap;gap:5px;}
@@ -5206,7 +5208,57 @@ function shapePaths(st){
     const loc = (k === 'brkt' ? bracketLocal : braceLocal)(lw, lh);
     return [loc.map(([lx, ly]) => o === 0 ? [x + lx, y + ly] : o === 2 ? [x + w - lx, y + ly] : o === 1 ? [x + ly, y + lx] : [x + ly, y + h - lx])];
   }
+  const M = mathShape(st); if (M) return M;
   return [];
+}
+/* ---------- maths shapes: plane figures, graphs, solids (hidden edges dashed) ---------- */
+function dashLine(a, b, sw){
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), d = Math.max(3, (sw || 2) * 2.2), g = Math.max(2.5, (sw || 2) * 1.7), out = [];
+  for (let p = 0; p < L; p += d + g){ const q = Math.min(L, p + d); out.push([[a[0] + dx * p / L, a[1] + dy * p / L], [a[0] + dx * q / L, a[1] + dy * q / L]]); }
+  return out;
+}
+function dashPoly(pts, sw){ const out = []; for (let i = 1; i < pts.length; i++) out.push(...dashLine(pts[i - 1], pts[i], sw)); return out; }
+function arcPts(cx, cy, rx, ry, t0, t1, n){ const a = []; for (let i = 0; i <= n; i++){ const t = t0 + (t1 - t0) * i / n; a.push([cx + rx * Math.cos(t), cy + ry * Math.sin(t)]); } return a; }
+function mathShape(st){
+  const k = st.k, x = st.x, y = st.y, w = st.bw || 0, h = st.bh || 0, sw = st.sw || 2, o = st.o || 0, PI = Math.PI;
+  const U = (fx, fy) => [x + fx * w, y + fy * h];
+  const P = (pts, close) => { const a = pts.map(q => U(q[0], q[1])); if (close) a.push(a[0]); return a; };
+  const cx = x + w / 2, cy = y + h / 2;
+  const curve = (f, n) => { const a = []; for (let i = 0; i <= n; i++){ const q = f(i / n); a.push(U(q[0], q[1])); } return a; };
+  switch (k){
+    case 'trap': return [P([[.22, 0], [.78, 0], [1, 1], [0, 1]], 1)];
+    case 'rtrap': return [P([[0, 0], [.66, 0], [1, 1], [0, 1]], 1)];
+    case 'para': return [P([[.26, 0], [1, 0], [.74, 1], [0, 1]], 1)];
+    case 'rhomb': return [P([[.5, 0], [1, .5], [.5, 1], [0, .5]], 1)];
+    case 'rtri': { const m = Math.min(w, h) * .14; return [[[x, y], [x, y + h], [x + w, y + h], [x, y]], [[x, y + h - m], [x + m, y + h - m], [x + m, y + h]]]; }
+    case 'pent': return [arcPts(cx, cy, w / 2, h / 2, -PI / 2, -PI / 2 + 2 * PI, 5)];
+    case 'hex': return [arcPts(cx, cy, w / 2, h / 2, 0, 2 * PI, 6)];
+    case 'semi': return [arcPts(cx, y + h, w / 2, h, PI, 2 * PI, 40).concat([[x, y + h]])];
+    case 'angle': { const a = Math.atan2(-h, w * .7), r = Math.min(w, h) * .32;
+      return [[[x + w, y + h], [x, y + h], [x + w * .7, y]], arcPts(x, y + h, r, r, 0, a, 20)]; }
+    case 'axes': { const L = Math.max(7, Math.min(12, Math.min(w, h) * .14)), ax = (px, py, dx, dy) => [[px - L * (dx * .87 - dy * .5), py - L * (dy * .87 + dx * .5)], [px, py], [px - L * (dx * .87 + dy * .5), py - L * (dy * .87 - dx * .5)]];
+      return [[[x, cy], [x + w, cy]], ax(x + w, cy, 1, 0), [[cx, y + h], [cx, y]], ax(cx, y, 0, -1)]; }
+    case 'parab': { const f = o === 0 ? t => [.5 + .5 * t, 1 - t * t] : o === 2 ? t => [.5 + .5 * t, t * t] : o === 1 ? t => [t * t, .5 + .5 * t] : t => [1 - t * t, .5 + .5 * t];
+      return [curve(u => f(u * 2 - 1), 48)]; }
+    case 'cubic': return [curve(u => { const t = u * 2 - 1; return [.5 + .5 * t, .5 - .5 * t * t * t]; }, 48)];
+    case 'sine': return [curve(u => [u, .5 - .5 * Math.sin(u * 4 * PI)], 80)];
+    case 'hyp': return [curve(u => { const v = .12 + .88 * u; return [.5 + .5 * v, .5 - .06 / v]; }, 40), curve(u => { const v = .12 + .88 * u; return [.5 - .5 * v, .5 + .06 / v]; }, 40)];
+    case 'expo': return [curve(u => [u, 1 - (Math.exp(3 * u) - 1) / (Math.exp(3) - 1)], 40)];
+    case 'cube': case 'cuboid': { const d = Math.min(w, h) * .3;
+      const F = [[x, y + d], [x + w - d, y + d], [x + w - d, y + h], [x, y + h]], B = [[x + d, y], [x + w, y], [x + w, y + h - d], [x + d, y + h - d]];
+      return [F.concat([F[0]]), [F[0], B[0], B[1], B[2], F[2]], [F[1], B[1]], ...dashLine(F[3], B[3], sw), ...dashLine(B[3], B[2], sw), ...dashLine(B[3], B[0], sw)]; }
+    case 'cyl': { const ry = Math.min(h * .14, w * .25), rx = w / 2;
+      return [arcPts(cx, y + ry, rx, ry, 0, 2 * PI, 36), [[x, y + ry], [x, y + h - ry]], [[x + w, y + ry], [x + w, y + h - ry]], arcPts(cx, y + h - ry, rx, ry, 0, PI, 18), ...dashPoly(arcPts(cx, y + h - ry, rx, ry, PI, 2 * PI, 18), sw)]; }
+    case 'cone': { const ry = Math.min(h * .14, w * .25), rx = w / 2;
+      return [[[x, y + h - ry], [cx, y], [x + w, y + h - ry]], arcPts(cx, y + h - ry, rx, ry, 0, PI, 18), ...dashPoly(arcPts(cx, y + h - ry, rx, ry, PI, 2 * PI, 18), sw)]; }
+    case 'sphere': { const ry = Math.min(h * .2, w * .3);
+      return [arcPts(cx, cy, w / 2, h / 2, 0, 2 * PI, 48), arcPts(cx, cy, w / 2, ry, 0, PI, 18), ...dashPoly(arcPts(cx, cy, w / 2, ry, PI, 2 * PI, 18), sw)]; }
+    case 'pyr': { const A = U(0, 1), B = U(.7, 1), C = U(1, .68), D = U(.3, .68), S = U(.5, 0);
+      return [[A, B, C], [S, A], [S, B], [S, C], ...dashLine(A, D, sw), ...dashLine(D, C, sw), ...dashLine(S, D, sw)]; }
+    case 'prism': { const F = [U(0, 1), U(.7, 1), U(.35, .3)], B = F.map(q => [q[0] + w * .3, q[1] - h * .28]);
+      return [[F[0], F[1], F[2], F[0]], [F[1], B[1], B[2], F[2]], [B[1], B[2]], ...dashLine(F[0], B[0], sw), ...dashLine(B[0], B[1], sw), ...dashLine(B[0], B[2], sw)]; }
+  }
+  return null;
 }
 function strokePolys(st){
   if (st.pts){ const a = []; for (let i = 0; i < st.pts.length; i += 3) a.push([st.pts[i], st.pts[i + 1]]); return [a]; }
@@ -5658,7 +5710,7 @@ function makeShape(x0, y0, x1, y1){
   } else {
     const d = INK.shapeDims[shapeKey(s)];
     if (d){ if (Math.abs(w - d[0]) < 4) w = d[0]; if (Math.abs(h - d[1]) < 4) h = d[1]; }
-    if ((s.k === 'ellipse' || s.k === 'rect' || s.k === 'star') && Math.abs(w - h) < 5) h = w;   // a true circle / square
+    if ((s.k === 'ellipse' || s.k === 'rect' || s.k === 'star' || s.k === 'cube' || s.k === 'sphere') && Math.abs(w - h) < 5) h = w;   // a true circle / square
   }
   s.bw = r1(w); s.bh = r1(h); s.x = r1(x1 >= x0 ? x0 : x0 - w); s.y = r1(y1 >= y0 ? y0 : y0 - h);
   return s;
@@ -6247,12 +6299,15 @@ function shapeIconSVG(k, o){
 }
 const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['caret', 0, 'Inverted V — draw up to the top, pause, then pull down; every corner can be dragged'], ['ellipse', 0, 'Circle / oval'], ['rect', 0, 'Rectangle'], ['tri', 0, 'Triangle'], ['star', 0, 'Star'],
   ['brkt', 0, 'Bracket ['], ['brkt', 2, 'Bracket ]'], ['brkt', 1, 'Bracket, lying, open down'], ['brkt', 3, 'Bracket, lying, open up'],
-  ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up']];
+  ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up'],
+  null, ['trap', 0, 'Trapezoid'], ['rtrap', 0, 'Right trapezoid'], ['para', 0, 'Parallelogram'], ['rhomb', 0, 'Rhombus'], ['rtri', 0, 'Right triangle'], ['pent', 0, 'Pentagon'], ['hex', 0, 'Hexagon'], ['semi', 0, 'Semicircle'], ['angle', 0, 'Angle'],
+  null, ['axes', 0, 'Coordinate axes (Oxy)'], ['parab', 0, 'Parabola, opens up'], ['parab', 2, 'Parabola, opens down'], ['parab', 1, 'Parabola, opens right'], ['parab', 3, 'Parabola, opens left'], ['cubic', 0, 'Cubic curve y = x³'], ['sine', 0, 'Sine wave'], ['hyp', 0, 'Hyperbola y = k/x'], ['expo', 0, 'Exponential curve'],
+  null, ['cube', 0, 'Cube'], ['cuboid', 0, 'Cuboid (rectangular box)'], ['cyl', 0, 'Cylinder'], ['cone', 0, 'Cone'], ['sphere', 0, 'Sphere'], ['pyr', 0, 'Pyramid'], ['prism', 0, 'Triangular prism']];
 function markShapeCur(){ document.querySelectorAll('#shBody .shape-btn').forEach(b => b.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === b.dataset.k && INK.shape.o === +b.dataset.o)); }
 function shapeGeo(){
   let g = null; try { g = JSON.parse(localStorage.getItem('nt-shape-geo') || 'null'); } catch (e) {}
   if (g) return g;
-  return window.innerWidth < 600 ? { w: window.innerWidth - 24, h: 300, x: 12, y: window.innerHeight - 340 } : { w: 330, h: 270, x: Math.max(8, window.innerWidth - 700), y: 110 };
+  return window.innerWidth < 600 ? { w: window.innerWidth - 24, h: 300, x: 12, y: window.innerHeight - 340 } : { w: 340, h: 380, x: Math.max(8, window.innerWidth - 710), y: 110 };
 }
 function applyShapeGeo(g, save){
   const el = $('#shapePanel');
@@ -6272,7 +6327,7 @@ function syncShapePanel(){
 }
 function openShapePanel(open){ INK.shapeOpen = open; try { localStorage.setItem('nt-shape-open', open ? '1' : '0'); } catch (e) {} syncShapePanel(); }
 function buildShapePop(){
-  $('#shBody').innerHTML = '<div class="shape-grid">' + SHAPES.map(([k, o, label]) => '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>').join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
+  $('#shBody').innerHTML = '<div class="shape-grid">' + SHAPES.map(it => { if (!it) return '<div class="shape-sep"></div>'; const [k, o, label] = it; return '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>'; }).join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
 }
 
 /* ---------- paper templates & blank documents ---------- */
