@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-b" />
+    <meta name="app-build" content="2026-11-06-c" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -460,6 +460,16 @@
       .textLayer mark.hit{background:rgba(255,200,0,.45);color:transparent;border-radius:2px;mix-blend-mode:multiply;}
       .textLayer mark.hit.cur{background:rgba(255,120,0,.6);}
       .notes-layer .note{pointer-events:auto;}
+      .note.editing{box-shadow:0 0 0 2px rgba(13,122,100,.35),0 6px 22px rgba(13,122,100,.16);transition:box-shadow .25s var(--ease);}
+      .note.editing .note-text{caret-color:var(--accent);}
+      .type-fx{position:fixed;pointer-events:none;z-index:70;border-radius:50%;will-change:transform,opacity;}
+      .type-fx.ring{border:2px solid var(--accent);animation:fxRing .42s var(--ease) forwards;}
+      .type-fx.spark{animation:fxSpark .55s cubic-bezier(.15,.7,.3,1) forwards;}
+      @keyframes fxRing{from{transform:scale(.3);opacity:.7}to{transform:scale(2.1);opacity:0}}
+      @keyframes fxSpark{from{transform:translate(0,0) scale(1);opacity:.9}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+      #hlTypeBtn.active{background:#ffe96a;color:#222;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.25);}
+      #fxBtn.active{color:var(--accent);}
+      @media (prefers-reduced-motion:reduce){.type-fx{display:none;}}
       .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;-webkit-user-select:text;user-select:text;}
       .textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0 0;}
       .textLayer ::selection{background:rgba(40,110,255,.32);}
@@ -1420,6 +1430,8 @@
         <button class="fmt-btn fav-btn" id="favFormatBtn" title="Save the current format as the favorite for this file">
           <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.7C6.4 17 3 13.6 3 9.9 3 7.2 5 5 7.7 5c1.7 0 3.3.9 4.3 2.4C13 5.9 14.6 5 16.3 5 19 5 21 7.2 21 9.9c0 3.7-3.4 7.1-9 10.8Z"/></svg>
         </button>
+        <button class="fmt-btn" id="hlTypeBtn" title="Highlight what I type (Cmd/Ctrl+Shift+H). With text selected it highlights that text."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 6 6-4 4H6v-5z"/><path d="m9 11 6-6 4 4-6 6"/><path d="M3 22h18" stroke="#ffd400" stroke-width="3"/></svg></button>
+        <button class="fmt-btn active" id="fxBtn" title="Typing effects (sparkle at the cursor)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 17v4M17 19h4"/></svg></button>
         <button class="fmt-btn gram-btn" id="gramBtn" aria-pressed="false" title="Grammar check (English US) — sends the text you type to the free LanguageTool service">GR</button>
       </div>
         <aside class="thumb-side" id="thumbSide">
@@ -2387,6 +2399,7 @@
     let moveMode = false;
     let typingHideTimer = null;
     let barDismissed = false, barPinned = null, barPosRaf = null;
+    try { const bp = JSON.parse(localStorage.getItem('nt-bar-pos') || 'null'); if (bp && isFinite(bp.x) && isFinite(bp.y)) barPinned = bp; } catch (e) {}
 
     /* ================= Text toolbar: show / hide ================= */
     function cloneStyle(s){ return { font: s.font, sizeFrac: s.sizeFrac, bold: !!s.bold, italic: !!s.italic, underline: !!s.underline, strike: !!s.strike, color: s.color, highlight: s.highlight || '', align: s.align || 'left', lh: s.lh || 1.4, bullet: s.bullet || '' }; }
@@ -2423,14 +2436,7 @@
       const bw = bar.offsetWidth, bh = bar.offsetHeight;
       let x, y;
       if (barPinned){ x = barPinned.x; y = barPinned.y; }
-      else {
-        const id = editingId || selectedNoteId, el = id && noteEl(id);
-        if (el){
-          const r = el.getBoundingClientRect();
-          x = r.left; y = r.top - bh - 19;
-          if (y < mr.top + 6) y = r.bottom + 19;
-        } else { x = mr.left + (mr.width - bw) / 2; y = mr.top + 10; }
-      }
+      else { x = mr.left + (mr.width - bw) / 2; y = mr.top + 10; }   // default: top centre, out of the way of the text
       x = Math.max(8, Math.min(x, window.innerWidth - bw - 8));
       y = Math.max(mr.top + 4, Math.min(y, mr.bottom - bh - 4));
       bar.style.left = Math.round(x) + 'px'; bar.style.top = Math.round(y) + 'px';
@@ -3233,7 +3239,7 @@
         fillNoteText(t, n);
         if (!n.text && n.id !== editingId) t.innerHTML = '<span class="note-empty-hint">Note…</span>';
         t.spellcheck = false;
-        if (n.id === editingId){ t.contentEditable = 'true'; t.spellcheck = true; t.lang = langAttr(); }
+        if (n.id === editingId){ t.contentEditable = 'true'; t.spellcheck = true; t.lang = langAttr(); el.classList.add('editing'); }
         applyNoteStyle(el, n);
         layer.appendChild(el);
       });
@@ -3245,7 +3251,7 @@
     /* ================= Selection & editing ================= */
     function selectNote(id){
       if (editingId && editingId !== id) finishEdit();
-      if (id !== selectedNoteId){ barPinned = null; if (id) barDismissed = false; }
+      if (id !== selectedNoteId){ if (id) barDismissed = false; }
       selectedNoteId = id;
       if (!id && moveMode && typeof setMoveMode === 'function') setMoveMode(false);
       document.querySelectorAll('.note').forEach(el => el.classList.toggle('sel', el.dataset.nid === id));
@@ -3259,7 +3265,7 @@
       const el = noteEl(id); if (!el) return;
       const t = el.querySelector('.note-text');
       if (t.querySelector('.note-empty-hint')) t.textContent = '';
-      t.contentEditable = 'true'; t.spellcheck = true; t.lang = langAttr();
+      t.contentEditable = 'true'; t.spellcheck = true; t.lang = langAttr(); el.classList.add('editing');
       t.focus();
       const sel = window.getSelection(); sel.removeAllRanges();
       if (caret && t.contains(caret.startContainer)) sel.addRange(caret);
@@ -3272,7 +3278,7 @@
       const id = editingId; editingId = null;
       const n = findNote(id); if (!n) return;
       const el = noteEl(id);
-      if (el){ const t = el.querySelector('.note-text'); syncNoteFromDOM(n, t); t.contentEditable = 'false'; t.spellcheck = false; }
+      if (el){ const t = el.querySelector('.note-text'); syncNoteFromDOM(n, t); t.contentEditable = 'false'; t.spellcheck = false; el.classList.remove('editing'); }
       if (!n.text.trim()){
         currentReader.notes = currentReader.notes.filter(x => x.id !== id);
         if (selectedNoteId === id) selectedNoteId = null;
@@ -3390,7 +3396,7 @@
       if (grip){
         e.preventDefault();   // keep the text focus while dragging the handle
         const wrapG = noteElClicked.closest('.page-wrap'), rectG = wrapG.getBoundingClientRect();
-        dragCtx = { id, type: 'move', startX: e.clientX, startY: e.clientY, ox: n.x, oy: n.y, ow: n.w, oh: n.h || 0, rect: rectG, moved: false };
+        dragCtx = { id, type: 'move', startX: e.clientX, startY: e.clientY, ox: n.x, oy: n.y, ow: n.w, oh: n.h || 0, rect: rectG, moved: false, grip: true };
         try { noteElClicked.setPointerCapture(e.pointerId); } catch (err) {}
         return;
       }
@@ -3433,8 +3439,13 @@
     $('#pagesCol').addEventListener('pointerup', e => {
       if (createCtx){ finishCreateDrag(e); return; }
       if (!dragCtx) return;
-      const wasMoved = dragCtx.moved; dragCtx = null;
+      const wasMoved = dragCtx.moved, tap = dragCtx; dragCtx = null;
       if (wasMoved) scheduleSave();
+      else if (tap.type === 'move' && !tap.grip && !moveMode && editingId !== tap.id){
+        // one tap on a text box = put the cursor there and type (no more select-then-double-click)
+        const caret = caretRangeAt(e.clientX, e.clientY);
+        startEdit(tap.id, caret);
+      }
     });
     $('#pagesCol').addEventListener('pointercancel', () => {
       if (createCtx){ createCtx.ghost.remove(); createCtx = null; }
@@ -4675,6 +4686,97 @@
     $('#fmtBold').addEventListener('click', () => applyStyle('bold', !effectiveStyle().bold));
     $('#fmtItalic').addEventListener('click', () => applyStyle('italic', !effectiveStyle().italic));
     $('#fmtStrike').addEventListener('click', () => applyStyle('strike', !effectiveStyle().strike));
+    /* ----- Arrow keys inside a text box: lines, line start/end, words, whole box (Mac: Cmd; others: Home/End/Ctrl) ----- */
+    document.addEventListener('keydown', e => {
+      if (!editingId || e.isComposing || !e.target.closest || !e.target.closest('.note-text')) return;
+      const k = e.key; if (k.indexOf('Arrow') !== 0) return;
+      const sel = window.getSelection(); if (!sel || !sel.modify) return;
+      const mode = e.shiftKey ? 'extend' : 'move';
+      let dir, gran;
+      if (k === 'ArrowUp' || k === 'ArrowDown'){
+        dir = k === 'ArrowUp' ? 'backward' : 'forward';
+        gran = e.metaKey ? 'documentboundary' : (e.altKey ? 'paragraphboundary' : 'line');
+      } else {
+        dir = k === 'ArrowLeft' ? 'backward' : 'forward';
+        if (e.metaKey) gran = 'lineboundary'; else if (e.altKey || e.ctrlKey) gran = 'word'; else return;   // plain left/right stay native
+      }
+      e.preventDefault();
+      sel.modify(mode, dir, gran);
+      requestToolbarPos();
+    }, true);
+    /* ----- Typing effects: a soft ring and a few sparks at the cursor ----- */
+    let fxOn = true; try { fxOn = localStorage.getItem('nt-fx') !== '0'; } catch (e) {}
+    $('#fxBtn').classList.toggle('active', fxOn);
+    $('#fxBtn').addEventListener('click', () => { fxOn = !fxOn; $('#fxBtn').classList.toggle('active', fxOn); try { localStorage.setItem('nt-fx', fxOn ? '1' : '0'); } catch (e) {} toast(fxOn ? 'Typing effects on.' : 'Typing effects off.'); });
+    function caretRect(){
+      const sel = window.getSelection(); if (!sel.rangeCount) return null;
+      const r = sel.getRangeAt(0).cloneRange(); r.collapse(false);
+      let b = r.getClientRects()[0];
+      if (!b || (!b.height && !b.width)){ const c = r.startContainer, el = c.nodeType === 1 ? c : c.parentElement; if (el){ const q = el.getBoundingClientRect(); b = { left: q.left, top: q.top, height: parseFloat(getComputedStyle(el).fontSize) * 1.3 || 18 }; } }
+      return b || null;
+    }
+    let fxCount = 0;
+    function typeFx(){
+      if (!fxOn || fxCount > 18 || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+      const b = caretRect(); if (!b || !b.height) return;
+      const mk = (cls, w, x, y, css) => { const d = document.createElement('div'); d.className = 'type-fx ' + cls; d.style.cssText = 'width:' + w + 'px;height:' + w + 'px;left:' + (x - w / 2) + 'px;top:' + (y - w / 2) + 'px;' + (css || ''); document.body.appendChild(d); fxCount++; d.addEventListener('animationend', () => { d.remove(); fxCount--; }); };
+      const cx = b.left, cy = b.top + b.height / 2, sz = Math.max(10, Math.min(26, b.height * .8));
+      mk('ring', sz, cx, cy);
+      const cols = ['#0d7a64', '#f5a524', '#e2557a', '#4a7cf0'];
+      for (let i = 0; i < 3; i++){
+        const a = (-Math.PI / 2) + (Math.random() - .5) * 2.2, dist = 12 + Math.random() * 14;
+        mk('spark', 4, cx, cy - b.height * .2, '--dx:' + Math.round(Math.cos(a) * dist) + 'px;--dy:' + Math.round(Math.sin(a) * dist) + 'px;background:' + cols[(Math.random() * cols.length) | 0] + ';');
+      }
+    }
+    document.addEventListener('input', e => {
+      if (editingId && e.target.classList && e.target.classList.contains('note-text') && /^insert(Text|CompositionText|Paragraph|LineBreak)$/.test(e.inputType || '')) typeFx();
+    });
+    /* ----- Highlight what I type ----- */
+    const HLT = { on: false, color: '#fff176', exit: false };
+    const normColor = c => { const d = document.createElement('span'); d.style.backgroundColor = c; document.body.appendChild(d); const v = getComputedStyle(d).backgroundColor; d.remove(); return v; };
+    function setHlType(on){
+      HLT.on = on; $('#hlTypeBtn').classList.toggle('active', on);
+      const t = editingText();
+      if (on){
+        if (savedRange && !savedRange.collapsed && t) applyToSelection('highlight', HLT.color);
+        if (t){ t.focus(); document.execCommand('styleWithCSS', false, true); document.execCommand('hiliteColor', false, HLT.color); }
+      } else HLT.exit = true;
+      toast(on ? 'Highlighting what you type — tap the marker again to stop.' : 'Highlight off.');
+    }
+    $('#hlTypeBtn').addEventListener('click', () => setHlType(!HLT.on));
+    // first characters typed after switching the marker off: move them out of the highlighted span
+    document.addEventListener('keydown', e => { if (HLT.exit && e.key.indexOf('Arrow') === 0) HLT.exit = false; }, true);
+    function hlLeave(n){
+      if (!HLT.exit || HLT.on || !editingId) return;
+      HLT.exit = false;
+      const sel = window.getSelection(); if (!sel.rangeCount || !sel.isCollapsed) return;
+      const node = sel.anchorNode, off = sel.anchorOffset, t = editingText();
+      if (!t || !node || node.nodeType !== 3 || off < n) return;
+      const sp = node.parentElement; if (!sp || sp === t || !sp.style.backgroundColor) return;
+      const typed = node.data.slice(off - n, off);
+      node.data = node.data.slice(0, off - n) + node.data.slice(off);
+      const tn = document.createTextNode(typed); sp.parentNode.insertBefore(tn, sp.nextSibling);
+      if (!sp.textContent) sp.remove();
+      const r = document.createRange(); r.setStart(tn, typed.length); r.collapse(true); sel.removeAllRanges(); sel.addRange(r);
+      const nn = findNote(editingId); if (nn){ syncNoteFromDOM(nn, t); scheduleSave(); }
+    }
+    document.addEventListener('input', e => { if (HLT.exit && !e.isComposing && e.inputType === 'insertText' && e.data) hlLeave(e.data.length); });
+    document.addEventListener('compositionend', e => { if (HLT.exit && e.data) setTimeout(() => hlLeave(e.data.length), 0); });
+    document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'h' && editingId){ e.preventDefault(); setHlType(!HLT.on); } });
+    function hlJustTyped(n){
+      if (!HLT.on || !editingId) return;
+      const sel = window.getSelection(); if (!sel.rangeCount || !sel.isCollapsed) return;
+      const t = editingText(); if (!t || !t.contains(sel.anchorNode)) return;
+      const keep = sel.getRangeAt(0).cloneRange();
+      for (let i = 0; i < n; i++) sel.modify('extend', 'backward', 'character');
+      try {
+        if (normColor(document.queryCommandValue('backColor')) !== normColor(HLT.color)){ document.execCommand('styleWithCSS', false, true); document.execCommand('hiliteColor', false, HLT.color); }
+      } catch (er) {}
+      sel.collapseToEnd();
+      const nn = findNote(editingId); if (nn){ syncNoteFromDOM(nn, t); scheduleSave(); }
+    }
+    document.addEventListener('input', e => { if (HLT.on && !e.isComposing && e.inputType === 'insertText' && e.data) hlJustTyped(e.data.length); });
+    document.addEventListener('compositionend', e => { if (HLT.on && e.data) setTimeout(() => hlJustTyped(e.data.length), 0); });
     $('#sizePlus').addEventListener('click', () => applyStyle('sizeFrac', Math.min(0.09, +(effectiveStyle().sizeFrac + 0.0025).toFixed(4))));
     $('#sizeMinus').addEventListener('click', () => applyStyle('sizeFrac', Math.max(0.011, +(effectiveStyle().sizeFrac - 0.0025).toFixed(4))));
     document.querySelectorAll('#formatBar [data-align]').forEach(b => b.addEventListener('click', () => applyStyle('align', b.dataset.align)));
@@ -4798,8 +4900,9 @@
         try { h.setPointerCapture(e.pointerId); } catch (er) {}
       });
       h.addEventListener('pointermove', e => { if (!d) return; barPinned = { x: e.clientX - d.dx, y: e.clientY - d.dy }; positionToolbar(); });
-      h.addEventListener('pointerup', () => { d = null; });
+      h.addEventListener('pointerup', () => { if (d && barPinned){ try { localStorage.setItem('nt-bar-pos', JSON.stringify(barPinned)); } catch (e) {} } d = null; });
       h.addEventListener('pointercancel', () => { d = null; });
+      h.addEventListener('dblclick', () => { barPinned = null; try { localStorage.removeItem('nt-bar-pos'); } catch (e) {} positionToolbar(); });   // double-tap the handle: back to top centre
     })();
     $('#barClose').addEventListener('click', () => { barDismissed = true; updateToolbarVisibility(); });
     $('#deleteNoteBtn') && $('#deleteNoteBtn').addEventListener('click', () => { if (selectedNoteId) deleteNote(selectedNoteId); });
