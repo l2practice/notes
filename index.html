@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-05-k" />
+    <meta name="app-build" content="2026-11-06-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -445,7 +445,13 @@
         position:absolute;right:-4px;bottom:-20px;font-size:11.5px;color:var(--muted);font-weight:600;
       }
       .page-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa0aa;font-size:13px;}
-      .notes-layer{position:absolute;inset:0;}
+      .notes-layer{position:absolute;inset:0;pointer-events:none;}
+      .notes-layer .note{pointer-events:auto;}
+      .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;-webkit-user-select:text;user-select:text;}
+      .textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0 0;}
+      .textLayer ::selection{background:rgba(40,110,255,.32);}
+      .textLayer .endOfContent{display:block;position:absolute;inset:100% 0 0;z-index:-1;cursor:default;user-select:none;}
+      #pagesCol.ink-on .textLayer,.page-wrap.add-mode .textLayer{pointer-events:none;-webkit-user-select:none;user-select:none;}
       /* Note */
       .note{position:absolute;min-height:22px;border-radius:4px;padding:3px 5px;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;box-sizing:border-box;}
       .note .note-text{-webkit-user-select:text;user-select:text;overflow-wrap:anywhere;word-break:break-word;max-width:100%;box-sizing:border-box;}
@@ -2584,7 +2590,7 @@
       const wrap = document.createElement('div');
       wrap.className = 'page-wrap' + (addMode ? ' add-mode' : '');
       wrap.dataset.page = i + 1;
-      wrap.innerHTML = '<div class="page-loading">Page ' + (i + 1) + '</div><canvas></canvas><canvas class="hl-canvas"></canvas><canvas class="ink-canvas"></canvas><div class="notes-layer"></div><div class="page-num">' + (i + 1) + ' / ' + pageSizes.length + '</div>';
+      wrap.innerHTML = '<div class="page-loading">Page ' + (i + 1) + '</div><canvas></canvas><canvas class="hl-canvas"></canvas><canvas class="ink-canvas"></canvas><div class="textLayer"></div><div class="notes-layer"></div><div class="page-num">' + (i + 1) + ' / ' + pageSizes.length + '</div>';
       attachInk(wrap);
       return wrap;
     }
@@ -2621,6 +2627,25 @@
       requestToolbarPos();
     }
     const renderStamps = {};
+    /* Selectable text over the canvas (copy, dictionary look-up, browser Ctrl+F). Scanned PDFs without embedded text have none. */
+    const textTasks = {};
+    function buildTextLayer(page, wrap, p, stamp){
+      const box = wrap.querySelector('.textLayer'); if (!box || !window.pdfjsLib || !pdfjsLib.renderTextLayer) return;
+      try { if (textTasks[p]) textTasks[p].cancel(); } catch (e) {}
+      const vp = page.getViewport({ scale: scale });
+      const nb = document.createElement('div');
+      nb.style.setProperty('--scale-factor', scale);
+      let t;
+      try { t = pdfjsLib.renderTextLayer({ textContentSource: page.streamTextContent(), container: nb, viewport: vp, textDivs: [] }); } catch (e) { return; }
+      textTasks[p] = t;
+      t.promise.then(() => {
+        if (renderStamps[p] !== stamp) return;
+        const end = document.createElement('div'); end.className = 'endOfContent'; nb.appendChild(end);
+        box.style.setProperty('--scale-factor', scale);
+        box.replaceChildren(...nb.childNodes);
+        wrap.dataset.hasText = box.querySelector('span') ? '1' : '';
+      }).catch(() => {});
+    }
     const renderTasks = {};
     async function renderPage(p){
       if (!pdfDoc && !isBlank()) return;
@@ -2654,6 +2679,7 @@
         const ld = wrap.querySelector('.page-loading'); if (ld) ld.remove();
         paintThumbFromCanvas(p, canvas);
         redrawInk(p);
+        buildTextLayer(page, wrap, p, stamp);
       } catch (e) {
         if (renderStamps[p] === stamp) delete renderStamps[p];
         if (!(e && e.name === 'RenderingCancelledException')) setTimeout(() => { if (pdfDoc && isInView(wrap)) renderPage(p); }, 800);
