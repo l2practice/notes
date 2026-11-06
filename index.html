@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-f" />
+    <meta name="app-build" content="2026-11-06-g" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -6305,16 +6305,16 @@ const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['caret', 0, 'Invert
   null, ['cube', 0, 'Cube'], ['cuboid', 0, 'Cuboid (rectangular box)'], ['cyl', 0, 'Cylinder'], ['cone', 0, 'Cone'], ['sphere', 0, 'Sphere'], ['pyr', 0, 'Pyramid'], ['prism', 0, 'Triangular prism']];
 function markShapeCur(){ document.querySelectorAll('#shBody .shape-btn').forEach(b => b.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === b.dataset.k && INK.shape.o === +b.dataset.o)); }
 function shapeGeo(){
-  let g = null; try { g = JSON.parse(localStorage.getItem('nt-shape-geo') || 'null'); } catch (e) {}
+  let g = null; try { g = JSON.parse(localStorage.getItem('nt-shape-geo2') || 'null'); } catch (e) {}
   if (g) return g;
-  return window.innerWidth < 600 ? { w: window.innerWidth - 24, h: 300, x: 12, y: window.innerHeight - 340 } : { w: 340, h: 380, x: Math.max(8, window.innerWidth - 710), y: 110 };
+  return window.innerWidth < 600 ? { w: window.innerWidth - 24, h: 300, x: 12, y: window.innerHeight - 340 } : { w: 350, h: Math.min(460, window.innerHeight - 130), x: Math.max(8, window.innerWidth - 720), y: 100 };
 }
 function applyShapeGeo(g, save){
   const el = $('#shapePanel');
   g.w = Math.max(240, Math.min(g.w, window.innerWidth - 16)); g.h = Math.max(150, Math.min(g.h, window.innerHeight - 16));
   g.x = Math.max(8, Math.min(g.x, window.innerWidth - g.w - 8)); g.y = Math.max(8, Math.min(g.y, window.innerHeight - 80));
   el.style.width = g.w + 'px'; el.style.height = g.h + 'px'; el.style.left = g.x + 'px'; el.style.top = g.y + 'px'; el.style.minHeight = '150px';
-  if (save){ try { localStorage.setItem('nt-shape-geo', JSON.stringify(g)); } catch (e) {} }
+  if (save){ try { localStorage.setItem('nt-shape-geo2', JSON.stringify(g)); } catch (e) {} }
   return g;
 }
 INK.shapeOpen = false; try { INK.shapeOpen = localStorage.getItem('nt-shape-open') === '1'; } catch (e) {}
