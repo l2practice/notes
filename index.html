@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-d" />
+    <meta name="app-build" content="2026-11-06-e" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -4744,7 +4744,28 @@
       } else HLT.exit = true;
       toast(on ? 'Highlighting what you type — tap the marker again to stop.' : 'Highlight off.');
     }
-    $('#hlTypeBtn').addEventListener('click', () => setHlType(!HLT.on));
+    /* With text selected the marker toggles highlight on that text (second tap removes it); with only a cursor it switches typing-highlight on/off. */
+    function toggleHlSelection(){
+      const t = editingText(), sel = window.getSelection(); if (!t || !savedRange) return false;
+      t.focus(); sel.removeAllRanges(); sel.addRange(savedRange);
+      document.execCommand('styleWithCSS', false, true);
+      let all = false; try { all = normColor(document.queryCommandValue('backColor')) === normColor(HLT.color); } catch (e) {}
+      if (all){
+        document.execCommand('hiliteColor', false, 'transparent');
+        t.querySelectorAll('[style*="background"]').forEach(sp => {
+          const c = sp.style.backgroundColor; if (c === 'transparent' || c === 'rgba(0, 0, 0, 0)'){ sp.style.backgroundColor = ''; if (!sp.getAttribute('style')) sp.removeAttribute('style'); }
+        });
+        t.querySelectorAll('span:not([style])').forEach(sp => { while (sp.firstChild) sp.parentNode.insertBefore(sp.firstChild, sp); sp.remove(); });
+        HLT.on = false; HLT.exit = false; $('#hlTypeBtn').classList.remove('active');
+        toast('Highlight removed.');
+      } else { document.execCommand('hiliteColor', false, HLT.color); toast('Highlighted.'); }
+      const n = findNote(editingId); if (n){ syncNoteFromDOM(n, t); scheduleSave(); }
+      return true;
+    }
+    $('#hlTypeBtn').addEventListener('click', () => {
+      if (editingId && savedRange && !savedRange.collapsed && editingText() && editingText().contains(savedRange.commonAncestorContainer)){ toggleHlSelection(); return; }
+      setHlType(!HLT.on);
+    });
     // first characters typed after switching the marker off: move them out of the highlighted span
     document.addEventListener('keydown', e => { if (HLT.exit && e.key.indexOf('Arrow') === 0) HLT.exit = false; }, true);
     function hlLeave(n){
