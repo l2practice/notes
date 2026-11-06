@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-a" />
+    <meta name="app-build" content="2026-11-06-b" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -446,6 +446,19 @@
       }
       .page-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa0aa;font-size:13px;}
       .notes-layer{position:absolute;inset:0;pointer-events:none;}
+      #bkSearch{position:fixed;top:58px;right:14px;width:min(360px,calc(100vw - 28px));max-height:min(70vh,520px);display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);z-index:60;overflow:hidden;}
+      #bkSearch.hidden{display:none;}
+      .bks-row{display:flex;align-items:center;gap:4px;padding:8px;border-bottom:1px solid var(--line);}
+      #bksInput{flex:1;min-width:0;height:34px;border:1px solid var(--control);border-radius:8px;padding:0 10px;font:inherit;font-size:14px;background:var(--surface-2);color:var(--ink);}
+      #bksCount{font-size:12px;color:var(--muted);white-space:nowrap;min-width:46px;text-align:center;font-variant-numeric:tabular-nums;}
+      #bksList{overflow:auto;-webkit-overflow-scrolling:touch;}
+      .bks-item{display:flex;gap:10px;padding:8px 12px;cursor:pointer;font-size:13px;line-height:1.4;border-bottom:1px solid var(--line);}
+      .bks-item:hover,.bks-item.on{background:var(--active);}
+      .bks-pg{flex:none;min-width:34px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;}
+      .bks-item b{background:rgba(255,213,0,.55);color:inherit;border-radius:2px;font-weight:600;}
+      .bks-note{padding:10px 12px;font-size:12.5px;color:var(--muted);}
+      .textLayer mark.hit{background:rgba(255,200,0,.45);color:transparent;border-radius:2px;mix-blend-mode:multiply;}
+      .textLayer mark.hit.cur{background:rgba(255,120,0,.6);}
       .notes-layer .note{pointer-events:auto;}
       .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;-webkit-user-select:text;user-select:text;}
       .textLayer span,.textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0 0;}
@@ -1292,6 +1305,16 @@
 
     <!-- ================= READER ================= -->
     <div id="readerView" class="hidden">
+      <div id="bkSearch" class="hidden">
+        <div class="bks-row">
+          <input id="bksInput" type="search" placeholder="Search in this book…" autocomplete="off" spellcheck="false" />
+          <span id="bksCount"></span>
+          <button class="icon-btn" id="bksPrev" title="Previous (Shift+Enter)">&#8593;</button>
+          <button class="icon-btn" id="bksNext" title="Next (Enter)">&#8595;</button>
+          <button class="icon-btn" id="bksClose" title="Close (Esc)">&#10005;</button>
+        </div>
+        <div id="bksList"></div>
+      </div>
       <div class="reader-bar">
         <button class="icon-btn" id="backBtn" title="Back to library">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
@@ -1305,6 +1328,7 @@
         <button class="btn hidden" id="syncNowBtn" title="Save and sync to Google Drive now">Sync</button>
         <div class="spacer" style="flex:1"></div>
         <span class="page-ind" id="pageInd"></span>
+        <button class="icon-btn" id="bkSearchBtn" title="Search the whole book (Ctrl/Cmd+F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
         <div class="zoom-group">
           <button class="icon-btn" id="zoomOut" title="Zoom out">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>
@@ -2544,6 +2568,7 @@
       }
     }
     function closeReader(fromPop){
+      try { $('#bkSearch').classList.add('hidden'); $('#bksInput').value = ''; BKS.q = ''; BKS.hits = []; BKS.busy++; } catch (e) {}
       flushReadLog();
       if (typeof updateBlankThumb === 'function') updateBlankThumb();
       if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; $('#inkBar').classList.add('hidden'); $('#symPanel').classList.add('hidden'); { const sp = $('#shapePanel'); if (sp) sp.classList.add('hidden'); } $('#pagesCol').classList.remove('ink-on'); }
@@ -2644,6 +2669,7 @@
         box.style.setProperty('--scale-factor', scale);
         box.replaceChildren(...nb.childNodes);
         wrap.dataset.hasText = box.querySelector('span') ? '1' : '';
+        if (typeof bksMark === 'function') bksMark(wrap);
       }).catch(() => {});
     }
     const renderTasks = {};
@@ -2855,6 +2881,104 @@
       sc.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
       currentPage = p; updatePageInd();
     }
+    /* ----- Search the whole book ----- */
+    const BKS = { texts: new WeakMap(), q: '', hits: [], cur: -1, busy: 0 };
+    async function bksPageTexts(){
+      if (!pdfDoc) return null;
+      let m = BKS.texts.get(pdfDoc); if (!m){ m = {}; BKS.texts.set(pdfDoc, m); }
+      return m;
+    }
+    async function bksText(p){
+      const m = await bksPageTexts(); if (!m) return '';
+      if (m[p] === undefined){
+        try { const tc = await (await pdfDoc.getPage(p)).getTextContent(); m[p] = tc.items.map(i => i.str + (i.hasEOL ? ' ' : '')).join('').replace(/\s+/g, ' ').trim(); }
+        catch (e) { m[p] = ''; }
+      }
+      return m[p];
+    }
+    function bksEsc(t){ return t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+    async function bksRun(){
+      const q = $('#bksInput').value.trim(), run = ++BKS.busy;
+      BKS.q = q; BKS.hits = []; BKS.cur = -1;
+      const list = $('#bksList'), cnt = $('#bksCount');
+      if (!q || isBlank() || !pdfDoc){ list.innerHTML = ''; cnt.textContent = ''; bksMarkAll(); return; }
+      const ql = q.toLowerCase(), n = pdfDoc.numPages; let html = '';
+      for (let p = 1; p <= n; p++){
+        const t = await bksText(p); if (run !== BKS.busy) return;
+        const tl = t.toLowerCase(); let i = tl.indexOf(ql), k = 0;
+        while (i >= 0 && BKS.hits.length < 500){
+          BKS.hits.push({ p, k: k++ });
+          const a = Math.max(0, i - 36), b = Math.min(t.length, i + q.length + 56);
+          html += '<div class="bks-item" data-i="' + (BKS.hits.length - 1) + '"><span class="bks-pg">p.' + p + '</span><span>' + (a ? '…' : '') + bksEsc(t.slice(a, i)) + '<b>' + bksEsc(t.slice(i, i + q.length)) + '</b>' + bksEsc(t.slice(i + q.length, b)) + (b < t.length ? '…' : '') + '</span></div>';
+          i = tl.indexOf(ql, i + ql.length);
+        }
+        if (p % 10 === 0 || p === n){ list.innerHTML = html; cnt.textContent = BKS.hits.length + (BKS.hits.length >= 500 ? '+' : ''); }
+        if (BKS.hits.length >= 500) break;
+      }
+      list.innerHTML = html || '<div class="bks-note">No matches. (Scanned pages have no text to search.)</div>';
+      cnt.textContent = BKS.hits.length ? BKS.hits.length + (BKS.hits.length >= 500 ? '+' : '') : '0';
+      bksMarkAll();
+      if (BKS.hits.length) bksGo(0);
+    }
+    function bksMark(wrap){
+      const box = wrap && wrap.querySelector('.textLayer'); if (!box) return;
+      box.querySelectorAll('mark.hit').forEach(mk => { mk.replaceWith(document.createTextNode(mk.textContent)); });
+      box.normalize();
+      const q = BKS.q.toLowerCase(); if (!q || $('#bkSearch').classList.contains('hidden')) return;
+      box.querySelectorAll('span').forEach(sp => {
+        if (sp.children.length || !sp.textContent.toLowerCase().includes(q)) return;
+        const t = sp.textContent, tl = t.toLowerCase(), frag = document.createDocumentFragment(); let pos = 0, i;
+        while ((i = tl.indexOf(q, pos)) >= 0){
+          if (i > pos) frag.appendChild(document.createTextNode(t.slice(pos, i)));
+          const mk = document.createElement('mark'); mk.className = 'hit'; mk.textContent = t.slice(i, i + q.length); frag.appendChild(mk);
+          pos = i + q.length;
+        }
+        if (pos < t.length) frag.appendChild(document.createTextNode(t.slice(pos)));
+        sp.textContent = ''; sp.appendChild(frag);
+      });
+    }
+    function bksMarkAll(){ document.querySelectorAll('.page-wrap').forEach(bksMark); }
+    function bksGo(i){
+      if (!BKS.hits.length) return;
+      BKS.cur = (i + BKS.hits.length) % BKS.hits.length;
+      const h = BKS.hits[BKS.cur];
+      document.querySelectorAll('.bks-item.on').forEach(e => e.classList.remove('on'));
+      const it = $('#bksList').querySelector('.bks-item[data-i="' + BKS.cur + '"]'); if (it){ it.classList.add('on'); it.scrollIntoView({ block: 'nearest' }); }
+      goToPage(h.p);
+      let tries = 0;
+      const focus = () => {
+        const wrap = document.querySelector('.page-wrap[data-page="' + h.p + '"]'), mk = wrap && wrap.querySelectorAll('mark.hit');
+        if (mk && mk.length){
+          document.querySelectorAll('mark.hit.cur').forEach(e => e.classList.remove('cur'));
+          const m = mk[Math.min(h.k, mk.length - 1)]; m.classList.add('cur');
+          const sc = $('#pagesScroll'), r = m.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+          if (r.top < sr.top + 70 || r.bottom > sr.bottom - 40) sc.scrollBy({ top: r.top - sr.top - sr.height / 3, behavior: 'smooth' });
+        } else if (++tries < 12) setTimeout(focus, 150);
+      };
+      setTimeout(focus, 350);
+    }
+    function bksOpen(){
+      if (!currentReader || isBlank()) return;
+      $('#bkSearch').classList.remove('hidden');
+      const inp = $('#bksInput'), sel = String(getSelection() || '').trim();
+      if (sel && sel.length < 80 && !/\n/.test(sel)) inp.value = sel;
+      inp.focus(); inp.select(); if (inp.value.trim()) bksRun();
+    }
+    function bksClose(){ $('#bkSearch').classList.add('hidden'); BKS.busy++; bksMarkAll(); }
+    $('#bkSearchBtn').addEventListener('click', () => $('#bkSearch').classList.contains('hidden') ? bksOpen() : bksClose());
+    $('#bksClose').addEventListener('click', bksClose);
+    $('#bksNext').addEventListener('click', () => bksGo(BKS.cur + 1));
+    $('#bksPrev').addEventListener('click', () => bksGo(BKS.cur - 1));
+    let bksT = null;
+    $('#bksInput').addEventListener('input', () => { clearTimeout(bksT); bksT = setTimeout(bksRun, 250); });
+    $('#bksInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter'){ e.preventDefault(); if (BKS.q !== $('#bksInput').value.trim()){ clearTimeout(bksT); bksRun(); } else bksGo(BKS.cur + (e.shiftKey ? -1 : 1)); }
+      else if (e.key === 'Escape'){ e.preventDefault(); bksClose(); }
+    });
+    $('#bksList').addEventListener('click', e => { const it = e.target.closest('.bks-item'); if (it) bksGo(+it.dataset.i); });
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'f' && currentReader && !$('#readerView').classList.contains('hidden') && !isBlank()){ e.preventDefault(); bksOpen(); }
+    });
     function updateThumbActive(){
       const list = $('#thumbList'); if (!list) return;
       list.querySelectorAll('.thumb-item').forEach(it => {
