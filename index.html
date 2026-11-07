@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-07-d" />
+    <meta name="app-build" content="2026-11-07-e" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1394,6 +1394,9 @@
         <button class="fmt-btn" id="inkUndo" title="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
         <button class="fmt-btn" id="inkRedo" title="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
         <button class="fmt-btn hidden" id="inkAlign" title="Level the selected handwriting onto one baseline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18"/><path d="M6 15V9M6 9l-2 2M6 9l2 2"/><path d="M12 15V5M12 5l-2 2M12 5l2 2"/><path d="M18 15v-4M18 11l-2 2M18 11l2 2" transform="rotate(180 18 13)"/></svg></button>
+        <button class="fmt-btn hidden" id="inkDup" title="Duplicate (Cmd/Ctrl+D)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button>
+        <button class="fmt-btn hidden" id="inkCopy" title="Copy (Cmd/Ctrl+C) — then paste on any page with Cmd/Ctrl+V"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="10" height="4" rx="1"/><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/></svg></button>
+        <button class="fmt-btn hidden" id="inkPaste" title="Paste the copied shapes onto the page you are looking at (Cmd/Ctrl+V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M5 21h14"/></svg></button>
         <button class="fmt-btn hidden" id="inkDel" title="Delete selected"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg></button>
         <div class="bar-sep"></div>
         <button class="fmt-btn" id="inkFinger" title="Let a finger draw too (off: only Apple Pencil or mouse draws, a finger scrolls)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.9-2.4L3.4 16a2 2 0 0 1 3.2-2.4L8 15"/></svg></button>
@@ -6328,6 +6331,35 @@ function selectDown(p, x, y, opts){
   if (prev && prev.p !== p) redrawInk(prev.p);
   beginInteraction(p, null); compose(p); syncInkBar();
 }
+/* ---------- copy / paste / duplicate for drawings, shapes, symbols and pictures ---------- */
+INK.clip = null; INK.clipN = 0; INK.clipPage = 0;
+function copySelected(quiet){
+  const arr = selList(); if (!arr.length) return false;
+  INK.clip = arr.map(st => clone(st)); INK.clipN = 0; INK.clipPage = INK.sel.p;
+  if (!quiet) toast(arr.length > 1 ? arr.length + ' items copied — paste with Cmd/Ctrl+V.' : 'Copied — paste with Cmd/Ctrl+V.');
+  syncInkBar(); return true;
+}
+function pasteClip(page, dx, dy){
+  if (!INK.clip || !INK.clip.length || !currentReader) return false;
+  const p = page || currentPage || 1, sz = pageSizes[p - 1]; if (!sz) return false;
+  const same = p === INK.clipPage;
+  if (dx === undefined){ INK.clipN++; dx = same ? 16 * INK.clipN : 0; dy = same ? 16 * INK.clipN : 0; }
+  const items = INK.clip.map(st => { const c = clone(st); c.id = uid(); moveStroke(c, dx, dy); return c; });
+  // keep the group inside the page
+  const gb = groupBox(items); let ox = 0, oy = 0;
+  if (gb.x + gb.w > sz.w) ox = sz.w - gb.w - gb.x; if (gb.y + gb.h > sz.h) oy = sz.h - gb.h - gb.y; if (gb.x + ox < 0) ox = -gb.x; if (gb.y + oy < 0) oy = -gb.y;
+  if (ox || oy) items.forEach(c => moveStroke(c, ox, oy));
+  pushUndo(p); legitUntil = performance.now() + 700;
+  const list = inkList(p, true); items.forEach(c => list.push(c));
+  if (INK.tool !== 'select' && INK.tool !== 'shape') setInkTool('select');
+  INK.sel = { p, ids: items.map(c => c.id) }; redrawInk(p); scheduleSave(); syncInkBar();
+  return true;
+}
+function duplicateSelected(){
+  if (!INK.sel) return; const p = INK.sel.p;
+  if (!copySelected(true)) return;
+  INK.clipN = 0; pasteClip(p, 18, 18); INK.clipN = 0;
+}
 function deleteSelected(){
   if (!INK.sel) return;
   const p = INK.sel.p, ids = new Set(INK.sel.ids); pushUndo(p);
@@ -6369,7 +6401,7 @@ function syncInkBar(){
   sl.min = rg[0]; sl.max = rg[1]; sl.step = rg[2]; sl.value = w; $('#inkWVal').textContent = fmtW(w);
   sl.title = kind === 'er' ? 'Eraser size' : 'Thickness';
   buildInkSwatches(); syncUndoUI();
-  $('#inkDel').classList.toggle('hidden', !(INK.sel && (INK.tool === 'select' || INK.tool === 'shape')));
+  { const has = !!(INK.sel && (INK.tool === 'select' || INK.tool === 'shape')); $('#inkDel').classList.toggle('hidden', !has); $('#inkDup').classList.toggle('hidden', !has); $('#inkCopy').classList.toggle('hidden', !has); $('#inkPaste').classList.toggle('hidden', !(INK.clip && INK.clip.length && (INK.tool === 'select' || INK.tool === 'shape'))); }
   $('#inkAlign').classList.toggle('hidden', !(INK.sel && INK.tool === 'select' && selList().filter(s => s.t === 'pen').length >= 2));
   positionInkBar();
 }
@@ -6701,7 +6733,10 @@ function addPictureFiles(files){ Array.from(files || []).filter(f => /^image\//.
 document.addEventListener('paste', e => {
   if (!currentReader) return;
   const it = Array.from((e.clipboardData && e.clipboardData.items) || []).find(i => i.kind === 'file' && i.type.indexOf('image/') === 0);
-  if (!it) return;
+  if (!it){
+    if (INK.tool && !editingId && INK.clip && INK.clip.length){ const t = e.target && e.target.tagName; if (t === 'INPUT' || t === 'TEXTAREA') return; e.preventDefault(); pasteClip(); }
+    return;
+  }
   e.preventDefault(); e.stopImmediatePropagation(); addPictureFile(it.getAsFile());
 }, true);
 ['dragover', 'drop'].forEach(ev => document.addEventListener(ev, e => {
@@ -6791,6 +6826,9 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#inkAlign').addEventListener('click', alignBaseline);
   $('#inkRedo').addEventListener('click', inkRedo);
   $('#inkDel').addEventListener('click', deleteSelected);
+  $('#inkDup').addEventListener('click', duplicateSelected);
+  $('#inkCopy').addEventListener('click', () => copySelected(false));
+  $('#inkPaste').addEventListener('click', () => pasteClip());
   $('#inkFinger').addEventListener('click', () => { INK.finger = !INK.finger; try { localStorage.setItem('nt-ink-finger', INK.finger ? '1' : '0'); } catch (e) {} syncToolUI(); toast(INK.finger ? 'Finger drawing on — pinch and two-finger scroll still work.' : 'Pencil / mouse draws; a finger scrolls the page.'); });
   $('#inkClose').addEventListener('click', () => setInkTool(null));
   (function(){
@@ -6804,6 +6842,9 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
     if (!INK.tool || editingId) return;
     const t = e.target && e.target.tagName; if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z'){ e.preventDefault(); e.shiftKey ? inkRedo() : inkUndo(); }
+    else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'd' && INK.sel){ e.preventDefault(); duplicateSelected(); }
+    else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'c' && INK.sel && (INK.tool === 'select' || INK.tool === 'shape')){ e.preventDefault(); copySelected(false); }
+    else if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'x' && INK.sel && (INK.tool === 'select' || INK.tool === 'shape')){ e.preventDefault(); if (copySelected(true)){ deleteSelected(); toast('Cut — paste with Cmd/Ctrl+V.'); } }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && INK.sel){ e.preventDefault(); deleteSelected(); }
     else if (e.key === 'Escape'){ setInkTool(null); }
   }, true);
