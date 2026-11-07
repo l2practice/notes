@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-07-a" />
+    <meta name="app-build" content="2026-11-07-b" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -5195,7 +5195,7 @@ const bracketLocal = (w, h) => [[w, 0], [0, 0], [0, h], [w, h]];
 function shapePaths0(st){
   const k = st.k, x = st.x, y = st.y, w = st.bw || 0, h = st.bh || 0;
   if (k === 'sym' || k === 'img') return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x + w / 2, y + h / 2]]];
-  if (k === 'line') return [[[x, y], [st.x2, st.y2]]];
+  if (k === 'line') return lineWithEnds(st);
   if (k === 'caret') return [[[x, y], [st.x2, st.y2], [st.x3, st.y3]]];
   if (k === 'arrow'){
     const a = Math.atan2(st.y2 - y, st.x2 - x), L = Math.max(9, (st.sw || 2) * 4.5), s = .45;
@@ -5216,12 +5216,28 @@ function shapePaths0(st){
   const M = mathShape(st); if (M) return M;
   return [];
 }
+/* a straight line that can carry a dot, square, arrow head or dimension bar at either end */
+const LINE_ENDS = [['dot', 'arrow', 'Dot to arrow'], ['sq', 'arrow', 'Square to arrow'], ['arrow', 'arrow', 'Double arrow'], ['arrow', '', 'Arrow pointing back'], ['arrow', 'dot', 'Arrow, dot at the end'], ['arrow', 'sq', 'Arrow, square at the end'], ['dim', 'dim', 'Dimension line']];
+function lineWithEnds(st){
+  const out = [[[st.x, st.y], [st.x2, st.y2]]]; if (!st.e0 && !st.e1) return out;
+  const sw = st.sw || 2, ang = Math.atan2(st.y2 - st.y, st.x2 - st.x), L = Math.max(9, sw * 4.5), r = Math.max(4, sw * 1.8);
+  const end = (px, py, a, kind) => {
+    const c = Math.cos(a), sn = Math.sin(a);
+    if (kind === 'arrow' || kind === 'dim'){ const h = an => [px - L * Math.cos(an), py - L * Math.sin(an)]; out.push([h(a - .45), [px, py], h(a + .45)]); }
+    if (kind === 'dim') out.push([[px - sn * L * .8, py + c * L * .8], [px + sn * L * .8, py - c * L * .8]]);
+    if (kind === 'dot') out.push(arcPts(px, py, r, r, 0, 2 * Math.PI, 16));
+    if (kind === 'sq') out.push([[-r, -r], [r, -r], [r, r], [-r, r], [-r, -r]].map(([u, v]) => [px + u * c - v * sn, py + u * sn + v * c]));
+  };
+  if (st.e1) end(st.x2, st.y2, ang, st.e1);
+  if (st.e0) end(st.x, st.y, ang + Math.PI, st.e0);
+  return out;
+}
 /* a shape can be turned (st.rot, degrees, clockwise) about the middle of its box */
 const rotatable = st => st.t === 'shape' && st.bw !== undefined && st.k !== 'sym' && st.k !== 'img';
 function shapePaths(st){
-  const a = shapePaths0(st); if (!st.rot || !rotatable(st)) return a;
-  const th = st.rot * Math.PI / 180, c = Math.cos(th), sn = Math.sin(th), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2;
-  return a.map(poly => poly.map(q => { const dx = q[0] - cx, dy = q[1] - cy; return [cx + dx * c - dy * sn, cy + dx * sn + dy * c]; }));
+  const a = shapePaths0(st); if (!(st.rot || st.fx || st.fy) || !rotatable(st)) return a;
+  const th = (st.rot || 0) * Math.PI / 180, c = Math.cos(th), sn = Math.sin(th), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2, fx = st.fx ? -1 : 1, fy = st.fy ? -1 : 1;
+  return a.map(poly => poly.map(q => { const dx = (q[0] - cx) * fx, dy = (q[1] - cy) * fy; return [cx + dx * c - dy * sn, cy + dx * sn + dy * c]; }));
 }
 function frameOf(st, pad){
   const th = (st.rot || 0) * Math.PI / 180, c = Math.cos(th), s = Math.sin(th), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2, hw = st.bw / 2 + pad, hh = st.bh / 2 + pad;
@@ -5236,6 +5252,35 @@ function dashLine(a, b, sw){
 }
 function dashPoly(pts, sw){ const out = []; for (let i = 1; i < pts.length; i++) out.push(...dashLine(pts[i - 1], pts[i], sw)); return out; }
 function arcPts(cx, cy, rx, ry, t0, t1, n){ const a = []; for (let i = 0; i <= n; i++){ const t = t0 + (t1 - t0) * i / n; a.push([cx + rx * Math.cos(t), cy + ry * Math.sin(t)]); } return a; }
+const _fx = a => a.map(q => [1 - q[0], q[1]]), _fy = a => a.map(q => [q[0], 1 - q[1]]), _tr = a => a.map(q => [q[1], q[0]]);
+const _RA = [[0, .25], [.6, .25], [.6, 0], [1, .5], [.6, 1], [.6, .75], [0, .75]], _LR = [[0, .5], [.22, 0], [.22, .25], [.78, .25], [.78, 0], [1, .5], [.78, 1], [.78, .75], [.22, .75], [.22, 1]];
+const _RC = [[0, 0], [.5, 0], [.5, .3], [.75, .3], [.75, .1], [1, .5], [.75, .9], [.75, .7], [.5, .7], [.5, 1], [0, 1]];
+const BLOCK = {
+  rarrow: _RA, larrow: _fx(_RA), darrow: _tr(_RA), uarrow: _fy(_tr(_RA)), lrarrow: _LR, udarrow: _tr(_LR),
+  chevron: [[0, 0], [.7, 0], [1, .5], [.7, 1], [0, 1], [.3, .5]], homeplate: [[0, 0], [.7, 0], [1, .5], [.7, 1], [0, 1]],
+  notched: [[0, .25], [.6, .25], [.6, 0], [1, .5], [.6, 1], [.6, .75], [0, .75], [.15, .5]],
+  barrow: [[0, 1], [0, .25], [.62, .25], [.62, 0], [1, .36], [.62, .72], [.62, .47], [.28, .47], [.28, 1]],
+  bentup: [[0, .7], [.64, .7], [.64, .3], [.5, .3], [.75, 0], [1, .3], [.86, .3], [.86, 1], [0, 1]],
+  cornerarrow: [[.08, .92], [.08, .3], [0, .3], [.2, 0], [.4, .3], [.32, .3], [.32, .68], [.7, .68], [.7, .6], [1, .8], [.7, 1], [.7, .92]],
+  quad: [[.5, 0], [.65, .18], [.57, .18], [.57, .43], [.82, .43], [.82, .35], [1, .5], [.82, .65], [.82, .57], [.57, .57], [.57, .82], [.65, .82], [.5, 1], [.35, .82], [.43, .82], [.43, .57], [.18, .57], [.18, .65], [0, .5], [.18, .35], [.18, .43], [.43, .43], [.43, .18], [.35, .18]],
+  lrup: [[0, .7], [.18, .52], [.18, .62], [.43, .62], [.43, .2], [.35, .2], [.5, 0], [.65, .2], [.57, .2], [.57, .62], [.82, .62], [.82, .52], [1, .7], [.82, .88], [.82, .78], [.18, .78], [.18, .88]],
+  tfork: [[.5, 0], [.64, .2], [.57, .2], [.57, .52], [.79, .52], [.79, .3], [.72, .3], [.86, .08], [1, .3], [.93, .3], [.93, .66], [.57, .66], [.57, 1], [.43, 1], [.43, .66], [.07, .66], [.07, .3], [0, .3], [.14, .08], [.28, .3], [.21, .3], [.21, .52], [.43, .52], [.43, .2], [.36, .2]],
+  yfork: [[.42, 1], [.42, .583], [.163, .327], [.121, .369], [.079, .129], [.319, .171], [.277, .213], [.5, .437], [.723, .213], [.681, .171], [.921, .129], [.879, .369], [.837, .327], [.58, .583], [.58, 1]],
+  rcall: _RC, lcall: _fx(_RC), dcall: _tr(_RC), ucall: _fy(_tr(_RC)),
+  lrcall: [[0, .5], [.17, .25], [.17, .36], [.3, .36], [.3, 0], [.7, 0], [.7, .36], [.83, .36], [.83, .25], [1, .5], [.83, .75], [.83, .64], [.7, .64], [.7, 1], [.3, 1], [.3, .64], [.17, .64], [.17, .75]],
+  quadcall: [[.5, 0], [.63, .16], [.56, .16], [.56, .3], [.7, .3], [.7, .44], [.84, .44], [.84, .37], [1, .5], [.84, .63], [.84, .56], [.7, .56], [.7, .7], [.56, .7], [.56, .84], [.63, .84], [.5, 1], [.37, .84], [.44, .84], [.44, .7], [.3, .7], [.3, .56], [.16, .56], [.16, .63], [0, .5], [.16, .37], [.16, .44], [.3, .44], [.3, .3], [.44, .3], [.44, .16], [.37, .16]]
+};
+/* an arrow that follows a curve: body of constant width, then a head */
+function ribbon(cl, m){
+  const bw = m * .16, hw = m * .3, hl = m * .36, n = cl.length, cum = [0];
+  for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(cl[i][0] - cl[i - 1][0], cl[i][1] - cl[i - 1][1]));
+  const total = cum[n - 1], cut = Math.max(0, total - hl), body = [cl[0]];
+  for (let i = 1; i < n; i++){ if (cum[i] <= cut) body.push(cl[i]); else { const f = (cut - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); body.push([cl[i - 1][0] + (cl[i][0] - cl[i - 1][0]) * f, cl[i - 1][1] + (cl[i][1] - cl[i - 1][1]) * f]); break; } }
+  const tip = cl[n - 1], e = body[body.length - 1], dx = tip[0] - e[0], dy = tip[1] - e[1], dl = Math.hypot(dx, dy) || 1, ux = dx / dl, uy = dy / dl;
+  const left = [], right = [];
+  body.forEach((q, i) => { const a = body[Math.max(0, i - 1)], b = body[Math.min(body.length - 1, i + 1)]; let tx = b[0] - a[0], ty = b[1] - a[1]; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl; left.push([q[0] - ty * bw / 2, q[1] + tx * bw / 2]); right.push([q[0] + ty * bw / 2, q[1] - tx * bw / 2]); });
+  const poly = left.concat([[e[0] - uy * hw, e[1] + ux * hw], tip, [e[0] + uy * hw, e[1] - ux * hw]], right.reverse()); poly.push(poly[0]); return poly;
+}
 function mathShape(st){
   const k = st.k, x = st.x, y = st.y, w = st.bw || 0, h = st.bh || 0, sw = st.sw || 2, o = st.o || 0, PI = Math.PI;
   const U = (fx, fy) => [x + fx * w, y + fy * h];
@@ -5243,6 +5288,13 @@ function mathShape(st){
   const cx = x + w / 2, cy = y + h / 2;
   const curve = (f, n) => { const a = []; for (let i = 0; i <= n; i++){ const q = f(i / n); a.push(U(q[0], q[1])); } return a; };
   switch (k){
+    case 'rarrow': case 'larrow': case 'darrow': case 'uarrow': case 'lrarrow': case 'udarrow': case 'chevron': case 'homeplate': case 'notched': case 'lrup': case 'quad': case 'cornerarrow': case 'bentup': case 'barrow': case 'rcall': case 'lcall': case 'dcall': case 'ucall': case 'lrcall': case 'quadcall': case 'yfork': case 'tfork':
+      return [P(BLOCK[k], 1)];
+    case 'striped': return [P([[0, .25], [.06, .25], [.06, .75], [0, .75]], 1), P([[.11, .25], [.19, .25], [.19, .75], [.11, .75]], 1), P([[.25, .25], [.6, .25], [.6, 0], [1, .5], [.6, 1], [.6, .75], [.25, .75]], 1)];
+    case 'uturn': { const cx0 = .47, ro = .47, ri = .31, ry = .45, riy = .29, yc = .45;
+      const outer = arcPts(0, 0, 1, 1, Math.PI, 2 * Math.PI, 28).map(q => [cx0 + ro * q[0], yc + ry * q[1]]), inner = arcPts(0, 0, 1, 1, Math.PI, 2 * Math.PI, 28).map(q => [cx0 + ri * q[0], yc + riy * q[1]]).reverse();
+      return [P([[0, 1], [0, yc]].concat(outer, [[.94, .62], [1, .62], [.86, .9], [.72, .62], [.78, .62]], inner, [[.16, 1]]), 1)]; }
+    case 'scurve': { const cl = []; for (let i = 0; i <= 40; i++){ const t = i / 40; cl.push(U(t, .5 + .34 * Math.cos(Math.PI * t))); } return [ribbon(cl, Math.min(w, h))]; }
     case 'trap': return [P([[.22, 0], [.78, 0], [1, 1], [0, 1]], 1)];
     case 'rtrap': return [P([[0, 0], [.66, 0], [1, 1], [0, 1]], 1)];
     case 'para': return [P([[.26, 0], [1, 0], [.74, 1], [0, 1]], 1)];
@@ -5296,7 +5348,7 @@ function bboxOf(st){
     return { x: a, y: b, w: c - a, h: d - b }; }
   if (st.k === 'line' || st.k === 'arrow') return { x: Math.min(st.x, st.x2), y: Math.min(st.y, st.y2), w: Math.abs(st.x2 - st.x), h: Math.abs(st.y2 - st.y) };
   if (st.k === 'caret'){ const a = Math.min(st.x, st.x2, st.x3), b = Math.min(st.y, st.y2, st.y3); return { x: a, y: b, w: Math.max(st.x, st.x2, st.x3) - a, h: Math.max(st.y, st.y2, st.y3) - b }; }
-  if (st.rot && rotatable(st)){ let a = 1e9, b = 1e9, c = -1e9, d = -1e9; shapePaths(st).forEach(pl => pl.forEach(q => { a = Math.min(a, q[0]); c = Math.max(c, q[0]); b = Math.min(b, q[1]); d = Math.max(d, q[1]); })); return { x: a, y: b, w: c - a, h: d - b }; }
+  if ((st.rot || st.fx || st.fy) && rotatable(st)){ let a = 1e9, b = 1e9, c = -1e9, d = -1e9; shapePaths(st).forEach(pl => pl.forEach(q => { a = Math.min(a, q[0]); c = Math.max(c, q[0]); b = Math.min(b, q[1]); d = Math.max(d, q[1]); })); return { x: a, y: b, w: c - a, h: d - b }; }
   return { x: st.x, y: st.y, w: st.bw, h: st.bh };
 }
 function moveStroke(st, dx, dy){
@@ -5357,7 +5409,8 @@ function dashFor(ls, w, k){
   }
   return [];
 }
-const SOLID_PARTS = { arrow: [1], axes: [1, 3], rtri: [1], angle: [1] };   // arrow heads and the right-angle mark stay solid
+const SOLID_PARTS = { arrow: [1], axes: [1, 3], rtri: [1], angle: [1] };
+const isSolidPart = (st, pi) => st.k === 'line' ? pi >= 1 : (SOLID_PARTS[st.k] || []).indexOf(pi) >= 0;   // arrow heads and the right-angle mark stay solid
 function drawStroke(ctx, st, k){
   if (st.k === 'img'){ drawImgObj(ctx, st, k); return; }
   if (st.k === 'sym'){ drawSym(ctx, st, k); return; }
@@ -5387,10 +5440,11 @@ function drawStroke(ctx, st, k){
     return;
   }
   ctx.lineWidth = Math.max(st.sw * k, 0.55 * k / (scale || 1));
-  const dash = st.ls ? dashFor(st.ls, st.sw, k) : [], solid = SOLID_PARTS[st.k] || [];
+  const dash = st.ls ? dashFor(st.ls, st.sw, k) : [];
   shapePaths(st).forEach((poly, pi) => {
-    ctx.setLineDash(dash.length && solid.indexOf(pi) < 0 ? dash : []);
+    ctx.setLineDash(dash.length && !isSolidPart(st, pi) ? dash : []);
     ctx.beginPath(); poly.forEach((q, i) => i ? ctx.lineTo(q[0] * k, q[1] * k) : ctx.moveTo(q[0] * k, q[1] * k)); ctx.stroke();
+    if (st.k === 'line' && pi && poly.length > 3 && Math.abs(poly[0][0] - poly[poly.length - 1][0]) < 0.01 && Math.abs(poly[0][1] - poly[poly.length - 1][1]) < 0.01) ctx.fill();   // dot / square ends are solid
   });
   ctx.setLineDash([]);
 }
@@ -5764,6 +5818,7 @@ setInterval(() => {
 }, 150);
 function makeShape(x0, y0, x1, y1){
   const s = { t: 'shape', id: uid(), k: INK.shape.k, o: INK.shape.o, c: INK.color.pen, sw: INK.width.pen }; if (INK.ls && INK.shape.k !== 'sym') s.ls = INK.ls;
+  if (s.k === 'lnx'){ const E = LINE_ENDS[s.o] || ['', '']; s.k = 'line'; s.o = 0; if (E[0]) s.e0 = E[0]; if (E[1]) s.e1 = E[1]; }
   if (s.k === 'line' || s.k === 'arrow'){
     let dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
     if (len > 0){
@@ -6381,9 +6436,10 @@ function syncSymPanel(){
 }
 function openSymPanel(open){ INK.symOpen = open; try { localStorage.setItem('nt-sym-open', open ? '1' : '0'); } catch (e) {} syncSymPanel(); }
 function shapeIconSVG(k, o){
+  let ends = null; if (k === 'lnx'){ ends = LINE_ENDS[o] || ['', '']; k = 'line'; o = 0; }
   const vert = (o & 1) === 0, bk = k === 'brkt' || k === 'brace';
   const st = k === 'caret' ? { x: 3, y: 24, x2: 14, y2: 4, x3: 25, y3: 24 } : bk ? (vert ? { x: 9, y: 3, bw: 10, bh: 22 } : { x: 3, y: 9, bw: 22, bh: 10 }) : (k === 'line' || k === 'arrow') ? { x: 4, y: 24, x2: 24, y2: 4 } : { x: 4, y: 4, bw: 20, bh: 20 };
-  Object.assign(st, { k, o, sw: 2 });
+  Object.assign(st, { k, o, sw: 2 }); if (ends){ if (ends[0]) st.e0 = ends[0]; if (ends[1]) st.e1 = ends[1]; }
   const d = shapePaths(st).map(poly => poly.map((q, i) => (i ? 'L' : 'M') + r1(q[0]) + ' ' + r1(q[1])).join('')).join('');
   return '<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>';
 }
@@ -6392,7 +6448,12 @@ const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['caret', 0, 'Invert
   ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up'],
   null, ['trap', 0, 'Trapezoid'], ['rtrap', 0, 'Right trapezoid'], ['para', 0, 'Parallelogram'], ['rhomb', 0, 'Rhombus'], ['rtri', 0, 'Right triangle'], ['pent', 0, 'Pentagon'], ['hex', 0, 'Hexagon'], ['semi', 0, 'Semicircle'], ['angle', 0, 'Angle'],
   null, ['axes', 0, 'Coordinate axes (Oxy)'], ['parab', 0, 'Parabola, opens up'], ['parab', 2, 'Parabola, opens down'], ['parab', 1, 'Parabola, opens right'], ['parab', 3, 'Parabola, opens left'], ['cubic', 0, 'Cubic curve y = x³'], ['sine', 0, 'Sine wave'], ['hyp', 0, 'Hyperbola y = k/x'], ['expo', 0, 'Exponential curve'],
-  null, ['cube', 0, 'Cube'], ['cuboid', 0, 'Cuboid (rectangular box)'], ['cyl', 0, 'Cylinder'], ['cone', 0, 'Cone'], ['sphere', 0, 'Sphere'], ['pyr', 0, 'Pyramid'], ['prism', 0, 'Triangular prism']];
+  null, ['cube', 0, 'Cube'], ['cuboid', 0, 'Cuboid (rectangular box)'], ['cyl', 0, 'Cylinder'], ['cone', 0, 'Cone'], ['sphere', 0, 'Sphere'], ['pyr', 0, 'Pyramid'], ['prism', 0, 'Triangular prism'],
+  null, ['rarrow', 0, 'Right arrow'], ['larrow', 0, 'Left arrow'], ['darrow', 0, 'Down arrow'], ['uarrow', 0, 'Up arrow'], ['lrarrow', 0, 'Left-right arrow'], ['udarrow', 0, 'Up-down arrow'],
+  ['uturn', 0, 'U-turn arrow'], ['scurve', 0, 'Curved arrow'], ['yfork', 0, 'Forked arrow (Y)'], ['tfork', 0, 'Triple up arrow'], ['quad', 0, 'Four-way arrow'], ['barrow', 0, 'Bent arrow'],
+  ['chevron', 0, 'Chevron'], ['homeplate', 0, 'Pentagon arrow'], ['striped', 0, 'Striped arrow'], ['lrup', 0, 'Left-right-up arrow'], ['notched', 0, 'Notched arrow'], ['bentup', 0, 'Bent-up arrow'], ['cornerarrow', 0, 'Up-right arrow'],
+  ['rcall', 0, 'Right arrow callout'], ['lcall', 0, 'Left arrow callout'], ['dcall', 0, 'Down arrow callout'], ['ucall', 0, 'Up arrow callout'], ['lrcall', 0, 'Left-right callout'], ['quadcall', 0, 'Four-way callout'],
+  null, ['lnx', 0, 'Dot to arrow'], ['lnx', 1, 'Square to arrow'], ['lnx', 2, 'Double arrow'], ['lnx', 3, 'Arrow pointing back'], ['lnx', 4, 'Arrow, dot at the end'], ['lnx', 5, 'Arrow, square at the end'], ['lnx', 6, 'Dimension line']];
 function markShapeCur(){ document.querySelectorAll('#shBody .shape-btn').forEach(b => b.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === b.dataset.k && INK.shape.o === +b.dataset.o)); }
 function shapeGeo(){
   let g = null; try { g = JSON.parse(localStorage.getItem('nt-shape-geo2') || 'null'); } catch (e) {}
@@ -6425,7 +6486,20 @@ function lineStyleRow(){
 function rotRow(){
   return '<div class="ls-row rot-row" title="Turn the selected shape — or drag the round handle above it (snaps every 15°)">' +
     [['-15', '↺ 15°'], ['15', '↻ 15°'], ['90', '↻ 90°'], ['0', 'Reset']].map(([d, t]) => '<button class="ls-btn pill" data-rot="' + d + '">' + t + '</button>').join('') +
+    '</div><div class="ls-row rot-row"><button class="ls-btn pill" data-flip="x" title="Flip left-right">⇋ Flip</button><button class="ls-btn pill" data-flip="y" title="Flip upside-down">⇵ Flip</button>' +
     '<button class="ls-btn pill' + (INK.angles ? ' cur' : '') + '" data-angles="1" title="Show the angle at every corner while drawing">∠ Angles</button></div>';
+}
+function flipSel(axis){
+  if (!INK.sel){ toast('Draw or select a shape first.'); return; }
+  const arr = selList().filter(st => rotatable(st) || isPolyShape(st)); if (!arr.length){ toast('Select a shape to flip it.'); return; }
+  pushUndo(INK.sel.p);
+  arr.forEach(st => {
+    if (rotatable(st)){ const key = axis === 'x' ? 'fx' : 'fy'; if (st[key]) delete st[key]; else st[key] = true; return; }
+    const pts = polyPts(st), i = axis === 'x' ? 0 : 1, lo = Math.min(...pts.map(q => q[i])), hi = Math.max(...pts.map(q => q[i])), m = lo + hi;
+    const nm = i ? ['y', 'y2', 'y3'] : ['x', 'x2', 'x3'];
+    nm.forEach(key => { if (st[key] !== undefined) st[key] = r1(m - st[key]); });
+  });
+  redrawInk(INK.sel.p); scheduleSave();
 }
 function rotateSel(d){
   if (!INK.sel) { toast('Draw or select a shape first.'); return; }
@@ -6679,6 +6753,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   document.addEventListener('contextmenu', e => { if (INK.tool && e.target.closest && e.target.closest('.ink-canvas')) e.preventDefault(); });
   document.addEventListener('gesturestart', e => { if (INK.tool) e.preventDefault(); });
   $('#shBody').addEventListener('click', e => {
+    const fb = e.target.closest('[data-flip]'); if (fb){ flipSel(fb.dataset.flip); return; }
     const rb = e.target.closest('[data-rot]'); if (rb){ rotateSel(+rb.dataset.rot); return; }
     const ab = e.target.closest('[data-angles]'); if (ab){ INK.angles = !INK.angles; try { localStorage.setItem('nt-angles', INK.angles ? '1' : '0'); } catch (er) {} ab.classList.toggle('cur', INK.angles); if (INK.sel) redrawInk(INK.sel.p); return; }
     const ls = e.target.closest('.ls-btn'); if (ls){ setLineStyle(ls.dataset.ls); return; }
