@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-07-c" />
+    <meta name="app-build" content="2026-11-07-d" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -5217,19 +5217,13 @@ function shapePaths0(st){
   const M = mathShape(st); if (M) return M;
   return [];
 }
-/* curved arrow with a small loop on the way, ending in an open arrow head */
+/* curved arrow ending in an open arrow head; the bend comes from the control point */
 function loopPath(st){
   const P0 = [st.x, st.y], P2 = [st.x2, st.y2], C = [st.x3, st.y3], chord = Math.hypot(P2[0] - P0[0], P2[1] - P0[1]);
   if (chord < 2) return [[P0, P2]];
   const q = t => { const u = 1 - t; return [u * u * P0[0] + 2 * u * t * C[0] + t * t * P2[0], u * u * P0[1] + 2 * u * t * C[1] + t * t * P2[1]]; };
   const dq = t => { const u = 1 - t; return [2 * u * (C[0] - P0[0]) + 2 * t * (P2[0] - C[0]), 2 * u * (C[1] - P0[1]) + 2 * t * (P2[1] - C[1])]; };
-  const t0 = .45, Q = q(t0), d0 = dq(t0), tl = Math.hypot(d0[0], d0[1]) || 1, T = [d0[0] / tl, d0[1] / tl], r = Math.max(4, chord * .045);
-  let N = [-T[1], T[0]]; if (N[0] * (C[0] - Q[0]) + N[1] * (C[1] - Q[1]) > 0) N = [-N[0], -N[1]];   // the loop sits on the inner side of the bend
-  const cen = [Q[0] + N[0] * r, Q[1] + N[1] * r], th0 = Math.atan2(Q[1] - cen[1], Q[0] - cen[0]);
-  const sg = (-Math.sin(th0) * T[0] + Math.cos(th0) * T[1]) < 0 ? -1 : 1, pts = [];
-  for (let i = 0; i <= 18; i++) pts.push(q(t0 * i / 18));
-  for (let j = 1; j <= 26; j++){ const th = th0 + sg * 2 * Math.PI * j / 26; pts.push([cen[0] + r * Math.cos(th), cen[1] + r * Math.sin(th)]); }
-  for (let i = 1; i <= 30; i++) pts.push(q(t0 + (1 - t0) * i / 30));
+  const pts = []; for (let i = 0; i <= 48; i++) pts.push(q(i / 48));
   const de = dq(1), a = Math.atan2(de[1], de[0]), L = Math.max(12, (st.sw || 2) * 5.5), hd = an => [P2[0] - L * Math.cos(an), P2[1] - L * Math.sin(an)];
   return [pts, [hd(a - .5), P2, hd(a + .5)]];
 }
@@ -6472,7 +6466,7 @@ function shapeIconSVG(k, o){
 }
 const SHAPES = [['line', 0, 'Line'], ['arrow', 0, 'Arrow'], ['caret', 0, 'Inverted V — draw up to the top, pause, then pull down; every corner can be dragged'], ['ellipse', 0, 'Circle / oval'], ['rect', 0, 'Rectangle'], ['tri', 0, 'Triangle'], ['star', 0, 'Star'],
   ['brkt', 0, 'Bracket ['], ['brkt', 2, 'Bracket ]'], ['brkt', 1, 'Bracket, lying, open down'], ['brkt', 3, 'Bracket, lying, open up'],
-  ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up'], ['loop', 0, 'Curved loop arrow — draw from where it starts to where it ends; drag the middle dot to change the bend'],
+  ['brace', 0, 'Brace {'], ['brace', 2, 'Brace }'], ['brace', 3, 'Brace, lying, tip down'], ['brace', 1, 'Brace, lying, tip up'], ['loop', 0, 'Curved arrow — draw from where it starts to where it ends; drag the middle dot to change the bend'],
   null, ['trap', 0, 'Trapezoid'], ['rtrap', 0, 'Right trapezoid'], ['para', 0, 'Parallelogram'], ['rhomb', 0, 'Rhombus'], ['rtri', 0, 'Right triangle'], ['pent', 0, 'Pentagon'], ['hex', 0, 'Hexagon'], ['semi', 0, 'Semicircle'], ['angle', 0, 'Angle'],
   null, ['axes', 0, 'Coordinate axes (Oxy)'], ['parab', 0, 'Parabola, opens up'], ['parab', 2, 'Parabola, opens down'], ['parab', 1, 'Parabola, opens right'], ['parab', 3, 'Parabola, opens left'], ['cubic', 0, 'Cubic curve y = x³'], ['sine', 0, 'Sine wave'], ['hyp', 0, 'Hyperbola y = k/x'], ['expo', 0, 'Exponential curve'],
   null, ['cube', 0, 'Cube'], ['cuboid', 0, 'Cuboid (rectangular box)'], ['cyl', 0, 'Cylinder'], ['cone', 0, 'Cone'], ['sphere', 0, 'Sphere'], ['pyr', 0, 'Pyramid'], ['prism', 0, 'Triangular prism'],
