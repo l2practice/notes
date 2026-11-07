@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-07-e" />
+    <meta name="app-build" content="2026-11-07-h" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -536,6 +536,10 @@
       .sym-grid{display:flex;flex-wrap:wrap;gap:5px;}
       .sym-chip{min-width:34px;height:32px;padding:0 9px;border-radius:7px;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);background:var(--surface);}
       .sym-chip.ring{width:36px;min-width:36px;height:36px;padding:0;border-radius:50%;border:1.5px solid var(--ink);font-size:12px;}
+      .sym-seg{display:flex;gap:4px;padding:2px 0 6px;} .sym-seg button{flex:1;height:32px;border-radius:8px;border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--surface);display:flex;align-items:center;justify-content:center;gap:6px;}
+      .sym-seg button i{width:14px;height:14px;border:1.6px solid currentColor;border-radius:50%;display:inline-block;} .sym-seg button.cur{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+      .sym-chip.two{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;height:42px;padding:0 8px;line-height:1.05;}
+      .sym-chip.two small{font-size:10.5px;font-weight:600;}
       .sym-chip.it{font-style:italic;font-weight:600;}
       .sym-own{position:relative;display:inline-flex;} .sym-own .sym-del{position:absolute;right:-5px;top:-7px;width:16px;height:16px;border-radius:8px;background:var(--ink);color:var(--surface);font-size:11px;line-height:16px;padding:0;opacity:.0;} .sym-own:hover .sym-del,.sym-own:focus-within .sym-del{opacity:1;} @media (hover:none){.sym-own .sym-del{opacity:.75;}}
       .sym-chip:hover{background:var(--active);}
@@ -1248,7 +1252,7 @@
             </div>
             <div class="search-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
-              <input id="searchInput" type="text" placeholder="Search in my library…" autocomplete="off" />
+              <input id="searchInput" type="text" name="nt-find-library" placeholder="Search in my library…" autocomplete="off" autocorrect="off" spellcheck="false" />
               <button class="search-go" id="searchGoBtn" title="Search documents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg></button>
             </div>
             <button class="btn" id="newDocBtn" title="Create a blank notebook to draw and type on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M12 12v6M9 15h6"/></svg>New document</button>
@@ -1394,9 +1398,7 @@
         <button class="fmt-btn" id="inkUndo" title="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
         <button class="fmt-btn" id="inkRedo" title="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
         <button class="fmt-btn hidden" id="inkAlign" title="Level the selected handwriting onto one baseline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h18"/><path d="M6 15V9M6 9l-2 2M6 9l2 2"/><path d="M12 15V5M12 5l-2 2M12 5l2 2"/><path d="M18 15v-4M18 11l-2 2M18 11l2 2" transform="rotate(180 18 13)"/></svg></button>
-        <button class="fmt-btn hidden" id="inkDup" title="Duplicate (Cmd/Ctrl+D)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button>
-        <button class="fmt-btn hidden" id="inkCopy" title="Copy (Cmd/Ctrl+C) — then paste on any page with Cmd/Ctrl+V"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="10" height="4" rx="1"/><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/></svg></button>
-        <button class="fmt-btn hidden" id="inkPaste" title="Paste the copied shapes onto the page you are looking at (Cmd/Ctrl+V)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M5 21h14"/></svg></button>
+        <button class="fmt-btn hidden" id="inkDup" title="Duplicate (Cmd/Ctrl+D)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V3h7l4 4v9h-4"/><path d="M16 3v4h4"/><path d="M4 8h8l3 3v10H4z"/><path d="M12 8v3h3"/></svg></button>
         <button class="fmt-btn hidden" id="inkDel" title="Delete selected"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg></button>
         <div class="bar-sep"></div>
         <button class="fmt-btn" id="inkFinger" title="Let a finger draw too (off: only Apple Pencil or mouse draws, a finger scrolls)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.9-2.4L3.4 16a2 2 0 0 1 3.2-2.4L8 15"/></svg></button>
@@ -2063,7 +2065,7 @@
       el.innerHTML =
         '<section class="hero"><div class="hero-mosaic" aria-hidden="true">' + mosaic.map(d => '<i style="background-image:url(' + d.thumb + ')"></i>').join('') + '</div><div class="hero-shade"></div>' +
           '<div class="hero-in"><div class="hero-copy"><h1>' + greet + '</h1><p class="hero-sub">' + (heroDocs.length ? 'Pick up where you left off, or find anything in your library.' : 'Import a PDF or start a blank notebook to begin.') + '</p>' +
-            '<form class="hero-search" id="heroSearch"><input id="heroInput" type="text" placeholder="Search your documents…" autocomplete="off" /><button type="submit" aria-label="Search">' + IC.search + '</button></form></div>' +
+            '<form class="hero-search" id="heroSearch"><input id="heroInput" type="text" name="nt-find-hero" placeholder="Search your documents…" autocomplete="off" autocorrect="off" spellcheck="false" /><button type="submit" aria-label="Search">' + IC.search + '</button></form></div>' +
             '<div class="hero-covers">' + fan + '</div></div></section>' +
         '<section class="stat-row"><div class="stat"><b>' + live.length + '</b><span>Documents</span></div><div class="stat"><b>' + totalPages.toLocaleString('en-US') + '</b><span>Pages</span></div><div class="stat"><b>' + hours + '</b><span>Time spent</span></div><div class="stat"><b>' + marks.toLocaleString('en-US') + '</b><span>Notes &amp; drawings</span></div></section>' +
         '<div class="h-title"><h2>Overview</h2></div>' +
@@ -5153,7 +5155,7 @@
      shape    : { id, t:'shape', k, c, sw, x,y,bw,bh | x,y,x2,y2, o } */
 const INK = { tool: null, shape: { k: 'line', o: 0 }, color: { pen: '#111111', hl: '#FFD43B' }, width: { pen: 2, hl: 16, er: 6 }, finger: false, sel: null, live: null, undo: [], redo: [], pinned: null };
 try { INK.finger = localStorage.getItem('nt-ink-finger') === '1'; } catch (e) {}
-INK.symOpen = false; INK.symDims = { ring: null, label: null };
+INK.symOpen = false; INK.symDims = { ring: null, label: null, two: null, ring2: null };
 INK.smooth = 1; try { const v = localStorage.getItem('nt-ink-smooth'); if (v !== null) INK.smooth = +v; } catch (e) {}
 INK.shapeDims = {}; try { INK.shapeDims = JSON.parse(localStorage.getItem('nt-shape-dims') || '{}') || {}; } catch (e) {}
 function saveShapeDims(){ try { localStorage.setItem('nt-shape-dims', JSON.stringify(INK.shapeDims)); } catch (e) {} }
@@ -5383,6 +5385,13 @@ function drawSym(ctx, st, k){
   const x = st.x * k, y = st.y * k, w = st.bw * k, h = st.bh * k, face = (st.it ? 'italic 600 ' : '700 ');
   ctx.save(); ctx.strokeStyle = st.c; ctx.fillStyle = st.c; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   if (st.ring){ ctx.lineWidth = Math.max(1, (st.sw || 2) * 0.7 * k); ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, 7); ctx.stroke(); }
+  if (st.txt2){
+    if (st.ring){ ctx.lineWidth = Math.max(1, (st.sw || 2) * 0.7 * k); ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, 7); ctx.stroke(); }
+    const fit = (t, f, mw) => { ctx.font = face + f + 'px Inter, system-ui, sans-serif'; const tw = ctx.measureText(t).width; if (tw > mw){ f *= mw / tw; ctx.font = face + f + 'px Inter, system-ui, sans-serif'; } return f; };
+    const f1 = fit(st.txt, h * .46, w * (st.ring ? .7 : .96)); ctx.fillText(st.txt, x + w / 2, y + h * .27);
+    const f2 = fit(st.txt2, h * .3, w * (st.ring ? .8 : .98)); ctx.fillText(st.txt2, x + w / 2, y + h * .74);
+    ctx.restore(); return;
+  }
   let fs = h * (st.ring ? 0.54 : 0.74);
   ctx.font = face + fs + 'px Inter, system-ui, sans-serif';
   const tw = ctx.measureText(st.txt).width, mw = w * (st.ring ? 0.74 : 0.98);
@@ -5390,7 +5399,15 @@ function drawSym(ctx, st, k){
   ctx.fillText(st.txt, x + w / 2, y + h / 2 + fs * 0.05);
   ctx.restore();
 }
-function symSize(txt, ring){ const d = INK.symDims[ring ? 'ring' : 'label']; if (d) return d.slice(); return ring ? (() => { const s = 30 + (txt.length > 2 ? 6 : 0); return [s, s]; })() : [Math.max(24, txt.length * 13 + 10), 24]; }
+const symKey = st => st.ring ? (st.txt2 ? 'ring2' : 'ring') : st.txt2 ? 'two' : 'label';
+function symSize(txt, ring, t2){
+  const key = ring ? (t2 ? 'ring2' : 'ring') : t2 ? 'two' : 'label', d = INK.symDims[key]; if (d) return d.slice();
+  const len = Math.max(txt.length, t2 ? t2.length : 0);
+  if (ring && t2) return [Math.max(60, len * 8.5 + 30), 56];
+  if (ring){ const z = 30 + Math.max(0, len - 2) * 5; return [z, z]; }
+  if (t2) return [Math.max(46, len * 8.5 + 16), 42];
+  return [Math.max(24, txt.length * 13 + 10), 24];
+}
 const IMGS = {};   // picture id -> <img>, decoded from the copy kept in IndexedDB
 function ensureImg(id){
   if (IMGS[id]) return IMGS[id];
@@ -5853,9 +5870,10 @@ function makeShape(x0, y0, x1, y1){
   let w = Math.abs(x1 - x0), h = Math.abs(y1 - y0);
   if (s.k === 'sym'){
     s.txt = INK.shape.txt; s.ring = !!INK.shape.ring; s.it = !!INK.shape.it;
-    const d = INK.symDims[s.ring ? 'ring' : 'label'];   // sticks to the size you used last, so symbols line up
+    if (INK.shape.txt2) s.txt2 = INK.shape.txt2;
+    const d = INK.symDims[symKey(s)];   // sticks to the size you used last, so symbols line up
     if (d){ if (Math.abs(w - d[0]) < 4) w = d[0]; if (Math.abs(h - d[1]) < 4) h = d[1]; }
-    if (s.ring && Math.abs(w - h) < 5) h = w;
+    if (s.ring && !s.txt2 && Math.abs(w - h) < 5) h = w;
   } else {
     const d = INK.shapeDims[shapeKey(s)];
     if (d){ if (Math.abs(w - d[0]) < 4) w = d[0]; if (Math.abs(h - d[1]) < 4) h = d[1]; }
@@ -6214,14 +6232,14 @@ function inkUp(e, cv, cancelled){
       if (tiny){ const x = g.x0, y = g.y0, v = (INK.shape.o & 1) === 0;
         if (st.k === 'caret') st = caretDefault(x, y);
         else if (st.k === 'loop') st = makeShape(x, y, x - 70, y + 80);
-        else if (st.k === 'sym'){ const z = symSize(st.txt, st.ring); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
+        else if (st.k === 'sym'){ const z = symSize(st.txt, st.ring, st.txt2); st = makeShape(x - z[0] / 2, y - z[1] / 2, x + z[0] / 2, y + z[1] / 2); }
         else {
           const d = INK.shapeDims[(st.x2 !== undefined) ? 'line' : shapeKey(st)];
           if (st.x2 !== undefined) st = makeShape(x, y, x + (d ? d[0] : 90), y);
           else if (d) st = makeShape(x, y, x + d[0], y + d[1]);
           else st = (st.k === 'brkt' || st.k === 'brace') ? (v ? makeShape(x, y, x + 16, y + 110) : makeShape(x, y, x + 110, y + 16)) : makeShape(x, y, x + 80, y + 80);
         } }
-      if (st.k === 'sym'){ INK.symDims[st.ring ? 'ring' : 'label'] = [st.bw, st.bh]; syncSymFields(); }
+      if (st.k === 'sym'){ INK.symDims[symKey(st)] = [st.bw, st.bh]; syncSymFields(); }
       else if (st.k === 'caret' || st.k === 'loop'){ /* corners are free: nothing to remember */ }
       else if (st.x2 !== undefined){ INK.shapeDims.line = [Math.hypot(st.x2 - st.x, st.y2 - st.y)]; saveShapeDims(); }
       else if (st.bw !== undefined){ INK.shapeDims[shapeKey(st)] = [st.bw, st.bh]; saveShapeDims(); }
@@ -6243,7 +6261,7 @@ function inkUp(e, cv, cancelled){
   } else if (g.kind === 'move' || g.kind === 'resize'){
     endInteraction(p); if (g.moved) scheduleSave();
     const one = g.moved && g.kind === 'resize' ? selList() : [];
-    if (one.length === 1 && one[0].k === 'sym'){ INK.symDims[one[0].ring ? 'ring' : 'label'] = [one[0].bw, one[0].bh]; syncSymFields(); }   // a resized symbol becomes the size new ones match
+    if (one.length === 1 && one[0].k === 'sym'){ INK.symDims[symKey(one[0])] = [one[0].bw, one[0].bh]; syncSymFields(); }   // a resized symbol becomes the size new ones match
     redrawInk(p); syncInkBar();
   }
 }
@@ -6401,7 +6419,7 @@ function syncInkBar(){
   sl.min = rg[0]; sl.max = rg[1]; sl.step = rg[2]; sl.value = w; $('#inkWVal').textContent = fmtW(w);
   sl.title = kind === 'er' ? 'Eraser size' : 'Thickness';
   buildInkSwatches(); syncUndoUI();
-  { const has = !!(INK.sel && (INK.tool === 'select' || INK.tool === 'shape')); $('#inkDel').classList.toggle('hidden', !has); $('#inkDup').classList.toggle('hidden', !has); $('#inkCopy').classList.toggle('hidden', !has); $('#inkPaste').classList.toggle('hidden', !(INK.clip && INK.clip.length && (INK.tool === 'select' || INK.tool === 'shape'))); }
+  { const has = !!(INK.sel && (INK.tool === 'select' || INK.tool === 'shape')); $('#inkDel').classList.toggle('hidden', !has); $('#inkDup').classList.toggle('hidden', !has); }
   $('#inkAlign').classList.toggle('hidden', !(INK.sel && INK.tool === 'select' && selList().filter(s => s.t === 'pen').length >= 2));
   positionInkBar();
 }
@@ -6439,34 +6457,65 @@ function setInkColor(hex){
   if (INK.tool === 'select' && INK.sel){ const arr = selList(); if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.c = hex; }); redrawInk(INK.sel.p); scheduleSave(); } }
   buildInkSwatches();
 }
-const SYM_RING = ['N', 'V', 'A', 'ADV', 'P', 'Det', 'Pron', 'Conj'];
-const SYM_LABEL = ['S', "S'", 'NP', 'VP', 'AP', 'AdvP', 'PP', 'NOM', 'DP', 'CP', 'TP', 'Vgrp', 'Comp', 'Det', 'PRO', 'M', 'Aux', 'P', 'N', 'V', 'A', 'ADV', 'Conj'];
-const SYM_AFFIX = ['pref', 'suff', 'stem'];
+const SYM_GROUPS = [
+  ['Phrases & clauses', ['S', "S'", 'NP', 'VP', 'Vgrp', 'PP', 'AP', 'AdvP', 'NOM']],
+  ['Functions', ['[sC]', '[dO]', '[iO]', '[oC]', 'Comp.', 'obA', 'opA', 'M']],
+  ['Clause types', ['[ACl]', '[NCl as S]']],
+  ['Determiners', ['DET', 'ART', 'POSS', 'QUA', 'DEM', 'PRE-DET']],
+  ['Word classes', ['N', 'V', 'A', 'ADV', 'P', 'PRO', 'AUX', 'Pron', 'Conj']]
+];
+const SYM_LABEL = SYM_GROUPS.reduce((a, g) => a.concat(g[1]), []);
+const SYM_VERB = ['intrans', 'intens', 'monotrans', 'ditrans', 'complex'];   // two-tier symbols: V over [type]
+const SYM_AFFIX = ['pref', 'suff', 'root'];
+INK.symCircle = false; try { INK.symCircle = localStorage.getItem('nt-sym-circle') === '1'; } catch (e) {}
+const chipRing = c => c.dataset.ring ? true : (c.dataset.it || c.closest('.sym-own')) ? false : INK.symCircle;
 function symOwn(){ try { const a = JSON.parse(localStorage.getItem('nt-sym-own') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
 function saveSymOwn(a){ try { localStorage.setItem('nt-sym-own', JSON.stringify(a.slice(-60))); } catch (e) {} }
 function buildSymPanel(){
-  const chip = (t, ring, it) => '<button class="sym-chip' + (ring ? ' ring' : '') + (it ? ' it' : '') + '" data-t="' + t + '"' + (ring ? ' data-ring="1"' : '') + (it ? ' data-it="1"' : '') + '>' + t + '</button>';
-  $('#spBody').innerHTML = '<div class="sym-sec">Word class, circled</div><div class="sym-grid">' + SYM_RING.map(t => chip(t, true)).join('') + '</div>' +
-    '<div class="sym-sec">Syntax labels</div><div class="sym-grid">' + SYM_LABEL.map(t => chip(t)).join('') + '</div>' +
+  const chip = (t, ring, it, t2) => '<button class="sym-chip' + (ring ? ' ring' : '') + (it ? ' it' : '') + (t2 ? ' two' : '') + '" data-t="' + t + '"' + (t2 ? ' data-t2="' + t2 + '"' : '') + (ring ? ' data-ring="1"' : '') + (it ? ' data-it="1"' : '') + '>' + (t2 ? '<span>' + t + '</span><small>' + t2 + '</small>' : t) + '</button>';
+  $('#spBody').innerHTML = '<div class="sym-seg" role="group" aria-label="Circle"><button data-circle="1" class="' + (INK.symCircle ? 'cur' : '') + '"><i></i>Circle</button><button data-circle="0" class="' + (INK.symCircle ? '' : 'cur') + '">No circle</button></div>' +
+    SYM_GROUPS.map(g => '<div class="sym-sec">' + g[0] + '</div><div class="sym-grid">' + g[1].map(t => chip(t)).join('') + '</div>').join('') +
+    '<div class="sym-sec">Verb types (two-tier)</div><div class="sym-grid">' + SYM_VERB.map(t => chip('V', false, false, '[' + t + ']')).join('') + '</div>' +
     '<div class="sym-sec">Morphology</div><div class="sym-grid">' + SYM_AFFIX.map(t => chip(t, false, true)).join('') + '</div>' +
     '<div class="sym-sec">Your own</div>' + (symOwn().length ? '<div class="sym-grid" id="symOwnGrid">' + symOwn().map((c, i) => '<span class="sym-own">' + chip(c.t, c.ring) + '<button class="sym-del" data-del="' + i + '" title="Remove from my symbols" aria-label="Remove">×</button></span>').join('') + '</div>' : '<div class="shape-tip" style="padding:0 2px 6px">Symbols you make are kept here, on this device, until you remove them.</div>') + '<div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:34px;padding:0 14px">Use</button></div>' +
     '<div class="shape-tip">Tap the page to place a symbol, or drag to size it: a frame shows its width and height, and it snaps to the size you used last so symbols match.</div>';
 }
+/* Edge/Safari may drop the saved e-mail address into a search box: empty it unless the user typed there */
+(function(){
+  const typed = new WeakSet();
+  const guard = () => ['searchInput', 'heroInput'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (!el._g){ el._g = 1; ['keydown', 'paste', 'compositionstart'].forEach(ev => el.addEventListener(ev, () => typed.add(el))); }
+    if (!typed.has(el) && /@/.test(el.value)){ el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
+  });
+  let n = 0; const iv = setInterval(() => { guard(); if (++n > 24) clearInterval(iv); }, 500);
+  document.addEventListener('focusin', guard);
+})();
 function addOwnSymbol(){
   const t = ($('#symTxt').value || '').trim(), ring = $('#symRing').checked; if (!t) return;
   const a = symOwn().filter(c => !(c.t === t && !!c.ring === ring)); a.push({ t, ring }); saveSymOwn(a);
   buildSymPanel(); pickSymbol(t, ring, false);
   const g = $('#symOwnGrid'); if (g && g.lastElementChild) g.lastElementChild.scrollIntoView({ block: 'nearest' });
 }
-function symType(){ return INK.shape.k === 'sym' && INK.shape.ring ? 'ring' : 'label'; }
+function symType(){ return INK.shape.k === 'sym' ? symKey(INK.shape) : 'label'; }
 function syncSymFields(){
   const w = $('#spW'), h = $('#spH'); if (!w || document.activeElement === w || document.activeElement === h) return;
-  const sz = symSize(INK.shape.txt || 'N', symType() === 'ring'); w.value = Math.round(sz[0]); h.value = Math.round(sz[1]);
+  const sz = symSize(INK.shape.txt || 'N', !!INK.shape.ring, INK.shape.txt2); w.value = Math.round(sz[0]); h.value = Math.round(sz[1]);
 }
 function markSymCur(){
-  document.querySelectorAll('#spBody .sym-chip').forEach(c => c.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === 'sym' && INK.shape.txt === c.dataset.t && !!INK.shape.ring === !!c.dataset.ring && !!INK.shape.it === !!c.dataset.it));
+  document.querySelectorAll('#spBody .sym-chip').forEach(c => c.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === 'sym' && INK.shape.txt === c.dataset.t && !!INK.shape.ring === chipRing(c) && !!INK.shape.it === !!c.dataset.it && (INK.shape.txt2 || '') === (c.dataset.t2 || '')));
 }
-function pickSymbol(txt, ring, it){ if (!txt) return; INK.shape = { k: 'sym', o: 0, txt, ring: !!ring, it: !!it }; INK.lastPlacedId = null; INK.lastTap = null; setInkTool('shape'); markSymCur(); syncSymFields(); }
+function setSymCircle(on){
+  INK.symCircle = !!on; try { localStorage.setItem('nt-sym-circle', on ? '1' : '0'); } catch (e) {}
+  document.querySelectorAll('#spBody [data-circle]').forEach(b => b.classList.toggle('cur', (b.dataset.circle === '1') === !!on));
+  if (INK.tool === 'shape' && INK.shape.k === 'sym' && !INK.shape.it && INK.shape.txt) INK.shape.ring = !!on;
+  if (INK.sel && (INK.tool === 'select' || INK.tool === 'shape')){
+    const arr = selList().filter(st => st.k === 'sym' && !st.it && !!st.ring !== !!on);
+    if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.ring = !!on; if (on){ const z = symSize(st.txt, true, st.txt2), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2; st.bw = z[0]; st.bh = z[1]; st.x = r1(cx - z[0] / 2); st.y = r1(cy - z[1] / 2); } else { const z = symSize(st.txt, false, st.txt2), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2; st.bw = z[0]; st.bh = z[1]; st.x = r1(cx - z[0] / 2); st.y = r1(cy - z[1] / 2); } }); redrawInk(INK.sel.p); scheduleSave(); }
+  }
+  markSymCur(); syncSymFields();
+}
+function pickSymbol(txt, ring, it, t2){ if (!txt) return; INK.shape = { k: 'sym', o: 0, txt, ring: !!ring, it: !!it, txt2: t2 || '' }; INK.lastPlacedId = null; INK.lastTap = null; setInkTool('shape'); markSymCur(); syncSymFields(); }
 /* floating, movable, resizable panel that stays open until you close it */
 function symGeo(){
   let g = null; try { g = JSON.parse(localStorage.getItem('nt-sym-geo') || 'null'); } catch (e) {}
@@ -6788,7 +6837,8 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#inkSyms').addEventListener('click', () => openSymPanel(!INK.symOpen));
   $('#spClose').addEventListener('click', () => openSymPanel(false));
   $('#spBody').addEventListener('click', e => {
-    const c = e.target.closest('.sym-chip'); if (c){ pickSymbol(c.dataset.t, !!c.dataset.ring, !!c.dataset.it); return; }
+    const c = e.target.closest('.sym-chip'); if (c){ pickSymbol(c.dataset.t, chipRing(c), !!c.dataset.it, c.dataset.t2 || ''); return; }
+    const cb = e.target.closest('[data-circle]'); if (cb){ setSymCircle(cb.dataset.circle === '1'); return; }
     if (e.target.closest('#symAdd')) addOwnSymbol();
     const dl = e.target.closest('.sym-del'); if (dl){ const a = symOwn(); a.splice(+dl.dataset.del, 1); saveSymOwn(a); buildSymPanel(); markSymCur(); return; }
   });
@@ -6827,8 +6877,6 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#inkRedo').addEventListener('click', inkRedo);
   $('#inkDel').addEventListener('click', deleteSelected);
   $('#inkDup').addEventListener('click', duplicateSelected);
-  $('#inkCopy').addEventListener('click', () => copySelected(false));
-  $('#inkPaste').addEventListener('click', () => pasteClip());
   $('#inkFinger').addEventListener('click', () => { INK.finger = !INK.finger; try { localStorage.setItem('nt-ink-finger', INK.finger ? '1' : '0'); } catch (e) {} syncToolUI(); toast(INK.finger ? 'Finger drawing on — pinch and two-finger scroll still work.' : 'Pencil / mouse draws; a finger scrolls the page.'); });
   $('#inkClose').addEventListener('click', () => setInkTool(null));
   (function(){
