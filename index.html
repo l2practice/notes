@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-06-h" />
+    <meta name="app-build" content="2026-11-07-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -527,6 +527,8 @@
       .shape-btn svg{width:24px;height:24px;}
       .ls-row{display:flex;gap:4px;padding:2px 2px 6px;margin-bottom:4px;border-bottom:1px solid var(--line);}
       .ls-btn{flex:1;height:30px;border-radius:6px;color:var(--ink-2);display:flex;align-items:center;justify-content:center;}
+      .ls-btn.pill{font-size:12px;font-weight:600;white-space:nowrap;padding:0 6px;}
+      .rot-row{border-bottom:1px solid var(--line);}
       .ls-btn svg{width:40px;height:12px;} .ls-btn:hover{background:var(--active);} .ls-btn.cur{background:var(--active);color:var(--ink);box-shadow:inset 0 0 0 1px var(--control);}
       .shape-sep{flex:0 0 100%;height:1px;background:var(--line);margin:3px 0;}
       #symPop{width:292px;padding:8px;}
@@ -5190,7 +5192,7 @@ function braceLocal(w, h){   // squared "{": short arms, straight spine, angular
 }
 const bracketLocal = (w, h) => [[w, 0], [0, 0], [0, h], [w, h]];
 /* returns polylines (arrays of [x,y]) in page units */
-function shapePaths(st){
+function shapePaths0(st){
   const k = st.k, x = st.x, y = st.y, w = st.bw || 0, h = st.bh || 0;
   if (k === 'sym' || k === 'img') return [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x + w / 2, y + h / 2]]];
   if (k === 'line') return [[[x, y], [st.x2, st.y2]]];
@@ -5213,6 +5215,18 @@ function shapePaths(st){
   }
   const M = mathShape(st); if (M) return M;
   return [];
+}
+/* a shape can be turned (st.rot, degrees, clockwise) about the middle of its box */
+const rotatable = st => st.t === 'shape' && st.bw !== undefined && st.k !== 'sym' && st.k !== 'img';
+function shapePaths(st){
+  const a = shapePaths0(st); if (!st.rot || !rotatable(st)) return a;
+  const th = st.rot * Math.PI / 180, c = Math.cos(th), sn = Math.sin(th), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2;
+  return a.map(poly => poly.map(q => { const dx = q[0] - cx, dy = q[1] - cy; return [cx + dx * c - dy * sn, cy + dx * sn + dy * c]; }));
+}
+function frameOf(st, pad){
+  const th = (st.rot || 0) * Math.PI / 180, c = Math.cos(th), s = Math.sin(th), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2, hw = st.bw / 2 + pad, hh = st.bh / 2 + pad;
+  const W = (lx, ly) => [cx + lx * c - ly * s, cy + lx * s + ly * c];
+  return { cx, cy, th, c, s, hw, hh, nw: W(-hw, -hh), ne: W(hw, -hh), sw: W(-hw, hh), se: W(hw, hh), top: W(0, -hh), rot: W(0, -hh - 26 / (scale || 1)) };
 }
 /* ---------- maths shapes: plane figures, graphs, solids (hidden edges dashed) ---------- */
 function dashLine(a, b, sw){
@@ -5282,6 +5296,7 @@ function bboxOf(st){
     return { x: a, y: b, w: c - a, h: d - b }; }
   if (st.k === 'line' || st.k === 'arrow') return { x: Math.min(st.x, st.x2), y: Math.min(st.y, st.y2), w: Math.abs(st.x2 - st.x), h: Math.abs(st.y2 - st.y) };
   if (st.k === 'caret'){ const a = Math.min(st.x, st.x2, st.x3), b = Math.min(st.y, st.y2, st.y3); return { x: a, y: b, w: Math.max(st.x, st.x2, st.x3) - a, h: Math.max(st.y, st.y2, st.y3) - b }; }
+  if (st.rot && rotatable(st)){ let a = 1e9, b = 1e9, c = -1e9, d = -1e9; shapePaths(st).forEach(pl => pl.forEach(q => { a = Math.min(a, q[0]); c = Math.max(c, q[0]); b = Math.min(b, q[1]); d = Math.max(d, q[1]); })); return { x: a, y: b, w: c - a, h: d - b }; }
   return { x: st.x, y: st.y, w: st.bw, h: st.bh };
 }
 function moveStroke(st, dx, dy){
@@ -5292,6 +5307,7 @@ function fitStroke(st, ob, nb){
   const sx = ob.w ? nb.w / ob.w : 1, sy = ob.h ? nb.h / ob.h : 1;
   if (st.pts){ for (let i = 0; i < st.pts.length; i += 3){ st.pts[i] = nb.x + (st.pts[i] - ob.x) * sx; st.pts[i + 1] = nb.y + (st.pts[i + 1] - ob.y) * sy; } }
   else if (st.x2 !== undefined){ st.x = nb.x + (st.x - ob.x) * sx; st.y = nb.y + (st.y - ob.y) * sy; st.x2 = nb.x + (st.x2 - ob.x) * sx; st.y2 = nb.y + (st.y2 - ob.y) * sy; if (st.x3 !== undefined){ st.x3 = nb.x + (st.x3 - ob.x) * sx; st.y3 = nb.y + (st.y3 - ob.y) * sy; } }
+  else if (st.rot && rotatable(st)){ const f = (sx + sy) / 2, cx = st.x + st.bw / 2, cy = st.y + st.bh / 2, ncx = nb.x + (cx - ob.x) * sx, ncy = nb.y + (cy - ob.y) * sy; st.bw *= f; st.bh *= f; st.x = ncx - st.bw / 2; st.y = ncy - st.bh / 2; }
   else { st.x = nb.x; st.y = nb.y; st.bw = nb.w; st.bh = nb.h; }
 }
 
@@ -5455,6 +5471,18 @@ function drawSel(ctx, p, k){
   const arr = selList(); if (!arr.length) return;
   const single = arr.length === 1 && isPolyShape(arr[0]), b = groupBox(arr), pad = 4 / (scale || 1);
   const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0d7a64';
+  if (arr.length === 1 && rotatable(arr[0])){
+    const f = frameOf(arr[0], pad);
+    ctx.save(); ctx.strokeStyle = acc; ctx.fillStyle = '#fff'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]); ctx.beginPath(); [f.nw, f.ne, f.se, f.sw].forEach((q, i) => i ? ctx.lineTo(q[0] * k, q[1] * k) : ctx.moveTo(q[0] * k, q[1] * k)); ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(f.top[0] * k, f.top[1] * k); ctx.lineTo(f.rot[0] * k, f.rot[1] * k); ctx.stroke();
+    [f.nw, f.ne, f.sw, f.se].forEach(q => { ctx.beginPath(); ctx.arc(q[0] * k, q[1] * k, 5.5, 0, 7); ctx.fill(); ctx.stroke(); });
+    ctx.fillStyle = acc; ctx.beginPath(); ctx.arc(f.rot[0] * k, f.rot[1] * k, 6.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(f.rot[0] * k, f.rot[1] * k, 3, -2.6, 1.6); ctx.stroke();   // a little "turn" arc on the handle
+    ctx.restore();
+    if (INK.angles) drawAngles(ctx, k, arr[0]);
+    return;
+  }
   ctx.save(); ctx.strokeStyle = acc; ctx.fillStyle = '#fff'; ctx.lineWidth = 1.5;
   if (!single){ ctx.setLineDash([5, 4]); ctx.strokeRect((b.x - pad) * k, (b.y - pad) * k, (b.w + 2 * pad) * k, (b.h + 2 * pad) * k); ctx.setLineDash([]); }
   const pts = single ? polyPts(arr[0]) : [[b.x - pad, b.y - pad], [b.x + b.w + pad, b.y - pad], [b.x - pad, b.y + b.h + pad], [b.x + b.w + pad, b.y + b.h + pad]];
@@ -5532,16 +5560,40 @@ function compose(p){
   }
   const ls = INK.live && INK.live.p === p ? INK.live.st : null;
   if (ls && ls.t === 'shape' && G && (G.kind === 'shape' || G.kind === 'draw')){
-    if (ls.bw !== undefined) sizeBadge(ci, L, { x: ls.x, y: ls.y, w: ls.bw, h: ls.bh }, true);
+    if (ls.bw !== undefined){ sizeBadge(ci, L, { x: ls.x, y: ls.y, w: ls.bw, h: ls.bh }, true); if (INK.angles) drawAngles(ci, L.k, ls); }
     else if (ls.k === 'caret') caretBadge(ci, L, ls, !!(G && G.apex));
     else if (ls.x2 !== undefined) lineBadge(ci, L, ls);
   } else if (G && G.kind === 'resize' && G.moved){
     const arr = selList();
     if (arr.length === 1 && isCaret(arr[0])) caretBadge(ci, L, arr[0], true);
     else if (arr.length === 1 && isLine(arr[0])) lineBadge(ci, L, arr[0]);
+    else if (arr.length === 1 && rotatable(arr[0])){ const t = arr[0]; sizeBadge(ci, L, groupBox(arr), false, G.h === 'rot' ? 'Rotation ' + Math.round((t.rot || 0) * 10) / 10 + '°' : Math.round(t.bw) + ' × ' + Math.round(t.bh) + ' pt'); }
     else if (arr.length) sizeBadge(ci, L, groupBox(arr), false);
   }
   drawSel(ci, p, L.k);
+}
+/* interior angles of a polygon, written next to each corner while drawing and while the shape is selected (not saved into the page) */
+const ANGLE_KINDS = { rect: 1, tri: 1, trap: 1, rtrap: 1, para: 1, rhomb: 1, rtri: 1, pent: 1, hex: 1, angle: 2 };
+function drawAngles(ctx, k, st){
+  if (!ANGLE_KINDS[st.k]) return;
+  let v = shapePaths(st)[0]; if (!v || v.length < 3) return;
+  const open = ANGLE_KINDS[st.k] === 2;
+  if (!open && v.length > 3 && Math.hypot(v[0][0] - v[v.length - 1][0], v[0][1] - v[v.length - 1][1]) < 0.01) v = v.slice(0, -1);
+  const r = k / (scale || 1), acc = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim() || '#095f4e';
+  ctx.save(); ctx.font = '700 ' + 11.5 * r + 'px "Be Vietnam Pro", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  const idx = open ? [1] : v.map((_, i) => i), n = v.length;
+  idx.forEach(i => {
+    const P = v[i], A = v[(i + n - 1) % n], B = v[(i + 1) % n];
+    const ax = A[0] - P[0], ay = A[1] - P[1], bx = B[0] - P[0], by = B[1] - P[1], la = Math.hypot(ax, ay), lb = Math.hypot(bx, by); if (!la || !lb) return;
+    const cs = Math.max(-1, Math.min(1, (ax * bx + ay * by) / (la * lb))), deg = Math.acos(cs) * 180 / Math.PI; if (deg > 176) return;
+    let mx = ax / la + bx / lb, my = ay / la + by / lb, ml = Math.hypot(mx, my);
+    if (ml < 1e-6){ mx = -ay / la; my = ax / la; ml = 1; }
+    const half = deg * Math.PI / 360, off = Math.min(52, 13 + 15 / Math.max(0.35, Math.sin(half))) / (scale || 1);
+    const txt = (Math.abs(deg - Math.round(deg)) < 0.05 ? String(Math.round(deg)) : deg.toFixed(1)) + '°';
+    const X = (P[0] + mx / ml * off) * k, Y = (P[1] + my / ml * off) * k;
+    ctx.lineWidth = 3.4 * r; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.strokeText(txt, X, Y); ctx.fillStyle = acc; ctx.fillText(txt, X, Y);
+  });
+  ctx.restore();
 }
 /* a dashed frame with "W × H pt" so identical symbols can be sized identically */
 function lineBadge(ctx, L, st){
@@ -6025,6 +6077,18 @@ function inkStep(e, x, y, cv){
       const base = clone(G.origs[0]);
       if (G.h === 'p1'){ base.x = r1(x); base.y = r1(y); } else if (G.h === 'p3'){ base.x3 = r1(x); base.y3 = r1(y); if (isCaret(base)) caretSnapRight(base); } else { base.x2 = r1(x); base.y2 = r1(y); }
       copyInto(arr[0], base);
+    } else if (G.h === 'rot' && arr.length === 1 && rotatable(arr[0])){
+      const o0 = G.origs[0], cx = o0.x + o0.bw / 2, cy = o0.y + o0.bh / 2;
+      let a = Math.atan2(y - cy, x - cx) * 180 / Math.PI + 90; a = ((a % 360) + 540) % 360 - 180;
+      const near = Math.round(a / 15) * 15; if (Math.abs(a - near) <= 3) a = near;
+      arr[0].rot = Math.round(a * 10) / 10;
+    } else if (arr.length === 1 && rotatable(arr[0]) && G.origs[0]){
+      const o0 = G.origs[0], f0 = frameOf(o0, 0), sx = (G.h === 'ne' || G.h === 'se') ? 1 : -1, sy = (G.h === 'sw' || G.h === 'se') ? 1 : -1;
+      const ow = [f0.cx + (-sx * o0.bw / 2) * f0.c - (-sy * o0.bh / 2) * f0.s, f0.cy + (-sx * o0.bw / 2) * f0.s + (-sy * o0.bh / 2) * f0.c];
+      const dx = x - ow[0], dy = y - ow[1], lx = dx * f0.c + dy * f0.s, ly = -dx * f0.s + dy * f0.c;
+      const nw = Math.max(4, sx * lx), nh = Math.max(4, sy * ly);
+      const ncx = ow[0] + (sx * nw / 2) * f0.c - (sy * nh / 2) * f0.s, ncy = ow[1] + (sx * nw / 2) * f0.s + (sy * nh / 2) * f0.c;
+      arr[0].bw = r1(nw); arr[0].bh = r1(nh); arr[0].x = r1(ncx - nw / 2); arr[0].y = r1(ncy - nh / 2);
     } else {
       const ox = (G.h === 'nw' || G.h === 'sw') ? ob.x + ob.w : ob.x, oy = (G.h === 'nw' || G.h === 'ne') ? ob.y + ob.h : ob.y;
       const nb = { x: Math.min(x, ox), y: Math.min(y, oy), w: Math.max(4, Math.abs(x - ox)), h: Math.max(4, Math.abs(y - oy)) };
@@ -6150,6 +6214,11 @@ function hitHandle(arr, x, y, tol){
   if (arr.length === 1 && isPolyShape(arr[0])){
     const pts = polyPts(arr[0]);
     for (let i = pts.length - 1; i >= 0; i--) if (Math.hypot(x - pts[i][0], y - pts[i][1]) <= tol) return 'p' + (i + 1);   // the apex of a caret is p2
+    return null;
+  }
+  if (arr.length === 1 && rotatable(arr[0])){
+    const f = frameOf(arr[0], 4 / scale);
+    for (const h of ['rot', 'nw', 'ne', 'sw', 'se']) if (Math.hypot(x - f[h][0], y - f[h][1]) <= tol) return h;
     return null;
   }
   const b = groupBox(arr), pad = 4 / scale;
@@ -6347,10 +6416,23 @@ function syncShapePanel(){
   if (show) markShapeCur();
 }
 function openShapePanel(open){ INK.shapeOpen = open; try { localStorage.setItem('nt-shape-open', open ? '1' : '0'); } catch (e) {} syncShapePanel(); }
+INK.angles = true; try { INK.angles = localStorage.getItem('nt-angles') !== '0'; } catch (e) {}
 INK.ls = ''; try { INK.ls = localStorage.getItem('nt-line-style') || ''; } catch (e) {}
 function lineStyleRow(){
   return '<div class="ls-row" title="Line style for shapes (applies to the shape you just drew or selected, and to the next ones)">' + LINE_STYLES.map(([id, label, da]) =>
     '<button class="ls-btn' + ((INK.ls || 'solid') === id ? ' cur' : '') + '" data-ls="' + id + '" title="' + label + '"><svg viewBox="0 0 40 12"><path d="M3 6H37" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"' + (da ? ' stroke-dasharray="' + da + '"' : '') + '/></svg></button>').join('') + '</div>';
+}
+function rotRow(){
+  return '<div class="ls-row rot-row" title="Turn the selected shape — or drag the round handle above it (snaps every 15°)">' +
+    [['-15', '↺ 15°'], ['15', '↻ 15°'], ['90', '↻ 90°'], ['0', 'Reset']].map(([d, t]) => '<button class="ls-btn pill" data-rot="' + d + '">' + t + '</button>').join('') +
+    '<button class="ls-btn pill' + (INK.angles ? ' cur' : '') + '" data-angles="1" title="Show the angle at every corner while drawing">∠ Angles</button></div>';
+}
+function rotateSel(d){
+  if (!INK.sel) { toast('Draw or select a shape first.'); return; }
+  const arr = selList().filter(rotatable); if (!arr.length){ toast('Select a shape to turn it.'); return; }
+  pushUndo(INK.sel.p);
+  arr.forEach(st => { let a = d === 0 ? 0 : ((st.rot || 0) + d); a = ((a % 360) + 540) % 360 - 180; st.rot = Math.round(a * 10) / 10; });
+  redrawInk(INK.sel.p); scheduleSave();
 }
 function setLineStyle(id){
   INK.ls = id === 'solid' ? '' : id; try { localStorage.setItem('nt-line-style', INK.ls); } catch (e) {}
@@ -6361,7 +6443,7 @@ function setLineStyle(id){
   }
 }
 function buildShapePop(){
-  $('#shBody').innerHTML = lineStyleRow() + '<div class="shape-grid">' + SHAPES.map(it => { if (!it) return '<div class="shape-sep"></div>'; const [k, o, label] = it; return '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>'; }).join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
+  $('#shBody').innerHTML = lineStyleRow() + rotRow() + '<div class="shape-grid">' + SHAPES.map(it => { if (!it) return '<div class="shape-sep"></div>'; const [k, o, label] = it; return '<button class="shape-btn' + (INK.tool === 'shape' && INK.shape.k === k && INK.shape.o === o ? ' cur' : '') + '" data-k="' + k + '" data-o="' + o + '" title="' + label + '">' + shapeIconSVG(k, o) + '</button>'; }).join('') + '</div><div class="shape-tip">Drag on the page to place it. Hold the pen still after a stroke to turn it into a line, circle, rectangle, triangle, star or bracket.</div>';
 }
 
 /* ---------- paper templates & blank documents ---------- */
@@ -6597,6 +6679,8 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   document.addEventListener('contextmenu', e => { if (INK.tool && e.target.closest && e.target.closest('.ink-canvas')) e.preventDefault(); });
   document.addEventListener('gesturestart', e => { if (INK.tool) e.preventDefault(); });
   $('#shBody').addEventListener('click', e => {
+    const rb = e.target.closest('[data-rot]'); if (rb){ rotateSel(+rb.dataset.rot); return; }
+    const ab = e.target.closest('[data-angles]'); if (ab){ INK.angles = !INK.angles; try { localStorage.setItem('nt-angles', INK.angles ? '1' : '0'); } catch (er) {} ab.classList.toggle('cur', INK.angles); if (INK.sel) redrawInk(INK.sel.p); return; }
     const ls = e.target.closest('.ls-btn'); if (ls){ setLineStyle(ls.dataset.ls); return; }
     const b = e.target.closest('.shape-btn'); if (!b) return;
     INK.shape = { k: b.dataset.k, o: +b.dataset.o }; INK.lastPlacedId = null; INK.lastTap = null; hidePops(); setInkTool('shape'); markShapeCur();
