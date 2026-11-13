@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-c" />
+    <meta name="app-build" content="2026-11-13-d" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -378,6 +378,18 @@
       #inkBar.vert .swatches{flex-direction:column;}
       #inkBar.vert .ink-range{writing-mode:vertical-lr;direction:rtl;width:28px;height:96px;}
       #inkBar.vert .size-val{min-width:0;}
+      #ruler{position:fixed;z-index:26;pointer-events:none;touch-action:none;transform-origin:50% 50%;}
+      #ruler.hidden{display:none;}
+      #ruler .rl-body{position:absolute;inset:0;border-radius:6px;background:rgba(252,252,250,.62);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid rgba(0,0,0,.22);box-shadow:0 4px 18px rgba(0,0,0,.14);
+        background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.5) 0 1px,transparent 1px 7.56px),repeating-linear-gradient(90deg,rgba(0,0,0,.7) 0 1.4px,transparent 1.4px 37.8px);background-size:100% 6px,100% 12px;background-repeat:repeat-x;background-position:0 0,0 0;}
+      #ruler .rl-body::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.4) 0 1px,transparent 1px 7.56px);}
+      #ruler .rl-g{position:absolute;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.25);color:#333;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:grab;}
+      #ruler .rl-move{width:38px;height:38px;left:calc(50% - 19px);top:calc(50% - 19px);}
+      #ruler .rl-end{width:28px;height:28px;top:calc(50% - 14px);cursor:alias;} #ruler .rl-end.l{left:6px;} #ruler .rl-end.r{right:6px;}
+      #ruler .rl-g svg{width:18px;height:18px;}
+      #rulerDeg{position:fixed;z-index:27;pointer-events:none;background:#15171C;color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:12px;transform:translate(-50%,-50%);}
+      #rulerDeg.hidden{display:none;}
+      #inkRuler.active{background:var(--active);box-shadow:inset 0 0 0 1px var(--control);}
       #inkOrient svg{transition:transform .2s var(--ease);} #inkBar.vert #inkOrient svg{transform:rotate(90deg);}
       .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:5px 12px;min-height:32px;font-size:13px;}
       #barMove{cursor:grab;color:var(--muted);min-width:26px;padding:0 4px;touch-action:none;} #barMove:active{cursor:grabbing;}
@@ -1387,12 +1399,15 @@
         </button>
       </div>
       <div class="reader-main">
+      <div id="ruler" class="hidden" aria-hidden="true"><div class="rl-body"></div><button class="rl-g rl-end l" data-end="-1" title="Drag to turn the ruler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-3-6.2"/><path d="M20 4v4h-4"/></svg></button><button class="rl-g rl-move" title="Drag to move the ruler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg></button><button class="rl-g rl-end r" data-end="1" title="Drag to turn the ruler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-3-6.2"/><path d="M20 4v4h-4"/></svg></button></div>
+      <div id="rulerDeg" class="hidden"></div>
       <div class="format-bar ink-bar hidden" id="inkBar">
         <button class="fmt-btn" id="inkMove" title="Drag to move the toolbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></button>
-        <button class="fmt-btn" id="inkOrient" title="Stand the toolbar upright / lay it flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M8 8v3M12 8v3M16 8v3"/></svg></button>
+        <button class="fmt-btn" id="inkOrient" title="Stand the toolbar upright / lay it flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg></button>
         <button class="fmt-btn" data-tool="pen" title="Pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
         <button class="fmt-btn" data-tool="hl" title="Highlighter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6.5-6.5-4-4Z"/><path d="m9 11-4.5 4.5V19h4L13 14.5"/><path d="M4 21h16"/></svg></button>
         <button class="fmt-btn" data-tool="eraser" title="Eraser — removes whole strokes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4-4a2 2 0 0 1 0-2.8L14.2 3a2 2 0 0 1 2.8 0l4 4a2 2 0 0 1 0 2.8L11 21Z"/><path d="M22 21H7M5 11l9 9"/></svg></button>
+        <button class="fmt-btn" id="inkRuler" title="Ruler — lay it on the page, then draw along its edge for a straight line. Drag the middle to move it, drag an end to turn it."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17.5 17.5 3.5l3 3-14 14z"/><path d="m7 14 2 2M10 11l1.5 1.5M13 8l2 2"/></svg></button>
         <button class="fmt-btn" data-tool="select" title="Select, move and resize"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 3 7 17 2.5-7.5L21 10Z"/></svg></button>
         <button class="fmt-btn" id="inkSyms" title="Symbols — word classes (N, V, A, ADV) and syntax labels (NP, AP, AdvP …)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 16 12 7l3.5 9M9.8 13.2h4.4"/></svg></button>
         <button class="fmt-btn" id="inkSmooth" title="Handwriting smoothing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 19 9-9"/><path d="m13 4 1 2.2L16.2 7 14 8l-1 2.2L12 8 9.8 7 12 6.2Z"/><path d="m18.5 12 .6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6Z"/></svg></button>
@@ -2598,7 +2613,7 @@
       try { $('#bkSearch').classList.add('hidden'); $('#bksInput').value = ''; BKS.q = ''; BKS.hits = []; BKS.busy++; } catch (e) {}
       flushReadLog();
       if (typeof updateBlankThumb === 'function') updateBlankThumb();
-      if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; $('#inkBar').classList.add('hidden'); $('#symPanel').classList.add('hidden'); { const sp = $('#shapePanel'); if (sp) sp.classList.add('hidden'); } $('#pagesCol').classList.remove('ink-on'); }
+      if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; try { syncRuler(); } catch (er) {} $('#inkBar').classList.add('hidden'); $('#symPanel').classList.add('hidden'); { const sp = $('#shapePanel'); if (sp) sp.classList.add('hidden'); } $('#pagesCol').classList.remove('ink-on'); }
       if (fromPop !== true && history.state && history.state.nt === 'reader'){ history.back(); return; }
       flushLastPage();
       if (pdfDoc){ pdfDoc.destroy(); pdfDoc = null; }
@@ -6075,8 +6090,10 @@ function inkDown(e, cv){
   if (tool === 'pen' || tool === 'hl'){
     const st = { id: uid(), t: tool, c: INK.color[tool], sw: INK.width[tool], pts: [r1(x), r1(y), pressure(e)] };
     INK.live = { p, st }; G = { kind: 'draw', p, hx: x, hy: y, snapped: false, timer: null };
+    const rl = rulerLock(e.clientX, e.clientY);
+    if (rl){ G.rl = rl; const q = rulerPagePt(rl, e, cv); st.pts[0] = r1(q[0]); st.pts[1] = r1(q[1]); G.hx = q[0]; G.hy = q[1]; }
     if (tool === 'hl'){ beginInteraction(p, null); compose(p); } else { const L = inkLayers(p); if (L){ sizeLayer(L.ic, L.W, L.H); } }
-    armHold();
+    if (!rl) armHold();
   } else if (tool === 'shape'){
     // touching a symbol / picture / the shape you just placed selects it (move, or drag a corner to resize); empty space places a new one
     if (selectDown(p, x, y, { noLasso: true, filter: st => st.k === 'sym' || st.k === 'img' || st.id === INK.lastPlacedId })) { /* handled as a selection */ }
@@ -6154,6 +6171,7 @@ function inkStep(e, x, y, cv){
         st.x2 = r1(nx); st.y2 = r1(ny); compose(p); }
       return;
     }
+    if (G.rl){ const q = rulerPagePt(G.rl, e, cv); x = q[0]; y = q[1]; }
     const n = st.pts.length, lx = st.pts[n - 3], ly = st.pts[n - 2];
     G.raw = [x, y, pressure(e)];
     let fx = x, fy = y;
@@ -6164,7 +6182,7 @@ function inkStep(e, x, y, cv){
     }
     if (Math.hypot(fx - lx, fy - ly) < 0.4) return;
     st.pts.push(r1(fx), r1(fy), pressure(e));
-    if (Math.hypot(x - G.hx, y - G.hy) * scale > 4){ G.hx = x; G.hy = y; armHold(); }
+    if (Math.hypot(x - G.hx, y - G.hy) * scale > 4){ G.hx = x; G.hy = y; if (!G.rl) armHold(); }
     if (st.t === 'hl'){ compose(p); return; }
     const L = inkLayers(p); if (!L) return;
     const c = L.ic.getContext('2d'), k = L.k;
@@ -6429,6 +6447,7 @@ function buildInkSwatches(){
   $('#inkSwatches').innerHTML = INK_SW[kind].map(c => '<button class="swatch' + (c.toLowerCase() === cur ? ' active' : '') + '" data-ink-color="' + c + '" style="background:' + c + '" title="' + c + '"></button>').join('') + plus;
 }
 function syncToolUI(){
+  try { syncRuler(); } catch (e) {}
   $('#pagesCol').classList.toggle('ink-on', !!INK.tool);
   $('#pagesCol').classList.toggle('finger', INK.finger);
   $('#pagesCol').classList.toggle('tool-select', INK.tool === 'select');
@@ -6453,6 +6472,55 @@ function syncInkBar(){
   $('#inkAlign').classList.toggle('hidden', !(INK.sel && INK.tool === 'select' && selList().filter(s => s.t === 'pen').length >= 2));
   positionInkBar();
 }
+/* ---------- ruler: a straight edge you lay on the page; a stroke that starts at it follows the edge ---------- */
+INK.ruler = { on: false, cx: 0, cy: 0, ang: 0, L: 760, H: 58 };
+try { const r = JSON.parse(localStorage.getItem('nt-ruler') || 'null'); if (r){ INK.ruler.on = !!r.on; if (isFinite(r.cx) && isFinite(r.cy)){ INK.ruler.cx = r.cx; INK.ruler.cy = r.cy; } if (isFinite(r.ang)) INK.ruler.ang = r.ang; } } catch (e) {}
+function saveRuler(){ const R = INK.ruler; try { localStorage.setItem('nt-ruler', JSON.stringify({ on: R.on, cx: R.cx, cy: R.cy, ang: R.ang })); } catch (e) {} }
+function rulerShown(){ return !!(INK.ruler.on && INK.tool && currentReader && !$('#readerView').classList.contains('hidden')); }
+function syncRuler(){
+  const el = $('#ruler'), R = INK.ruler; if (!el) return;
+  const show = rulerShown(); el.classList.toggle('hidden', !show); $('#inkRuler').classList.toggle('active', !!R.on);
+  if (!show) { $('#rulerDeg').classList.add('hidden'); return; }
+  const sr = ($('#pagesScroll') || document.body).getBoundingClientRect();
+  if (!R.cx && !R.cy){ R.cx = sr.left + sr.width / 2; R.cy = sr.top + sr.height / 2; }
+  R.L = Math.max(280, Math.min(900, sr.width * 0.82));
+  R.cx = Math.max(sr.left + 20, Math.min(R.cx, sr.right - 20)); R.cy = Math.max(sr.top + 20, Math.min(R.cy, sr.bottom - 20));
+  el.style.width = R.L + 'px'; el.style.height = R.H + 'px'; el.style.left = (R.cx - R.L / 2) + 'px'; el.style.top = (R.cy - R.H / 2) + 'px'; el.style.transform = 'rotate(' + R.ang + 'rad)';
+}
+function rulerDeg(){ let d = R_deg(INK.ruler.ang); return d; }
+function R_deg(a){ let d = Math.round(a * 180 / Math.PI * 10) / 10; d = ((d + 90) % 180 + 180) % 180 - 90; return d; }
+function showRulerDeg(){ const b = $('#rulerDeg'), R = INK.ruler, n = [-Math.sin(R.ang), Math.cos(R.ang)]; b.textContent = rulerDeg() + '°'; b.style.left = (R.cx + n[0] * (R.H / 2 + 26)) + 'px'; b.style.top = (R.cy + n[1] * (R.H / 2 + 26)) + 'px'; b.classList.remove('hidden'); clearTimeout(showRulerDeg._t); showRulerDeg._t = setTimeout(() => b.classList.add('hidden'), 1400); }
+function rulerLock(sx, sy){
+  const R = INK.ruler; if (!rulerShown()) return null;
+  const c = Math.cos(R.ang), s = Math.sin(R.ang), dx = sx - R.cx, dy = sy - R.cy, t = dx * c + dy * s, d = -dx * s + dy * c, h = R.H / 2;
+  if (Math.abs(d) > h + 26 || Math.abs(t) > R.L / 2 + 26) return null;
+  return { e: d >= 0 ? 1 : -1 };
+}
+function rulerProject(rl, sx, sy){
+  const R = INK.ruler, c = Math.cos(R.ang), s = Math.sin(R.ang), t = Math.max(-R.L / 2, Math.min(R.L / 2, (sx - R.cx) * c + (sy - R.cy) * s)), h = rl.e * R.H / 2;
+  return [R.cx + c * t - s * h, R.cy + s * t + c * h];
+}
+function rulerPagePt(rl, e, cv){
+  const q = rulerProject(rl, e.clientX, e.clientY), r = cv.getBoundingClientRect(), sz = pageSizes[+cv.parentNode.dataset.page - 1];
+  return [(q[0] - r.left) / r.width * sz.w, (q[1] - r.top) / r.height * sz.h];
+}
+(function(){
+  const el = $('#ruler'); if (!el) return;
+  el.querySelectorAll('.rl-g').forEach(g => {
+    let mode = null, off = null;
+    g.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); try { g.setPointerCapture(e.pointerId); } catch (er) {} const R = INK.ruler;
+      mode = g.classList.contains('rl-move') ? 'move' : 'turn'; off = [e.clientX - R.cx, e.clientY - R.cy]; g.style.cursor = 'grabbing'; });
+    g.addEventListener('pointermove', e => { if (!mode) return; const R = INK.ruler;
+      if (mode === 'move'){ R.cx = e.clientX - off[0]; R.cy = e.clientY - off[1]; }
+      else { let a = Math.atan2(e.clientY - R.cy, e.clientX - R.cx); if (g.dataset.end === '-1') a += Math.PI; a = ((a + Math.PI / 2) % Math.PI + Math.PI) % Math.PI - Math.PI / 2;
+        const step = Math.PI / 12, near = Math.round(a / step) * step; if (Math.abs(a - near) < 0.05) a = near; R.ang = a; }
+      syncRuler(); showRulerDeg(); });
+    const end = () => { if (mode){ mode = null; g.style.cursor = ''; saveRuler(); } };
+    g.addEventListener('pointerup', end); g.addEventListener('pointercancel', end);
+  });
+  $('#inkRuler').addEventListener('click', () => { INK.ruler.on = !INK.ruler.on; saveRuler(); syncRuler(); if (INK.ruler.on) toast('Ruler on — start a pen or highlighter stroke at its edge to draw a straight line. Drag the middle to move it, an end to turn it.'); });
+  window.addEventListener('resize', syncRuler);
+})();
 INK.vert = false; try { INK.vert = localStorage.getItem('nt-ink-vert') === '1'; } catch (e) {}
 function applyInkOrient(){ const b = $('#inkBar'); if (!b) return; b.classList.toggle('vert', !!INK.vert); const o = $('#inkOrient'); if (o) o.classList.toggle('active', !!INK.vert); }
 function positionInkBar(){
