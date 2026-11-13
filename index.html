@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-i" />
+    <meta name="app-build" content="2026-11-13-j" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -605,6 +605,16 @@
       }
 
       /* ---------- Export-by-page modal ---------- */
+      .modal.pp-modal{width:min(960px,96vw);max-width:96vw;}
+      .pp-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;} .pp-tools .btn{padding:6px 12px;font-size:13px;height:34px;}
+      .pp-range{margin-left:auto;display:flex;gap:6px;align-items:center;} .pp-range input{width:170px;height:34px;border:1px solid var(--control);border-radius:8px;padding:0 10px;font:inherit;font-size:13.5px;background:var(--surface-2);color:var(--ink);}
+      .pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px;max-height:50vh;overflow-y:auto;padding:4px;-webkit-overflow-scrolling:touch;}
+      .pp-cell{position:relative;border:2px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;cursor:pointer;opacity:.55;transition:opacity .12s,border-color .12s;touch-action:manipulation;}
+      .pp-cell.sel{border-color:var(--accent);opacity:1;} .pp-th{display:block;width:100%;height:100%;object-fit:contain;background:#fff;}
+      .pp-n{position:absolute;left:5px;bottom:5px;background:rgba(21,23,28,.82);color:#fff;font-size:12px;font-weight:700;padding:1px 7px;border-radius:9px;font-variant-numeric:tabular-nums;}
+      .pp-ck{position:absolute;right:5px;top:5px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:800;display:none;align-items:center;justify-content:center;} .pp-cell.sel .pp-ck{display:flex;}
+      .pp-ann{position:absolute;left:5px;top:5px;background:rgba(255,255,255,.92);color:var(--accent-strong);font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:9px;border:1px solid var(--line);}
+      .pp-foot{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:10px;font-size:13px;color:var(--muted);flex-wrap:wrap;} #ppCount{font-weight:600;color:var(--ink);}
       .page-pick-list{max-height:44vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:2px;}
       .page-pick{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:14px;}
       .page-pick:hover{background:var(--surface-2);}
@@ -938,8 +948,12 @@
         .card{padding:18px;border-radius:22px;}
         .doc-row{grid-template-columns:40px minmax(0,1fr) 60px;} .doc-row .dr-prog{display:none;}
       }
-      .reader-bar .btn{height:40px;padding:0 15px;font-size:13.5px;gap:7px;}
-      @media (max-width:1560px){ .save-status .txt{display:none;} .reader-bar .btn{padding:0 12px;} }
+      .reader-bar .btn{height:34px;padding:0 11px;font-size:13px;gap:5px;}
+      .reader-bar .btn svg{width:16px;height:16px;}
+      .reader-bar{gap:6px;}
+      @media (max-width:1560px){ .save-status .txt{display:none;} .reader-bar .btn{padding:0 10px;} }
+      @media (max-width:900px){ .reader-bar .btn .lbl{display:none !important;} .reader-bar .page-ind{display:none;} .reader-bar .doc-title{max-width:96px;} .reader-bar{gap:4px;padding:7px 8px;} .reader-bar .btn{padding:0 9px;} }
+      @media (max-width:1100px){ .reader-bar .btn .lbl{display:none;} .reader-bar .btn{padding:0 10px;} .reader-bar #addTextBtn .lbl,.reader-bar #exportBtn .lbl{display:inline;} }
       .nav-scrim{display:none;}
       .greet-menu{display:none;}
       @media (max-width:760px){
@@ -1386,20 +1400,16 @@
         <div class="bar-sep"></div>
         <button class="btn add-text-btn" id="addTextBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16m-3 0h6"/></svg>
-          Add Text
+          <span class="lbl">Text</span>
         </button>
-        <button class="btn" id="picBtn" title="Add a picture or photo (you can also paste or drop one)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>Picture</button>
+        <button class="btn" id="picBtn" title="Add a picture or photo (you can also paste or drop one)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg><span class="lbl">Photo</span></button>
         <input type="file" id="picInput" accept="image/*" multiple class="hidden" />
-        <button class="btn" id="drawBtn" title="Draw with a pen, Apple Pencil or mouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Draw</button>
-        <button class="btn" id="markBtn" title="Highlighter — highlight anywhere on the page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6.5-6.5-4-4Z"/><path d="m9 11-4.5 4.5V19h4L13 14.5"/><path d="M4 21h16"/></svg>Highlight</button>
-        <button class="btn hidden" id="addPageBtn" title="Add a blank page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Page</button>
-        <button class="btn" id="exportBtn">
+        <button class="btn" id="drawBtn" title="Draw with a pen, Apple Pencil or mouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span class="lbl">Draw</span></button>
+        <button class="btn" id="markBtn" title="Highlighter — highlight anywhere on the page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6.5-6.5-4-4Z"/><path d="m9 11-4.5 4.5V19h4L13 14.5"/><path d="M4 21h16"/></svg><span class="lbl">Highlight</span></button>
+        <button class="btn hidden" id="addPageBtn" title="Add a blank page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Page</span></button>
+        <button class="btn" id="exportBtn" title="Export a PDF of the pages you choose, with your notes and drawings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg>
-          Export PDF
-        </button>
-        <button class="btn" id="exportPagesBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="m3.5 6 1.2 1.2L7 4.9M3.5 12l1.2 1.2L7 10.9M3.5 18l1.2 1.2L7 16.9" transform="translate(0,-0.4)"/></svg>
-          Export Pages
+          <span class="lbl">Export</span>
         </button>
       </div>
       <div class="reader-main">
@@ -4978,41 +4988,77 @@
     /* ================= Export PDF by selected pages ================= */
     function exportPagesModal(){
       if (!currentReader || (!pdfDoc && !isBlank())) return;
-      const total = pageSizes.length;
-      const counts = {};
-      currentReader.notes.forEach(n => { counts[n.page] = (counts[n.page] || 0) + 1; });
-      let rows = '';
+      const total = pageSizes.length, notes = {}, inked = {};
+      currentReader.notes.forEach(n => { notes[n.page] = (notes[n.page] || 0) + 1; });
+      Object.keys(currentReader.ink || {}).forEach(p => { if ((currentReader.ink[p] || []).length) inked[p] = 1; });
+      let cells = '';
       for (let p = 1; p <= total; p++){
-        rows += '<label class="page-pick"><input type="checkbox" class="pp-check" value="' + p + '" checked /><span>Page ' + p + '</span>' +
-          (counts[p] ? '<span class="cnt">' + counts[p] + (counts[p] === 1 ? ' note' : ' notes') + '</span>' : '') + '</label>';
+        cells += '<div class="pp-cell sel" data-p="' + p + '"><canvas class="pp-th" width="1" height="1"></canvas><span class="pp-n">' + p + '</span><span class="pp-ck">✓</span>' +
+          (notes[p] || inked[p] ? '<span class="pp-ann" title="Has notes or drawings">✎' + (notes[p] ? ' ' + notes[p] : '') + '</span>' : '') + '</div>';
       }
       openModal(
-        '<h3>Export PDF by Page</h3>' +
-        '<p>Tick the pages you want to export. The new PDF contains exactly the selected pages, in original page order, with the notes on those pages.</p>' +
-        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">' +
-          '<button class="btn" id="ppAll" style="padding:7px 12px;font-size:13px">Select All</button>' +
-          '<button class="btn" id="ppNone" style="padding:7px 12px;font-size:13px">Deselect All</button>' +
-          '<span id="ppCount" style="margin-left:auto;font-size:13px;color:var(--muted)"></span>' +
+        '<h3>Export PDF</h3>' +
+        '<p>Tap the pages you want. The new PDF has exactly those pages, in order, with their notes and drawings.</p>' +
+        '<div class="pp-tools">' +
+          '<button class="btn" id="ppAll">All</button><button class="btn" id="ppNone">None</button><button class="btn" id="ppInv">Invert</button>' +
+          (Object.keys(notes).length || Object.keys(inked).length ? '<button class="btn" id="ppAnn">✎ Annotated</button>' : '') +
+          '<span class="pp-range"><input id="ppRange" type="text" inputmode="numeric" placeholder="e.g. 1-5, 8, 12-20" autocomplete="off" spellcheck="false" /><button class="btn" id="ppRangeGo">Add</button></span>' +
         '</div>' +
-        '<div class="page-pick-list">' + rows + '</div>' +
+        '<div class="pp-grid" id="ppGrid">' + cells + '</div>' +
+        '<div class="pp-foot"><span id="ppCount"></span><span class="pp-hint">Tip: tap one page, then Shift-tap another to select everything between.</span></div>' +
         '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="ppExport">Export PDF</button></div>'
       );
-      const checks = Array.from(document.querySelectorAll('.pp-check'));
-      const upd = () => {
-        const n = checks.filter(c => c.checked).length;
-        $('#ppCount').textContent = 'Selected ' + n + ' / ' + total + ' pages';
-        const ex = $('#ppExport'); ex.disabled = n === 0; ex.style.opacity = n === 0 ? '.5' : '';
+      const m = $('.modal'); if (m) m.classList.add('pp-modal');
+      const cs = Array.from(document.querySelectorAll('.pp-cell')), grid = $('#ppGrid');
+      let last = 0;
+      const sel = () => cs.filter(c => c.classList.contains('sel')).map(c => +c.dataset.p);
+      const upd = () => { const n = sel().length; $('#ppCount').textContent = n + ' of ' + total + ' pages selected'; const ex = $('#ppExport'); ex.disabled = n === 0; ex.style.opacity = n === 0 ? '.5' : ''; };
+      const setP = (p, on) => cs[p - 1].classList.toggle('sel', on);
+      grid.addEventListener('click', e => {
+        const c = e.target.closest('.pp-cell'); if (!c) return;
+        const p = +c.dataset.p, on = !c.classList.contains('sel');
+        if (e.shiftKey && last){ const a = Math.min(last, p), b = Math.max(last, p); for (let i = a; i <= b; i++) setP(i, on); }
+        else setP(p, on);
+        last = p; upd();
+      });
+      $('#ppAll').addEventListener('click', () => { cs.forEach(c => c.classList.add('sel')); upd(); });
+      $('#ppNone').addEventListener('click', () => { cs.forEach(c => c.classList.remove('sel')); upd(); });
+      $('#ppInv').addEventListener('click', () => { cs.forEach(c => c.classList.toggle('sel')); upd(); });
+      const ann = $('#ppAnn'); if (ann) ann.addEventListener('click', () => { cs.forEach(c => c.classList.toggle('sel', !!(notes[c.dataset.p] || inked[c.dataset.p]))); upd(); });
+      const addRange = () => {
+        const txt = $('#ppRange').value, list = [];
+        txt.split(/[,;\s]+/).filter(Boolean).forEach(part => { const mm = part.match(/^(\d+)(?:\s*[-–]\s*(\d+))?$/); if (!mm) return; let a = +mm[1], b = mm[2] ? +mm[2] : a; if (a > b){ const t = a; a = b; b = t; } for (let i = Math.max(1, a); i <= Math.min(total, b); i++) list.push(i); });
+        if (!list.length){ toast('Type page numbers like 1-5, 8, 12-20.'); return; }
+        // the typed pages replace the selection, so "3-7, 20" means exactly those pages
+        cs.forEach(c => c.classList.remove('sel')); list.forEach(p => setP(p, true)); upd();
+        const first = cs[list[0] - 1]; if (first) first.scrollIntoView({ block: 'nearest' });
       };
-      checks.forEach(c => c.addEventListener('change', upd));
+      $('#ppRangeGo').addEventListener('click', addRange);
+      $('#ppRange').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addRange(); } });
       upd();
-      $('#ppAll').addEventListener('click', () => { checks.forEach(c => { c.checked = true; }); upd(); });
-      $('#ppNone').addEventListener('click', () => { checks.forEach(c => { c.checked = false; }); upd(); });
-      $('#mCancel').addEventListener('click', closeModal);
+      // thumbnails: painted only when they scroll into view, a few at a time
+      const queue = []; let running = 0;
+      const paint = async cell => {
+        const p = +cell.dataset.p, cv = cell.querySelector('canvas'); const tw = 150;
+        try {
+          if (isBlank()){ const src = blankPageCanvas(p, tw / pageSizes[p - 1].w); cv.width = src.width; cv.height = src.height; cv.getContext('2d').drawImage(src, 0, 0); return; }
+          const side = document.querySelector('.thumb-item[data-tpage="' + p + '"] canvas.thumb-canvas');
+          if (side && side.width > 20){ cv.width = side.width; cv.height = side.height; cv.getContext('2d').drawImage(side, 0, 0); return; }
+          const page = await pdfDoc.getPage(p), vp1 = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: tw / vp1.width });
+          cv.width = Math.max(1, Math.round(vp.width)); cv.height = Math.max(1, Math.round(vp.height));
+          await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+        } catch (e) {}
+      };
+      const pump = () => { while (running < 3 && queue.length){ const c = queue.shift(); running++; paint(c).finally(() => { running--; pump(); }); } };
+      const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ io.unobserve(en.target); queue.push(en.target); pump(); } }), { root: grid, rootMargin: '300px' });
+      cs.forEach(c => { const sz = pageSizes[+c.dataset.p - 1]; if (sz) c.style.aspectRatio = sz.w + ' / ' + sz.h; io.observe(c); });
+      const stop = () => { try { io.disconnect(); } catch (e) {} queue.length = 0; };
+      $('#mCancel').addEventListener('click', () => { stop(); closeModal(); });
       $('#ppExport').addEventListener('click', () => {
-        const sel = checks.filter(c => c.checked).map(c => +c.value).sort((a, b) => a - b);
-        if (!sel.length) return;
-        closeModal();
-        exportPdf(sel);
+        const picked = sel().sort((a, b) => a - b);
+        if (!picked.length) return;
+        stop(); closeModal();
+        exportPdf(picked.length === total ? null : picked);
       });
     }
 
@@ -5133,8 +5179,7 @@
       }
       btn.disabled = false;
     }
-    $('#exportBtn').addEventListener('click', () => exportPdf(null));
-    $('#exportPagesBtn').addEventListener('click', exportPagesModal);
+    $('#exportBtn').addEventListener('click', exportPagesModal);
 
     /* ================= Init ================= */
     async function initApp(){
