@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-b" />
+    <meta name="app-build" content="2026-11-13-c" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -6523,16 +6523,26 @@ function buildSymPanel(){
     '<div class="shape-tip">Tap the page to place a symbol, or drag to size it: a frame shows its width and height, and it snaps to the size you used last so symbols match.</div>';
   $('#spBody').innerHTML = h;
 }
-/* Edge/Safari may drop the saved e-mail address into a search box: empty it unless the user typed there */
+/* The browser (Edge/Safari) may drop the saved e-mail address into a search box. The boxes stay read-only until you touch them,
+   so nothing can be filled in behind your back, and anything that still lands there without a key press is emptied. */
 (function(){
-  const typed = new WeakSet();
-  const guard = () => ['searchInput', 'heroInput'].forEach(id => {
+  const IDS = ['searchInput', 'heroInput'], typed = new WeakSet();
+  const mine = el => el && el.id && IDS.indexOf(el.id) >= 0;
+  const guard = () => IDS.forEach(id => {
     const el = document.getElementById(id); if (!el) return;
-    if (!el._g){ el._g = 1; ['keydown', 'paste', 'compositionstart'].forEach(ev => el.addEventListener(ev, () => typed.add(el))); }
-    if (!typed.has(el) && /@/.test(el.value)){ el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
+    if (!typed.has(el)){
+      if (/@/.test(el.value)){ el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); }
+      if (document.activeElement !== el) el.readOnly = true;
+    }
   });
-  let n = 0; const iv = setInterval(() => { guard(); if (++n > 24) clearInterval(iv); }, 500);
-  document.addEventListener('focusin', guard);
+  const unlock = e => { const el = e.target; if (mine(el)){ el.readOnly = false; } };
+  ['pointerdown', 'touchstart', 'mousedown'].forEach(ev => document.addEventListener(ev, unlock, true));
+  document.addEventListener('focusin', e => { if (mine(e.target)) e.target.readOnly = false; });
+  document.addEventListener('keydown', e => { if (mine(e.target)) typed.add(e.target); }, true);
+  document.addEventListener('paste', e => { if (mine(e.target)) typed.add(e.target); }, true);
+  document.addEventListener('compositionstart', e => { if (mine(e.target)) typed.add(e.target); }, true);
+  document.addEventListener('input', e => { if (mine(e.target) && !typed.has(e.target) && /@/.test(e.target.value)){ e.target.value = ''; e.stopImmediatePropagation(); } }, true);
+  guard(); setInterval(guard, 1000);
 })();
 function addOwnSymbol(){
   const t = ($('#symTxt').value || '').trim(), ring = $('#symRing').checked; if (!t) return;
