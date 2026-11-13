@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-s" />
+    <meta name="app-build" content="2026-11-13-t" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -2648,7 +2648,7 @@
       }
     }
     function closeReader(fromPop){
-      try { $('#bkSearch').classList.add('hidden'); $('#bksInput').value = ''; BKS.q = ''; BKS.hits = []; BKS.busy++; } catch (e) {}
+      try { $('#bkSearch').classList.add('hidden'); $('#bksInput').value = ''; BKS.q = ''; BKS.hits = []; BKS.busy++; $('#bksList').innerHTML = ''; $('#bksCount').textContent = ''; BKS.texts = new WeakMap(); $('#thumbList').innerHTML = ''; } catch (e) {}   // give back the search results, page texts and thumbnails of the closed file
       flushReadLog();
       if (typeof updateBlankThumb === 'function') updateBlankThumb();
       if (typeof INK !== 'undefined'){ INK.tool = null; INK.sel = null; try { syncRuler(); } catch (er) {} $('#inkBar').classList.add('hidden'); $('#symPanel').classList.add('hidden'); { const sp = $('#shapePanel'); if (sp) sp.classList.add('hidden'); } $('#pagesCol').classList.remove('ink-on'); }
