@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-q" />
+    <meta name="app-build" content="2026-11-13-r" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -376,6 +376,14 @@
       #inkBar .ink-grip{touch-action:none;}
       #inkBar.vert{flex-direction:column;flex-wrap:nowrap !important;align-items:center;justify-content:flex-start;row-gap:2px;padding:6px 4px;border-radius:18px;max-width:none;max-height:calc(100vh - 150px);overflow-y:auto !important;overflow-x:hidden !important;scrollbar-width:none;}
       #inkBar.vert .bar-sep{width:24px;height:1px;margin:4px 0;}
+      #formatBar.vert{flex-direction:column;flex-wrap:nowrap;align-items:center;gap:2px;padding:6px 4px;border-radius:18px;max-width:none;max-height:calc(100vh - 150px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
+      #formatBar.vert .bar-sep{width:24px;height:1px;margin:4px 0;}
+      #formatBar.vert .fmt-btn{width:36px;height:36px;min-width:0;padding:0;} #formatBar.vert .fmt-btn svg{width:19px;height:19px;}
+      #formatBar.vert .align-group{flex-direction:column;} #formatBar.vert .size-val{min-width:0;}
+      #formatBar.vert #barColorBtn{display:flex !important;}
+      #barColorDot{width:20px;height:20px;border-radius:50%;background:#111;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--ink-2);display:block;}
+      #barColorPop .swatches{display:flex;gap:8px;align-items:center;}
+      #formatBar.vert #barOrient svg{transform:none;}
       #inkStyle{display:contents;}
       #inkBar.vert #inkStyleBtn,#inkBar.vert #inkSizeBtn{display:flex !important;}
       #inkStylePop[data-mode=color] #inkStyle > :not(#inkSwatches){display:none;} #inkStylePop[data-mode=size] #inkSwatches,#inkStylePop[data-mode=size] #inkStyle > .bar-sep{display:none;} #inkBar.vert .fmt-btn{width:36px;height:36px;min-width:0;padding:0;} #inkBar.vert .fmt-btn svg{width:19px;height:19px;}
@@ -1448,6 +1456,7 @@
       </div>
       <div class="format-bar hidden" id="formatBar">
         <button class="fmt-btn" id="barMove" title="Drag to move the toolbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></button>
+        <button class="fmt-btn" id="barOrient" title="Stand the toolbar upright / lay it flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2.5" width="4.4" height="19" rx="2.2" fill="currentColor" stroke="none"/><path d="M11 12h8" stroke-width="2.6"/><path d="M18 7.5 22 12l-4 4.5z" fill="currentColor" stroke-width="1.2"/></svg></button>
         <button class="fmt-btn" id="barClose" title="Hide toolbar (select the text box again to bring it back)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         <div class="bar-sep"></div>
         <select class="hidden" id="fmtFont">
@@ -1469,8 +1478,9 @@
         <button class="fmt-btn" id="fmtItalic" title="Italic"><i>I</i></button>
         <button class="fmt-btn" id="fmtStrike" title="Strikethrough"><s>S</s></button>
         <div class="bar-sep"></div>
+        <button class="fmt-btn" id="barColorBtn" title="Text colour" style="display:none"><span id="barColorDot"></span></button>
         <div class="swatches" id="colorSwatches"></div>
-        <div class="bar-sep"></div>
+        <div class="bar-sep" id="barColorSep"></div>
         <div class="align-group" id="alignGroup" title="Double-click to show centre and right alignment">
           <button class="fmt-btn" data-align="left" title="Align left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg></button>
           <button class="fmt-btn align-ext" data-align="center" title="Align centre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 11h10M4 16h16M7 21h10"/></svg></button>
@@ -1504,6 +1514,7 @@
       </div>
     </div>
 
+    <div class="fpop hidden" id="barColorPop" style="padding:8px 10px"></div>
     <div class="fpop hidden" id="fontPop">
       <input type="text" id="fpSearch" placeholder="Search fonts…" autocomplete="off" />
       <div id="fpList"></div>
@@ -2492,6 +2503,7 @@
       const bw = bar.offsetWidth, bh = bar.offsetHeight;
       let x, y;
       if (barPinned){ x = barPinned.x; y = barPinned.y; }
+      else if (bar.classList.contains('vert')){ const sr = ($('#pagesScroll') || document.querySelector('.reader-main')).getBoundingClientRect(); x = sr.left + 10; y = mr.top + 10; }
       else { x = mr.left + (mr.width - bw) / 2; y = mr.top + 10; }   // default: top centre, out of the way of the text
       x = Math.max(8, Math.min(x, window.innerWidth - bw - 8));
       y = Math.max(mr.top + 4, Math.min(y, mr.bottom - bh - 4));
@@ -4459,7 +4471,7 @@
     function syncFormatBar(){
       const s = effectiveStyle(); if (!s) return;
       const n = findNote(selectedNoteId);
-      ensureFontOption(s.font);
+      ensureFontOption(s.font); { const dd = $('#barColorDot'); if (dd) dd.style.background = s.color; }
       $('#fmtFont').value = s.font;
       const sz = n ? pageSizes[n.page - 1] : (pageSizes[currentPage - 1] || pageSizes[0]);
       $('#sizeVal').textContent = sz ? Math.round(s.sizeFrac * sz.w) : Math.round(s.sizeFrac * 595);
@@ -4926,8 +4938,9 @@
       hidePops();
       pop.classList.remove('hidden'); popAnchor = anchor;
       const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
-      const x = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8));
+      let x = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8));
       let y = r.bottom + 6; if (y + ph > window.innerHeight - 8) y = Math.max(8, r.top - ph - 6);
+      if (anchor.closest && anchor.closest('#formatBar.vert')){ x = Math.max(8, Math.min(r.right + 8, window.innerWidth - pw - 8)); y = Math.max(8, Math.min(r.top + r.height / 2 - ph / 2, window.innerHeight - ph - 8)); }
       pop.style.left = x + 'px'; pop.style.top = y + 'px';
       pop.style.transformOrigin = Math.round(r.left + r.width / 2 - x) + 'px ' + (y < r.top ? 'bottom' : 'top');   // grows out of its button
     }
@@ -4988,6 +5001,17 @@
       h.addEventListener('dblclick', () => { barPinned = null; try { localStorage.removeItem('nt-bar-pos'); } catch (e) {} positionToolbar(); });   // double-tap the handle: back to top centre
     })();
     $('#barClose').addEventListener('click', () => { barDismissed = true; updateToolbarVisibility(); });
+    /* upright text toolbar: the colours collapse into one dot that opens a small panel beside the bar */
+    let barVert = false; try { barVert = localStorage.getItem('nt-bar-vert') === '1'; } catch (e) {}
+    function applyBarOrient(){
+      const bar = $('#formatBar'), g = $('#colorSwatches'), pop = $('#barColorPop'), anchor = $('#barColorSep'); if (!bar || !g || !pop) return;
+      bar.classList.toggle('vert', barVert); $('#barOrient').classList.toggle('active', barVert);
+      if (barVert){ if (g.parentNode !== pop) pop.appendChild(g); } else { if (g.parentNode !== bar) bar.insertBefore(g, anchor); }
+      hidePops();
+    }
+    applyBarOrient();
+    $('#barOrient').addEventListener('click', () => { barVert = !barVert; try { localStorage.setItem('nt-bar-vert', barVert ? '1' : '0'); } catch (e) {} barPinned = null; try { localStorage.removeItem('nt-bar-pos'); } catch (e) {} applyBarOrient(); positionToolbar(); });
+    $('#barColorBtn').addEventListener('click', () => togglePop($('#barColorPop'), $('#barColorBtn')));
     $('#deleteNoteBtn') && $('#deleteNoteBtn').addEventListener('click', () => { if (selectedNoteId) deleteNote(selectedNoteId); });
     // Keep editing alive when interacting with the format bar
     $('#formatBar').addEventListener('pointerdown', e => { if (editingId && !e.target.closest('select, input')) e.preventDefault(); }, true);
