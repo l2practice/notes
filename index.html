@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-a" />
+    <meta name="app-build" content="2026-11-13-b" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -373,6 +373,12 @@
       .format-bar.hidden{display:flex !important;opacity:0;visibility:hidden;pointer-events:none;}
       #inkBar{max-width:calc(100vw - 16px);flex-wrap:wrap !important;overflow:visible !important;row-gap:6px;justify-content:center;}
       #inkBar .ink-grip{touch-action:none;}
+      #inkBar.vert{flex-direction:column;flex-wrap:nowrap !important;align-items:center;justify-content:flex-start;row-gap:2px;padding:6px 4px;border-radius:18px;max-width:none;max-height:calc(100vh - 150px);overflow-y:auto !important;overflow-x:hidden !important;scrollbar-width:none;}
+      #inkBar.vert .bar-sep{width:24px;height:1px;margin:4px 0;}
+      #inkBar.vert .swatches{flex-direction:column;}
+      #inkBar.vert .ink-range{writing-mode:vertical-lr;direction:rtl;width:28px;height:96px;}
+      #inkBar.vert .size-val{min-width:0;}
+      #inkOrient svg{transition:transform .2s var(--ease);} #inkBar.vert #inkOrient svg{transform:rotate(90deg);}
       .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:5px 12px;min-height:32px;font-size:13px;}
       #barMove{cursor:grab;color:var(--muted);min-width:26px;padding:0 4px;touch-action:none;} #barMove:active{cursor:grabbing;}
       .fa-glyph{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:19px;line-height:1;}
@@ -1383,6 +1389,7 @@
       <div class="reader-main">
       <div class="format-bar ink-bar hidden" id="inkBar">
         <button class="fmt-btn" id="inkMove" title="Drag to move the toolbar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg></button>
+        <button class="fmt-btn" id="inkOrient" title="Stand the toolbar upright / lay it flat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M8 8v3M12 8v3M16 8v3"/></svg></button>
         <button class="fmt-btn" data-tool="pen" title="Pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
         <button class="fmt-btn" data-tool="hl" title="Highlighter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 4 4 6.5-6.5-4-4Z"/><path d="m9 11-4.5 4.5V19h4L13 14.5"/><path d="M4 21h16"/></svg></button>
         <button class="fmt-btn" data-tool="eraser" title="Eraser — removes whole strokes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4-4a2 2 0 0 1 0-2.8L14.2 3a2 2 0 0 1 2.8 0l4 4a2 2 0 0 1 0 2.8L11 21Z"/><path d="M22 21H7M5 11l9 9"/></svg></button>
@@ -6446,10 +6453,13 @@ function syncInkBar(){
   $('#inkAlign').classList.toggle('hidden', !(INK.sel && INK.tool === 'select' && selList().filter(s => s.t === 'pen').length >= 2));
   positionInkBar();
 }
+INK.vert = false; try { INK.vert = localStorage.getItem('nt-ink-vert') === '1'; } catch (e) {}
+function applyInkOrient(){ const b = $('#inkBar'); if (!b) return; b.classList.toggle('vert', !!INK.vert); const o = $('#inkOrient'); if (o) o.classList.toggle('active', !!INK.vert); }
 function positionInkBar(){
   const bar = $('#inkBar'); if (!bar || bar.classList.contains('hidden')) return;
   const mr = document.querySelector('.reader-main').getBoundingClientRect(), bw = bar.offsetWidth, bh = bar.offsetHeight;
-  let x = INK.pinned ? INK.pinned.x : mr.left + (mr.width - bw) / 2, y = INK.pinned ? INK.pinned.y : mr.top + 10;
+  const vert = bar.classList.contains('vert'), sr = (document.querySelector('#pagesScroll') || document.querySelector('.reader-main')).getBoundingClientRect();
+  let x = INK.pinned ? INK.pinned.x : vert ? sr.left + 10 : mr.left + (mr.width - bw) / 2, y = INK.pinned ? INK.pinned.y : mr.top + 10;
   x = Math.max(8, Math.min(x, window.innerWidth - bw - 8)); y = Math.max(mr.top + 4, Math.min(y, mr.bottom - bh - 4));
   bar.style.left = Math.round(x) + 'px'; bar.style.top = Math.round(y) + 'px';
 }
@@ -6834,6 +6844,8 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#markBtn').addEventListener('click', () => setInkTool(INK.tool === 'hl' ? null : 'hl'));
   $('#addPageBtn').addEventListener('click', () => { if (!currentReader) return; if (isBlank()) addBlankPage(); else addPageModal(); });
   $('#newDocBtn').addEventListener('click', newDocModal);
+  applyInkOrient();
+  $('#inkOrient').addEventListener('click', () => { INK.vert = !INK.vert; try { localStorage.setItem('nt-ink-vert', INK.vert ? '1' : '0'); } catch (e) {} INK.pinned = null; applyInkOrient(); hidePops(); positionInkBar(); });
   $('#inkBar').addEventListener('pointerdown', e => { if (!e.target.closest('input')) e.preventDefault(); }, true);
   document.querySelectorAll('#inkBar [data-tool]').forEach(b => b.addEventListener('click', () => setInkTool(b.dataset.tool)));
   $('#inkShapes').addEventListener('click', () => openShapePanel(!INK.shapeOpen));
