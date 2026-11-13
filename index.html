@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-o" />
+    <meta name="app-build" content="2026-11-13-p" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -397,7 +397,6 @@
       #inkRuler.active{background:var(--active);box-shadow:inset 0 0 0 1px var(--control);}
       #inkOrient svg{transition:transform .2s var(--ease);} 
       .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:5px 12px;min-height:32px;font-size:13px;}
-      .reader-bar #syncNowBtn{padding:0 9px;width:38px;justify-content:center;} .reader-bar #syncNowBtn svg{width:20px;height:20px;}
       @keyframes syncSpin{to{transform:rotate(360deg)}} #syncNowBtn.spin .syn{animation:syncSpin .9s linear infinite;transform-origin:12px 13.2px;}
       #barMove{cursor:grab;color:var(--muted);min-width:26px;padding:0 4px;touch-action:none;} #barMove:active{cursor:grabbing;}
       .fa-glyph{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:19px;line-height:1;}
@@ -1389,7 +1388,6 @@
         <span class="doc-title" id="readerTitle"></span>
         <span class="save-status" id="saveStatus"><span class="dot"></span><span class="txt">Saved</span></span>
         <button class="btn" id="saveNowBtn" title="Save now (Ctrl/Cmd+S)">Save</button>
-        <button class="btn hidden" id="syncNowBtn" title="Save and sync with Google Drive now" aria-label="Sync with Google Drive"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="syncGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d8bd9"/><stop offset="1" stop-color="#9a4fe0"/></linearGradient></defs><g stroke="url(#syncGrad)"><path d="M6.6 19.2a4.4 4.4 0 0 1-.7-8.75 6.2 6.2 0 0 1 11.9 1.2 3.8 3.8 0 0 1-.4 7.55z"/><g class="syn"><path d="M14.7 11.7a2.9 2.9 0 0 0-5-.7"/><path d="M9.5 8.9v2.2h2.2"/><path d="M9.3 14.7a2.9 2.9 0 0 0 5 .7"/><path d="M14.5 17.4v-2.2h-2.2"/></g></g></svg></button>
         <div class="spacer" style="flex:1"></div>
         <span class="page-ind" id="pageInd"></span>
         <button class="icon-btn" id="bkSearchBtn" title="Search the whole book (Ctrl/Cmd+F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
@@ -1495,6 +1493,7 @@
       </div>
         <aside class="thumb-side" id="thumbSide">
           <div class="thumb-side-head"><span>Pages</span>
+            <button class="icon-btn hidden" id="syncNowBtn" title="Sync with Google Drive now (also happens when you close the file)" aria-label="Sync with Google Drive" style="width:30px;height:30px;margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M6.6 19.2a4.4 4.4 0 0 1-.7-8.75 6.2 6.2 0 0 1 11.9 1.2 3.8 3.8 0 0 1-.4 7.55z"/><g class="syn"><path d="M14.7 11.7a2.9 2.9 0 0 0-5-.7"/><path d="M9.5 8.9v2.2h2.2"/><path d="M9.3 14.7a2.9 2.9 0 0 0 5 .7"/><path d="M14.5 17.4v-2.2h-2.2"/></g></svg></button>
             <button class="icon-btn" id="thumbHideBtn" title="Hide page list" style="width:30px;height:30px">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M15 5l-7 7 7 7"/></svg>
             </button>
