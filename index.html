@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-t" />
+    <meta name="app-build" content="2026-11-13-u" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -473,6 +473,9 @@
       .page-num{
         position:absolute;right:-4px;bottom:-20px;font-size:11.5px;color:var(--muted);font-weight:600;
       }
+      #loadChip{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:9px;background:rgba(21,23,28,.9);color:#fff;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:18px;pointer-events:none;} #loadChip.hidden{display:none;}
+      #loadChip i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .8s linear infinite;}
+      .page-loading.failed{color:var(--danger);cursor:pointer;font-weight:600;text-align:center;padding:0 20px;}
       .page-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa0aa;font-size:13px;}
       .notes-layer{position:absolute;inset:0;pointer-events:none;}
       #bkSearch{position:fixed;top:58px;right:14px;width:min(360px,calc(100vw - 28px));max-height:min(70vh,520px);display:flex;flex-direction:column;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-lg);z-index:60;overflow:hidden;}
@@ -663,6 +666,9 @@
       #toast.show{opacity:1;transform:translate(-50%,0);}
 
       .reader-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);}
+      .ld-bar{width:min(300px,70vw);height:5px;border-radius:3px;background:var(--line);overflow:hidden;} .ld-bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:3px;transition:width .25s;}
+      .ld-bar i.ind{width:35%;animation:ldSlide 1.1s ease-in-out infinite;} @keyframes ldSlide{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+      .ld-note{font-size:12.5px;color:var(--danger);max-width:320px;text-align:center;min-height:0;}
       .spinner{width:34px;height:34px;border-radius:50%;border:3.5px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite;}
       @keyframes spin{to{transform:rotate(360deg);}}
 
@@ -1422,6 +1428,7 @@
       </div>
       <div class="reader-main">
       <div id="ruler" class="hidden" aria-hidden="true"><canvas id="rulerCv"></canvas><button class="rl-g rl-end l" data-end="-1" title="Drag to turn the ruler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-3-6.2"/><path d="M20 4v4h-4"/></svg></button><button class="rl-g rl-move" title="Drag to move the ruler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg></button><button class="rl-g rl-end r" data-end="1" title="Drag to turn the ruler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-3-6.2"/><path d="M20 4v4h-4"/></svg></button></div>
+      <div id="loadChip" class="hidden" role="status"><i></i><span>Drawing pages…</span></div>
       <div id="rulerDeg" class="hidden"></div>
       <div id="inkStylePop"></div>
       <div class="format-bar ink-bar hidden" id="inkBar">
@@ -2557,6 +2564,26 @@
     setInterval(() => { if (currentReader && docDirty) saveNow(); }, AUTOSAVE_MS);
 
     /* ================= Open / close ================= */
+    /* Opening a document: say which step it is on, how long it has been, and warn when a step is slow */
+    let _ld = { t0: 0, stageT: 0, text: '', frac: null, extra: '', iv: 0 };
+    function loadRender(){
+      const el = $('#readerLoading'); if (!el || el.classList.contains('hidden')) return;
+      const sec = Math.round((Date.now() - _ld.t0) / 1000), stale = Date.now() - _ld.stageT > 12000;
+      const pct = _ld.frac !== null ? ' — ' + Math.round(_ld.frac * 100) + '%' : '';
+      const txt = _ld.text + pct + (_ld.extra ? ' (' + _ld.extra + ')' : '') + ' · ' + sec + ' s';
+      const sp = el.querySelector('span'); if (sp) sp.textContent = txt;
+      const note = el.querySelector('.ld-note'); if (note) note.textContent = stale ? 'This step is taking longer than usual — still working. Check your connection, or go back and try again.' : '';
+      const bar = el.querySelector('.ld-bar i'); if (bar){ bar.style.width = _ld.frac !== null ? Math.round(_ld.frac * 100) + '%' : ''; bar.classList.toggle('ind', _ld.frac === null); }
+    }
+    function loadStart(text){
+      _ld = { t0: Date.now(), stageT: Date.now(), text, frac: null, extra: '', iv: _ld.iv };
+      const el = $('#readerLoading'); el.classList.remove('hidden');
+      el.innerHTML = '<div class="spinner"></div><span></span><div class="ld-bar"><i class="ind"></i></div><div class="ld-note"></div><button class="btn" id="ldBack">Back to library</button>';
+      $('#ldBack').onclick = () => closeReader();
+      clearInterval(_ld.iv); _ld.iv = setInterval(loadRender, 1000); loadRender();
+    }
+    function loadStage(text, frac, extra){ if (text !== _ld.text) _ld.stageT = Date.now(); else if (frac !== undefined && frac !== _ld.frac) _ld.stageT = Date.now(); _ld.text = text; _ld.frac = frac === undefined ? null : frac; _ld.extra = extra || ''; loadRender(); }
+    function loadStop(){ clearInterval(_ld.iv); $('#readerLoading').classList.add('hidden'); }
     async function openReader(docId){
       const doc = docs.find(d => d.id === docId); if (!doc) return;
       currentReader = doc;
@@ -2572,8 +2599,7 @@
       $('#addTextBtn').classList.remove('active');
       $('#formatBar').classList.add('hidden');
       $('#formatBar').classList.remove('typing-hidden');
-      $('#readerLoading').innerHTML = '<div class="spinner"></div><span>Opening document…</span>';
-      $('#readerLoading').classList.remove('hidden');
+      loadStart('Opening document');
       $('#pagesCol').innerHTML = '';
       setSaveStatus(false, doc.updatedAt);
       thumbSideVisible = window.innerWidth > 760;
@@ -2583,12 +2609,26 @@
       // de ghi chu vua sua tren thiet bi khac khong bi ban cu tren may nay de len
       if (typeof driveTokenValid === 'function' && driveTokenValid() && typeof driveSyncNow === 'function' && (doc.kind === 'blank' || LOCAL.has(doc.id))){
         try {
-          await driveSyncNow(false, true);   // opening a file: fetch the newest version (and the PDF itself if this device no longer holds it)
-          const fresh = docs.find(d => d.id === docId);
-          if (fresh){ currentReader = fresh; $('#readerTitle').textContent = fresh.name; setSaveStatus(false, fresh.updatedAt); }
+          loadStage('Checking Google Drive for newer notes');
+          const syncP = driveSyncNow(false, true);   // opening a file: fetch the newest version (and the PDF itself if this device no longer holds it)
+          const done = await Promise.race([syncP.then(() => true), new Promise(r => setTimeout(() => r(false), 5000))]);
+          if (done){
+            const fresh = docs.find(d => d.id === docId);
+            if (fresh){ currentReader = fresh; $('#readerTitle').textContent = fresh.name; setSaveStatus(false, fresh.updatedAt); }
+          } else {
+            // Drive is slow: open what this device has now and apply the newer notes when the check finishes
+            syncP.then(() => {
+              const fresh = docs.find(d => d.id === docId);
+              if (currentReader && currentReader.id === docId && fresh && fresh !== currentReader && !docDirty){
+                currentReader = fresh; for (let p = 1; p <= pageSizes.length; p++){ renderNotesForPage(p); try { redrawInk(p); } catch (e) {} }
+                toast('Updated with the newest notes from Google Drive.');
+              }
+            }).catch(() => {});
+          }
         } catch (e) { /* mo ban local neu dong bo loi */ }
       }
       if (currentReader && currentReader.annStale && Object.keys(currentReader.annStale).length){
+        loadStage('Loading your notes');
         try { await fetchAnnotations(currentReader); } catch (e) { toast('Showing the notes saved on this device — the newest ones load when you are online.'); }
       }
       try {
@@ -2598,20 +2638,21 @@
           let buf = await DB.get('files', docId);
           if (!buf){
             if (!(await confirmBigDownload(currentReader))){ const er = new Error('cancelled'); er.userMsg = 'Download cancelled. The book stays on Google Drive.'; throw er; }
-            const lbl = $('#readerLoading span'); const base = 'Downloading from Google Drive';
-            if (lbl) lbl.textContent = base + '…';
-            buf = await fetchPdfToDevice(currentReader, (pct, got) => { if (lbl) lbl.textContent = base + (pct !== null ? ' — ' + pct + '%' : ' — ' + Math.round(got / 1048576 * 10) / 10 + ' MB'); });
+            loadStage('Downloading from Google Drive');
+            buf = await fetchPdfToDevice(currentReader, (pct, got) => loadStage('Downloading from Google Drive', pct !== null ? pct / 100 : null, pct === null ? Math.round(got / 1048576 * 10) / 10 + ' MB' : ''));
           }
-          pdfDoc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+          loadStage('Opening the PDF');
+          pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;   // buf is ours alone: no copy needed
           if (pdfDoc.numPages < (currentReader.pages || 0) && currentReader.driveFileId && typeof driveLinked !== 'undefined' && driveLinked && driveTokenValid()){
             // another device added pages: this device still holds the older PDF, so fetch the new one
-            try { const nb = await fetchPdfToDevice(currentReader); if (nb){ pdfDoc.destroy(); pdfDoc = await pdfjsLib.getDocument({ data: nb.slice(0) }).promise; } } catch (er) {}
+            try { const nb = await fetchPdfToDevice(currentReader); if (nb){ pdfDoc.destroy(); pdfDoc = await pdfjsLib.getDocument({ data: nb }).promise; } } catch (er) {}
           }
           if (pdfDoc.numPages !== (currentReader.pages || pdfDoc.numPages)) toast('This PDF has ' + pdfDoc.numPages + ' pages but the notes expect ' + currentReader.pages + ' — the newest PDF may still be uploading from your other device.');
-          for (let i = 1; i <= pdfDoc.numPages; i++){
-            const p = await pdfDoc.getPage(i);
-            const vp = p.getViewport({ scale: 1 });
-            pageSizes.push({ w: vp.width, h: vp.height });
+          // page sizes: 20 at a time instead of one after another (a 166-page file used to wait for 166 round trips)
+          const N = pdfDoc.numPages; pageSizes = new Array(N);
+          for (let i = 0; i < N; i += 20){
+            loadStage('Reading pages', i / N, i + ' / ' + N);
+            await Promise.all(Array.from({ length: Math.min(20, N - i) }, (_, k) => pdfDoc.getPage(i + k + 1).then(p => { const vp = p.getViewport({ scale: 1 }); pageSizes[i + k] = { w: vp.width, h: vp.height }; })));
           }
         }
         $('#addPageBtn').classList.remove('hidden');
@@ -2621,7 +2662,7 @@
         fitScale();
         buildPages();
         buildThumbs();
-        $('#readerLoading').classList.add('hidden');
+        loadStop();
         // Mo lai dung trang da doc do (luu trong doc.lastPage, dong bo qua Drive)
         const resumePage = Math.max(1, Math.min((currentReader && currentReader.lastPage) || 1, pageSizes.length || 1));
         if (resumePage > 1){
@@ -2643,7 +2684,8 @@
         restoringPage = false;
         try { console.error('openReader failed:', e && (e.stack || e.message || e)); } catch (er) {}
         const um = e && e.userMsg;
-        $('#readerLoading').innerHTML = '<span>' + esc(um || 'Could not open this document.') + '</span>';
+        loadStop(); $('#readerLoading').classList.remove('hidden');
+        $('#readerLoading').innerHTML = '<span>' + esc(um || 'Could not open this document.') + '</span><button class="btn" id="ldBack">Back to library</button>'; $('#ldBack').onclick = () => closeReader();
         toast(um || 'Could not open the PDF document.');
       }
     }
@@ -2753,6 +2795,26 @@
       }).catch(() => {});
     }
     const renderTasks = {};
+    /* Drawing pages: at most 2 at a time, nearest to the middle of the screen first. A page that takes longer than 15 s is
+       cancelled and drawn again at a lower resolution (the old code could wait forever on one stuck page and leave it blank). */
+    const renderWait = [], renderFail = {}, renderStart = {}; let renderActive = 0;
+    const RENDER_SLOTS = 2, RENDER_LIMIT_MS = 15000;
+    function renderDist(p){
+      const w = document.querySelector('.page-wrap[data-page="' + p + '"]'), sc = $('#pagesScroll'); if (!w || !sc) return 1e9;
+      const r = w.getBoundingClientRect(), sr = sc.getBoundingClientRect(), cy = sr.top + sr.height / 2;
+      return Math.abs((r.top + r.bottom) / 2 - cy);
+    }
+    function pumpRender(){
+      while (renderActive < RENDER_SLOTS && renderWait.length){
+        renderWait.sort((x, y) => renderDist(x.p) - renderDist(y.p));
+        const it = renderWait.shift(); renderActive++; it.go();
+      }
+    }
+    function pageFailed(p, wrap, msg){
+      const ph = wrap.querySelector('.page-loading') || wrap.insertAdjacentElement('afterbegin', Object.assign(document.createElement('div'), { className: 'page-loading' }));
+      ph.classList.add('failed'); ph.textContent = msg;
+      ph.onclick = () => { renderFail[p] = 0; ph.classList.remove('failed'); ph.textContent = 'Page ' + p; delete renderStamps[p]; renderPage(p); };
+    }
     async function renderPage(p){
       if (!pdfDoc && !isBlank()) return;
       if (zoomTargetScale !== null) return;   // a zoom gesture is running; pages re-render once when it settles
@@ -2763,11 +2825,15 @@
       if (!wrap) return;
       if (isBlank()){ renderBlankPage(p, wrap); return; }
       if (renderTasks[p]){ try { renderTasks[p].cancel(); } catch (e) {} }
-      let task = null;
+      let held = false, slotRelease = () => {}, task = null, wd = null;
+      await new Promise(res => { renderWait.push({ p, go: res }); pumpRender(); });
+      held = true; slotRelease = () => { if (held){ held = false; renderActive = Math.max(0, renderActive - 1); pumpRender(); } };
+      renderStart[p] = Date.now();
       try {
+        if (renderStamps[p] !== stamp || !document.body.contains(wrap)) return;
         const page = await pdfDoc.getPage(p);
         if (renderStamps[p] !== stamp) return;
-        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+        let dpr = Math.min(window.devicePixelRatio || 1, 2) * Math.pow(0.7, renderFail[p] || 0);   // every failed try draws at 70 % of the resolution
         const sz1 = pageSizes[p - 1];
         if (sz1){ const px = sz1.w * sz1.h * Math.pow(scale * dpr, 2), cap = 36e6; if (px > cap) dpr *= Math.sqrt(cap / px); }
         const vp = page.getViewport({ scale: scale * dpr });
@@ -2776,21 +2842,48 @@
         buf.width = Math.max(1, Math.round(vp.width)); buf.height = Math.max(1, Math.round(vp.height));
         task = page.render({ canvasContext: buf.getContext('2d'), viewport: vp });
         renderTasks[p] = task;
+        const mine = task;
+        wd = setTimeout(() => { try { mine.cancel(); } catch (e) {} renderFail[p] = (renderFail[p] || 0) + 1; slotRelease(); if (renderStamps[p] === stamp) delete renderStamps[p]; if (renderFail[p] < 4){ if (pdfDoc && isInView(wrap)) renderPage(p); } else pageFailed(p, wrap, 'This page could not be drawn — tap to try again'); }, RENDER_LIMIT_MS);
         await task.promise;
+        clearTimeout(wd);
         if (renderStamps[p] !== stamp) return;
         const canvas = wrap.querySelector('canvas');
         canvas.width = buf.width; canvas.height = buf.height;
         canvas.getContext('2d').drawImage(buf, 0, 0);
-        wrap.dataset.rendered = '1';
+        wrap.dataset.rendered = '1'; renderFail[p] = 0;
         const ld = wrap.querySelector('.page-loading'); if (ld) ld.remove();
         paintThumbFromCanvas(p, canvas);
         redrawInk(p);
         buildTextLayer(page, wrap, p, stamp);
       } catch (e) {
+        clearTimeout(wd);
         if (renderStamps[p] === stamp) delete renderStamps[p];
-        if (!(e && e.name === 'RenderingCancelledException')) setTimeout(() => { if (pdfDoc && isInView(wrap)) renderPage(p); }, 800);
-      } finally { if (renderTasks[p] === task) delete renderTasks[p]; }
+        if (!(e && e.name === 'RenderingCancelledException')){
+          renderFail[p] = (renderFail[p] || 0) + 1;
+          if (renderFail[p] < 4) setTimeout(() => { if (pdfDoc && isInView(wrap)) renderPage(p); }, 800 * renderFail[p]);
+          else pageFailed(p, wrap, 'This page could not be drawn — tap to try again');
+        }
+      } finally { clearTimeout(wd); if (renderTasks[p] === task) delete renderTasks[p]; delete renderStart[p]; slotRelease(); }
     }
+    /* Safety net, every 3 s: a page you can see that is still blank and has not been worked on lately is started again.
+       The "Drawing pages…" strip tells you the app is alive, and says so when a page is slow. */
+    setInterval(() => {
+      if (!currentReader || !pdfDoc || zoomTargetScale !== null) { hideLoadChip(); return; }
+      const sc = $('#pagesScroll'); if (!sc) return;
+      let blank = 0, slow = 0;
+      document.querySelectorAll('.page-wrap:not([data-rendered])').forEach(w => {
+        if (!isInViewTight(w)) return;
+        const p = +w.dataset.page; blank++;
+        const t = renderStart[p];
+        if (t && Date.now() - t > 8000) slow++;
+        if (!t && !renderWait.some(x => x.p === p) && !(w.querySelector('.page-loading.failed'))){ delete renderStamps[p]; renderPage(p); }
+      });
+      if (blank) showLoadChip(slow ? 'Slow page — still working, will retry by itself…' : 'Drawing pages…'); else hideLoadChip();
+    }, 3000);
+    function isInViewTight(el){ const r = el.getBoundingClientRect(), sr = $('#pagesScroll').getBoundingClientRect(); return r.bottom > sr.top && r.top < sr.bottom; }
+    let loadChipT = 0;
+    function showLoadChip(msg){ const c = $('#loadChip'); if (!c) return; c.querySelector('span').textContent = msg; if (c.classList.contains('hidden')){ c.classList.remove('hidden'); loadChipT = Date.now(); } }
+    function hideLoadChip(){ const c = $('#loadChip'); if (c) c.classList.add('hidden'); }
     /* ----- Current page = the page under the centre of the viewport -----
        (the same point zoom keeps fixed, so zooming never changes the page) */
     let pageTrackLockUntil = 0, pageTrackRaf = null;
