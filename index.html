@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-e" />
+    <meta name="app-build" content="2026-11-13-g" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -378,14 +378,15 @@
       #inkBar.vert .swatches{flex-direction:column;}
       #inkBar.vert .ink-range{writing-mode:vertical-lr;direction:rtl;width:28px;height:96px;}
       #inkBar.vert .size-val{min-width:0;}
-      #ruler{position:fixed;z-index:26;pointer-events:none;touch-action:none;transform-origin:50% 50%;}
+      #rulerClip{position:fixed;z-index:26;overflow:hidden;pointer-events:none;}
+      #ruler{position:absolute;pointer-events:none;touch-action:none;transform-origin:50% 50%;}
       #ruler.hidden{display:none;}
-      #ruler .rl-body{position:absolute;inset:0;border-radius:6px;background:rgba(252,252,250,.62);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);border:1px solid rgba(0,0,0,.22);box-shadow:0 4px 18px rgba(0,0,0,.14);
+      #ruler .rl-body{position:absolute;inset:0;border-radius:6px;background:rgba(252,252,250,.62);border:1px solid rgba(0,0,0,.22);box-shadow:0 4px 18px rgba(0,0,0,.14);
         background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.5) 0 1px,transparent 1px 7.56px),repeating-linear-gradient(90deg,rgba(0,0,0,.7) 0 1.4px,transparent 1.4px 37.8px);background-size:100% 6px,100% 12px;background-repeat:repeat-x;background-position:0 0,0 0;}
       #ruler .rl-body::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.4) 0 1px,transparent 1px 7.56px);}
       #ruler .rl-g{position:absolute;pointer-events:auto;touch-action:none;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.25);color:#333;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:grab;}
       #ruler .rl-move{width:38px;height:38px;left:calc(50% - 19px);top:calc(50% - 19px);}
-      #ruler .rl-end{width:28px;height:28px;top:calc(50% - 14px);cursor:alias;} #ruler .rl-end.l{left:6px;} #ruler .rl-end.r{right:6px;}
+      #ruler .rl-end{width:28px;height:28px;top:calc(50% - 14px);cursor:alias;} 
       #ruler .rl-g svg{width:18px;height:18px;}
       #rulerDeg{position:fixed;z-index:27;pointer-events:none;background:#15171C;color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:12px;transform:translate(-50%,-50%);}
       #rulerDeg.hidden{display:none;}
@@ -6483,12 +6484,15 @@ function syncRuler(){
   if (!show) { $('#rulerDeg').classList.add('hidden'); return; }
   const sr = ($('#pagesScroll') || document.body).getBoundingClientRect();
   if (!R.cx && !R.cy){ R.cx = sr.left + sr.width / 2; R.cy = sr.top + sr.height / 2; }
-  R.L = Math.max(280, Math.min(900, sr.width * 0.82));
+  R.L = Math.hypot(sr.width, sr.height) + 240;   // long enough to reach every edge of the screen at any angle
+  const off = Math.max(90, Math.min(260, sr.width * 0.3));
   R.cx = Math.max(sr.left + 20, Math.min(R.cx, sr.right - 20)); R.cy = Math.max(sr.top + 20, Math.min(R.cy, sr.bottom - 20));
-  el.style.width = R.L + 'px'; el.style.height = R.H + 'px'; el.style.left = (R.cx - R.L / 2) + 'px'; el.style.top = (R.cy - R.H / 2) + 'px'; el.style.transform = 'rotate(' + R.ang + 'rad)';
+  el.querySelector('.rl-end.l').style.left = (R.L / 2 - off - 14) + 'px'; el.querySelector('.rl-end.r').style.left = (R.L / 2 + off - 14) + 'px';
+  const clip = el.parentNode; if (clip && clip.id === 'rulerClip'){ clip.style.left = sr.left + 'px'; clip.style.top = sr.top + 'px'; clip.style.width = sr.width + 'px'; clip.style.height = sr.height + 'px'; }
+  el.style.width = R.L + 'px'; el.style.height = R.H + 'px'; el.style.left = (R.cx - sr.left - R.L / 2) + 'px'; el.style.top = (R.cy - sr.top - R.H / 2) + 'px'; el.style.transform = 'rotate(' + R.ang + 'rad)';
 }
 function rulerDeg(){ let d = R_deg(INK.ruler.ang); return d; }
-function R_deg(a){ let d = Math.round(a * 180 / Math.PI * 10) / 10; d = ((d + 90) % 180 + 180) % 180 - 90; return d; }
+function R_deg(a){ let d = ((a * 180 / Math.PI + 90) % 180 + 180) % 180 - 90; return Math.round(d * 10) / 10; }
 function showRulerDeg(){ const b = $('#rulerDeg'), R = INK.ruler, n = [-Math.sin(R.ang), Math.cos(R.ang)]; b.textContent = rulerDeg() + '°'; b.style.left = (R.cx + n[0] * (R.H / 2 + 26)) + 'px'; b.style.top = (R.cy + n[1] * (R.H / 2 + 26)) + 'px'; b.classList.remove('hidden'); clearTimeout(showRulerDeg._t); showRulerDeg._t = setTimeout(() => b.classList.add('hidden'), 1400); }
 function rulerLock(sx, sy){
   const R = INK.ruler; if (!rulerShown()) return null;
@@ -6506,6 +6510,7 @@ function rulerPagePt(rl, e, cv){
 }
 (function(){
   const el = $('#ruler'); if (!el) return;
+  const clip = document.createElement('div'); clip.id = 'rulerClip'; el.parentNode.insertBefore(clip, el); clip.appendChild(el);   // the ruler is cut off at the edge of the reading area, so it never covers the toolbars
   el.querySelectorAll('.rl-g').forEach(g => {
     let mode = null, off = null;
     g.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); try { g.setPointerCapture(e.pointerId); } catch (er) {} const R = INK.ruler;
