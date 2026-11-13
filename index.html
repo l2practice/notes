@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-n" />
+    <meta name="app-build" content="2026-11-13-o" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -397,6 +397,8 @@
       #inkRuler.active{background:var(--active);box-shadow:inset 0 0 0 1px var(--control);}
       #inkOrient svg{transition:transform .2s var(--ease);} 
       .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:5px 12px;min-height:32px;font-size:13px;}
+      .reader-bar #syncNowBtn{padding:0 9px;width:38px;justify-content:center;} .reader-bar #syncNowBtn svg{width:20px;height:20px;}
+      @keyframes syncSpin{to{transform:rotate(360deg)}} #syncNowBtn.spin .syn{animation:syncSpin .9s linear infinite;transform-origin:12px 13.2px;}
       #barMove{cursor:grab;color:var(--muted);min-width:26px;padding:0 4px;touch-action:none;} #barMove:active{cursor:grabbing;}
       .fa-glyph{font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:19px;line-height:1;}
       .align-group{display:flex;align-items:center;gap:2px;}
@@ -954,10 +956,10 @@
       .reader-bar .btn svg{width:16px;height:16px;}
       .reader-bar{gap:6px;}
       @media (max-width:1560px){ .save-status .txt{display:none;} .reader-bar .btn{padding:0 10px;} }
-      @media (max-width:1100px){ .reader-bar .btn{padding:0 9px;gap:4px;} .reader-bar .page-ind{display:none;} .reader-bar .doc-title{max-width:120px;} }
+      @media (max-width:1100px){ .reader-bar .btn{padding:0 9px;gap:4px;} .reader-bar .page-ind{display:none;} .reader-bar .doc-title{max-width:200px;} }
       @media (max-width:720px){ .reader-bar .btn{padding:0 6px;} .reader-bar .icon-btn{width:27px;} .reader-bar .zoom-label{min-width:34px;} .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:0 6px;} .reader-bar .save-status{display:none;} }
-      @media (max-width:780px){ .reader-bar{gap:2px;padding:6px 5px;} .reader-bar .btn{padding:0 7px;font-size:12px;gap:3px;height:32px;} .reader-bar .btn svg{width:14px;height:14px;} .reader-bar .doc-title{max-width:58px;font-size:12.5px;} .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:0 8px;min-height:30px;font-size:12px;} .reader-bar .icon-btn{width:30px;height:30px;} .reader-bar .zoom-label{min-width:38px;font-size:12px;} .reader-bar .bar-sep{margin:0 2px;} .reader-bar .zoom-group{gap:0;} }
-      @media (max-width:900px){ .reader-bar .doc-title{max-width:70px;} .reader-bar{gap:4px;padding:7px 8px;} .reader-bar .btn{padding:0 8px;font-size:12.5px;} .reader-bar .zoom-group #zoomFit{display:none;} }
+      @media (max-width:780px){ .reader-bar{gap:2px;padding:6px 5px;} .reader-bar .btn{padding:0 7px;font-size:12px;gap:3px;height:32px;} .reader-bar .btn svg{width:14px;height:14px;} .reader-bar .doc-title{max-width:100px;font-size:12.5px;} .reader-bar #saveNowBtn,.reader-bar #syncNowBtn{padding:0 8px;min-height:30px;font-size:12px;} .reader-bar .icon-btn{width:30px;height:30px;} .reader-bar .zoom-label{min-width:38px;font-size:12px;} .reader-bar .bar-sep{margin:0 2px;} .reader-bar .zoom-group{gap:0;} }
+      @media (max-width:900px){ .reader-bar .doc-title{max-width:105px;} .reader-bar{gap:4px;padding:7px 8px;} .reader-bar .btn{padding:0 8px;font-size:12.5px;} .reader-bar .zoom-group #zoomFit{display:none;} }
       .nav-scrim{display:none;}
       .greet-menu{display:none;}
       @media (max-width:760px){
@@ -1387,7 +1389,7 @@
         <span class="doc-title" id="readerTitle"></span>
         <span class="save-status" id="saveStatus"><span class="dot"></span><span class="txt">Saved</span></span>
         <button class="btn" id="saveNowBtn" title="Save now (Ctrl/Cmd+S)">Save</button>
-        <button class="btn hidden" id="syncNowBtn" title="Save and sync to Google Drive now">Sync</button>
+        <button class="btn hidden" id="syncNowBtn" title="Save and sync with Google Drive now" aria-label="Sync with Google Drive"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="syncGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d8bd9"/><stop offset="1" stop-color="#9a4fe0"/></linearGradient></defs><g stroke="url(#syncGrad)"><path d="M6.6 19.2a4.4 4.4 0 0 1-.7-8.75 6.2 6.2 0 0 1 11.9 1.2 3.8 3.8 0 0 1-.4 7.55z"/><g class="syn"><path d="M14.7 11.7a2.9 2.9 0 0 0-5-.7"/><path d="M9.5 8.9v2.2h2.2"/><path d="M9.3 14.7a2.9 2.9 0 0 0 5 .7"/><path d="M14.5 17.4v-2.2h-2.2"/></g></g></svg></button>
         <div class="spacer" style="flex:1"></div>
         <span class="page-ind" id="pageInd"></span>
         <button class="icon-btn" id="bkSearchBtn" title="Search the whole book (Ctrl/Cmd+F)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button>
@@ -2512,12 +2514,18 @@
       if (f){ lastStyle.font = f.font; lastStyle.sizeFrac = f.sizeFrac; }
     }
     function findNote(id){ return currentReader ? currentReader.notes.find(n => n.id === id) : null; }
+    /* One button is enough: with Google Drive connected, Sync does a Save first; without it, only Save is shown */
+    function syncBarButtons(){
+      const linked = typeof driveLinked !== 'undefined' && driveLinked, sb = $('#syncNowBtn'), sv = $('#saveNowBtn');
+      if (sb) sb.classList.toggle('hidden', !linked);
+      if (sv) sv.classList.toggle('hidden', !!linked);
+    }
     function setSaveStatus(saving, ts){
       const el = $('#saveStatus');
       el.classList.toggle('saving', saving);
       let txt = saving ? 'Saving…' : (docDirty ? 'Unsaved · autosave every 15 min' : 'Saved' + (ts ? ' · ' + new Date(ts).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) : ''));
       if (!saving && !docDirty && typeof driveIsConnected === 'function' && driveIsConnected()) txt += ' · syncs when you close the file';
-      const sb = $('#syncNowBtn'); if (sb) sb.classList.toggle('hidden', !(typeof driveLinked !== 'undefined' && driveLinked));
+      syncBarButtons();
       el.querySelector('.txt').textContent = txt;
     }
     /* Saving: every 15 minutes while you work, or when you press Save. Closing the file (or leaving the tab) always saves too. */
@@ -2653,7 +2661,7 @@
     }
     $('#backBtn').addEventListener('click', () => closeReader());
     $('#saveNowBtn').addEventListener('click', saveNow);
-    $('#syncNowBtn').addEventListener('click', async () => { await saveNow(); if (typeof driveSyncNow === 'function') driveSyncNow(true); });
+    $('#syncNowBtn').addEventListener('click', async () => { const b = $('#syncNowBtn'); b.classList.add('spin'); try { await saveNow(); if (typeof driveSyncNow === 'function') await driveSyncNow(true); } finally { b.classList.remove('spin'); } });
     document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && currentReader){ e.preventDefault(); saveNow(); } });
     window.addEventListener('popstate', () => { if (currentReader) closeReader(true); });
     document.addEventListener('visibilitychange', () => { if (document.hidden){ flushLastPage(); flushReadLog(); docDirty = false; } });   // leaving the tab never loses work
@@ -3650,7 +3658,7 @@
         const j = await workerCall('token');
         if (!j.ok || !j.access_token){ workerState = j.error || 'error'; return false; }
         driveToken = j.access_token; driveTokenExp = Date.now() + (j.expires_in || 3600) * 1000 - 60000;
-        driveLinked = true; driveLostNotified = false; workerState = 'ok'; drivePersist(); hideDriveBanner(); calRefresh();
+        driveLinked = true; driveLostNotified = false; workerState = 'ok'; drivePersist(); hideDriveBanner(); calRefresh(); try { syncBarButtons(); } catch (e) {}
         return true;
       } catch (e) { workerState = 'offline'; return false; }
     }
@@ -4187,7 +4195,7 @@
     $('#driveSetupBtn').addEventListener('click', () => driveSetupModal(false));
     $('#driveDisconnectBtn').addEventListener('click', () => {
       if (window.google && google.accounts && google.accounts.oauth2 && driveToken) google.accounts.oauth2.revoke(driveToken, () => {});
-      driveToken = null; driveTokenExp = 0; driveLinked = false; drivePersist(); hideDriveBanner();
+      driveToken = null; driveTokenExp = 0; driveLinked = false; drivePersist(); hideDriveBanner(); try { syncBarButtons(); } catch (e) {}
       setDriveUI('', 'Disconnected on this device. Your Drive files are untouched — reconnect with the same Google account to see your library again.');
     });
     /* Live updates: while connected, check every 20 s (and when the tab comes back to the front) whether the
