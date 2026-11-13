@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-07-h" />
+    <meta name="app-build" content="2026-11-13-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -536,6 +536,7 @@
       .sym-grid{display:flex;flex-wrap:wrap;gap:5px;}
       .sym-chip{min-width:34px;height:32px;padding:0 9px;border-radius:7px;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);background:var(--surface);}
       .sym-chip.ring{width:36px;min-width:36px;height:36px;padding:0;border-radius:50%;border:1.5px solid var(--ink);font-size:12px;}
+      .sym-hd{display:flex;align-items:center;justify-content:space-between;} .sym-cb{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink-2);text-transform:none;letter-spacing:0;cursor:pointer;} .sym-cb input{width:16px;height:16px;accent-color:var(--accent);}
       .sym-seg{display:flex;gap:4px;padding:2px 0 6px;} .sym-seg button{flex:1;height:32px;border-radius:8px;border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--surface);display:flex;align-items:center;justify-content:center;gap:6px;}
       .sym-seg button i{width:14px;height:14px;border:1.6px solid currentColor;border-radius:50%;display:inline-block;} .sym-seg button.cur{background:var(--ink);color:var(--surface);border-color:var(--ink);}
       .sym-chip.two{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;height:42px;padding:0 8px;line-height:1.05;}
@@ -5372,6 +5373,18 @@ function moveStroke(st, dx, dy){
   if (st.pts){ for (let i = 0; i < st.pts.length; i += 3){ st.pts[i] += dx; st.pts[i + 1] += dy; } return; }
   st.x += dx; st.y += dy; if (st.x2 !== undefined){ st.x2 += dx; st.y2 += dy; } if (st.x3 !== undefined){ st.x3 += dx; st.y3 += dy; }
 }
+/* scale one stroke by the same percentage about a fixed point: handwriting, shapes, symbols and pictures all shrink or grow together */
+function scaleStroke(st, ax, ay, f){
+  const X = v => ax + (v - ax) * f, Y = v => ay + (v - ay) * f;
+  if (st.pts){ for (let i = 0; i < st.pts.length; i += 3){ st.pts[i] = r1(X(st.pts[i])); st.pts[i + 1] = r1(Y(st.pts[i + 1])); } }
+  else {
+    st.x = r1(X(st.x)); st.y = r1(Y(st.y));
+    if (st.x2 !== undefined){ st.x2 = r1(X(st.x2)); st.y2 = r1(Y(st.y2)); }
+    if (st.x3 !== undefined){ st.x3 = r1(X(st.x3)); st.y3 = r1(Y(st.y3)); }
+    if (st.bw !== undefined){ st.bw = r1(st.bw * f); st.bh = r1(st.bh * f); }
+  }
+  if (st.sw && st.k !== 'sym' && st.k !== 'img') st.sw = Math.max(0.4, Math.round(st.sw * f * 10) / 10);
+}
 function fitStroke(st, ob, nb){
   const sx = ob.w ? nb.w / ob.w : 1, sy = ob.h ? nb.h / ob.h : 1;
   if (st.pts){ for (let i = 0; i < st.pts.length; i += 3){ st.pts[i] = nb.x + (st.pts[i] - ob.x) * sx; st.pts[i + 1] = nb.y + (st.pts[i + 1] - ob.y) * sy; } }
@@ -5660,6 +5673,7 @@ function compose(p){
     if (arr.length === 1 && isCaret(arr[0])) caretBadge(ci, L, arr[0], true);
     else if (arr.length === 1 && isLine(arr[0])) lineBadge(ci, L, arr[0]);
     else if (arr.length === 1 && rotatable(arr[0])){ const t = arr[0]; sizeBadge(ci, L, groupBox(arr), false, G.h === 'rot' ? 'Rotation ' + Math.round((t.rot || 0) * 10) / 10 + '°' : Math.round(t.bw) + ' × ' + Math.round(t.bh) + ' pt'); }
+    else if (arr.length > 1 && G.pct) sizeBadge(ci, L, groupBox(arr), false, G.pct + '%');
     else if (arr.length) sizeBadge(ci, L, groupBox(arr), false);
   }
   drawSel(ci, p, L.k);
@@ -6187,6 +6201,15 @@ function inkStep(e, x, y, cv){
       arr[0].bw = r1(nw); arr[0].bh = r1(nh); arr[0].x = r1(ncx - nw / 2); arr[0].y = r1(ncy - nh / 2);
     } else {
       const ox = (G.h === 'nw' || G.h === 'sw') ? ob.x + ob.w : ob.x, oy = (G.h === 'nw' || G.h === 'ne') ? ob.y + ob.h : ob.y;
+      if (arr.length > 1){
+        // several things at once: one percentage for all of them, measured along the diagonal you drag
+        const cx0 = (G.h === 'nw' || G.h === 'sw') ? ob.x : ob.x + ob.w, cy0 = (G.h === 'nw' || G.h === 'ne') ? ob.y : ob.y + ob.h;
+        const vx = cx0 - ox, vy = cy0 - oy, vl = vx * vx + vy * vy || 1;
+        const f = Math.max(0.05, ((x - ox) * vx + (y - oy) * vy) / vl);
+        G.pct = Math.round(f * 100);
+        arr.forEach((st, i) => { const base = clone(G.origs[i]); scaleStroke(base, ox, oy, f); copyInto(st, base); });
+        compose(p); return;
+      }
       const nb = { x: Math.min(x, ox), y: Math.min(y, oy), w: Math.max(4, Math.abs(x - ox)), h: Math.max(4, Math.abs(y - oy)) };
       if (arr.length === 1 && (arr[0].k === 'img' || (arr[0].k === 'sym' && arr[0].ring))){ nb.h = nb.w * ob.h / ob.w; nb.y = (G.h === 'nw' || G.h === 'ne') ? oy - nb.h : oy; }
       arr.forEach((st, i) => { const base = clone(G.origs[i]); fitStroke(base, ob, nb); copyInto(st, base); });
@@ -6457,28 +6480,38 @@ function setInkColor(hex){
   if (INK.tool === 'select' && INK.sel){ const arr = selList(); if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.c = hex; }); redrawInk(INK.sel.p); scheduleSave(); } }
   buildInkSwatches();
 }
+/* group key, title, symbols — and which tab it lives on */
 const SYM_GROUPS = [
-  ['Phrases & clauses', ['S', "S'", 'NP', 'VP', 'Vgrp', 'PP', 'AP', 'AdvP', 'NOM']],
-  ['Functions', ['[sC]', '[dO]', '[iO]', '[oC]', 'Comp.', 'obA', 'opA', 'M']],
-  ['Clause types', ['[ACl]', '[NCl as S]']],
-  ['Determiners', ['DET', 'ART', 'POSS', 'QUA', 'DEM', 'PRE-DET']],
-  ['Word classes', ['N', 'V', 'A', 'ADV', 'P', 'PRO', 'AUX', 'Pron', 'Conj']]
+  ['phr', 'Phrases & clauses', ['S', "S'", 'NP', 'VP', 'Vgrp', 'PP', 'AP', 'AdvP', 'NOM'], 'syn'],
+  ['fun', 'Functions', ['[sC]', '[dO]', '[iO]', '[oC]', 'Comp.', 'obA', 'opA', 'M'], 'syn'],
+  ['cla', 'Clause types', ['[ACl]', '[NCl as S]'], 'syn'],
+  ['det', 'Determiners', ['DET', 'ART', 'POSS', 'QUA', 'DEM', 'PRE-DET'], 'syn'],
+  ['wc', 'Word classes', ['N', 'V', 'A', 'ADV', 'P', 'PRO', 'AUX', 'Pron', 'Conj'], 'both']
 ];
-const SYM_LABEL = SYM_GROUPS.reduce((a, g) => a.concat(g[1]), []);
+const SYM_LABEL = SYM_GROUPS.reduce((a, g) => a.concat(g[2]), []);
 const SYM_VERB = ['intrans', 'intens', 'monotrans', 'ditrans', 'complex'];   // two-tier symbols: V over [type]
 const SYM_AFFIX = ['pref', 'suff', 'root'];
-INK.symCircle = false; try { INK.symCircle = localStorage.getItem('nt-sym-circle') === '1'; } catch (e) {}
-const chipRing = c => c.dataset.ring ? true : (c.dataset.it || c.closest('.sym-own')) ? false : INK.symCircle;
+INK.symCirc = {}; try { INK.symCirc = JSON.parse(localStorage.getItem('nt-sym-circ') || '{}') || {}; } catch (e) {}
+INK.symTab = 'syn'; try { INK.symTab = localStorage.getItem('nt-sym-tab') === 'mor' ? 'mor' : 'syn'; } catch (e) {}
+const chipRing = c => c.dataset.ring ? true : (c.dataset.it || c.closest('.sym-own')) ? false : !!INK.symCirc[c.dataset.g];
+const symGroupOf = st => { if (st.txt2) return 'verb'; const g = SYM_GROUPS.find(g => g[2].indexOf(st.txt) >= 0); return g ? g[0] : null; };
 function symOwn(){ try { const a = JSON.parse(localStorage.getItem('nt-sym-own') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
 function saveSymOwn(a){ try { localStorage.setItem('nt-sym-own', JSON.stringify(a.slice(-60))); } catch (e) {} }
 function buildSymPanel(){
-  const chip = (t, ring, it, t2) => '<button class="sym-chip' + (ring ? ' ring' : '') + (it ? ' it' : '') + (t2 ? ' two' : '') + '" data-t="' + t + '"' + (t2 ? ' data-t2="' + t2 + '"' : '') + (ring ? ' data-ring="1"' : '') + (it ? ' data-it="1"' : '') + '>' + (t2 ? '<span>' + t + '</span><small>' + t2 + '</small>' : t) + '</button>';
-  $('#spBody').innerHTML = '<div class="sym-seg" role="group" aria-label="Circle"><button data-circle="1" class="' + (INK.symCircle ? 'cur' : '') + '"><i></i>Circle</button><button data-circle="0" class="' + (INK.symCircle ? '' : 'cur') + '">No circle</button></div>' +
-    SYM_GROUPS.map(g => '<div class="sym-sec">' + g[0] + '</div><div class="sym-grid">' + g[1].map(t => chip(t)).join('') + '</div>').join('') +
-    '<div class="sym-sec">Verb types (two-tier)</div><div class="sym-grid">' + SYM_VERB.map(t => chip('V', false, false, '[' + t + ']')).join('') + '</div>' +
-    '<div class="sym-sec">Morphology</div><div class="sym-grid">' + SYM_AFFIX.map(t => chip(t, false, true)).join('') + '</div>' +
-    '<div class="sym-sec">Your own</div>' + (symOwn().length ? '<div class="sym-grid" id="symOwnGrid">' + symOwn().map((c, i) => '<span class="sym-own">' + chip(c.t, c.ring) + '<button class="sym-del" data-del="' + i + '" title="Remove from my symbols" aria-label="Remove">×</button></span>').join('') + '</div>' : '<div class="shape-tip" style="padding:0 2px 6px">Symbols you make are kept here, on this device, until you remove them.</div>') + '<div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:34px;padding:0 14px">Use</button></div>' +
+  const chip = (t, ring, it, t2, g) => '<button class="sym-chip' + (ring ? ' ring' : '') + (it ? ' it' : '') + (t2 ? ' two' : '') + '" data-t="' + t + '"' + (t2 ? ' data-t2="' + t2 + '"' : '') + (g ? ' data-g="' + g + '"' : '') + (ring ? ' data-ring="1"' : '') + (it ? ' data-it="1"' : '') + '>' + (t2 ? '<span>' + t + '</span><small>' + t2 + '</small>' : t) + '</button>';
+  const head = (g, title) => '<div class="sym-sec sym-hd"><span>' + title + '</span><label class="sym-cb" title="Put a circle around every symbol of this group"><input type="checkbox" data-circgrp="' + g + '"' + (INK.symCirc[g] ? ' checked' : '') + '> Circle</label></div>';
+  const tab = INK.symTab, grp = g => head(g[0], g[1]) + '<div class="sym-grid">' + g[2].map(t => chip(t, false, false, '', g[0])).join('') + '</div>';
+  let h = '<div class="sym-seg" role="tablist"><button data-symtab="syn" class="' + (tab === 'syn' ? 'cur' : '') + '">Syntax</button><button data-symtab="mor" class="' + (tab === 'mor' ? 'cur' : '') + '">Morphology</button></div>';
+  if (tab === 'syn'){
+    h += SYM_GROUPS.filter(g => g[3] !== 'mor').map(grp).join('') +
+      head('verb', 'Verb types (two-tier)') + '<div class="sym-grid">' + SYM_VERB.map(t => chip('V', false, false, '[' + t + ']', 'verb')).join('') + '</div>';
+  } else {
+    h += '<div class="sym-sec">Affixes</div><div class="sym-grid">' + SYM_AFFIX.map(t => chip(t, false, true)).join('') + '</div>' +
+      grp(SYM_GROUPS.find(g => g[0] === 'wc'));
+  }
+  h += '<div class="sym-sec">Your own</div>' + (symOwn().length ? '<div class="sym-grid" id="symOwnGrid">' + symOwn().map((c, i) => '<span class="sym-own">' + chip(c.t, c.ring) + '<button class="sym-del" data-del="' + i + '" title="Remove from my symbols" aria-label="Remove">×</button></span>').join('') + '</div>' : '<div class="shape-tip" style="padding:0 2px 6px">Symbols you make are kept here, on this device, until you remove them.</div>') + '<div class="sym-custom"><input type="text" id="symTxt" maxlength="12" placeholder="Label" autocomplete="off" spellcheck="false" /><label><input type="checkbox" id="symRing" /> circle</label><button class="btn primary" id="symAdd" style="height:34px;padding:0 14px">Use</button></div>' +
     '<div class="shape-tip">Tap the page to place a symbol, or drag to size it: a frame shows its width and height, and it snaps to the size you used last so symbols match.</div>';
+  $('#spBody').innerHTML = h;
 }
 /* Edge/Safari may drop the saved e-mail address into a search box: empty it unless the user typed there */
 (function(){
@@ -6505,13 +6538,12 @@ function syncSymFields(){
 function markSymCur(){
   document.querySelectorAll('#spBody .sym-chip').forEach(c => c.classList.toggle('cur', INK.tool === 'shape' && INK.shape.k === 'sym' && INK.shape.txt === c.dataset.t && !!INK.shape.ring === chipRing(c) && !!INK.shape.it === !!c.dataset.it && (INK.shape.txt2 || '') === (c.dataset.t2 || '')));
 }
-function setSymCircle(on){
-  INK.symCircle = !!on; try { localStorage.setItem('nt-sym-circle', on ? '1' : '0'); } catch (e) {}
-  document.querySelectorAll('#spBody [data-circle]').forEach(b => b.classList.toggle('cur', (b.dataset.circle === '1') === !!on));
-  if (INK.tool === 'shape' && INK.shape.k === 'sym' && !INK.shape.it && INK.shape.txt) INK.shape.ring = !!on;
+function setGroupCircle(g, on){
+  INK.symCirc[g] = !!on; try { localStorage.setItem('nt-sym-circ', JSON.stringify(INK.symCirc)); } catch (e) {}
+  if (INK.tool === 'shape' && INK.shape.k === 'sym' && !INK.shape.it && INK.shape.txt && symGroupOf(INK.shape) === g) INK.shape.ring = !!on;
   if (INK.sel && (INK.tool === 'select' || INK.tool === 'shape')){
-    const arr = selList().filter(st => st.k === 'sym' && !st.it && !!st.ring !== !!on);
-    if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.ring = !!on; if (on){ const z = symSize(st.txt, true, st.txt2), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2; st.bw = z[0]; st.bh = z[1]; st.x = r1(cx - z[0] / 2); st.y = r1(cy - z[1] / 2); } else { const z = symSize(st.txt, false, st.txt2), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2; st.bw = z[0]; st.bh = z[1]; st.x = r1(cx - z[0] / 2); st.y = r1(cy - z[1] / 2); } }); redrawInk(INK.sel.p); scheduleSave(); }
+    const arr = selList().filter(st => st.k === 'sym' && !st.it && symGroupOf(st) === g && !!st.ring !== !!on);
+    if (arr.length){ pushUndo(INK.sel.p); arr.forEach(st => { st.ring = !!on; const z = symSize(st.txt, !!on, st.txt2), cx = st.x + st.bw / 2, cy = st.y + st.bh / 2; st.bw = z[0]; st.bh = z[1]; st.x = r1(cx - z[0] / 2); st.y = r1(cy - z[1] / 2); }); redrawInk(INK.sel.p); scheduleSave(); }
   }
   markSymCur(); syncSymFields();
 }
@@ -6838,10 +6870,11 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
   $('#spClose').addEventListener('click', () => openSymPanel(false));
   $('#spBody').addEventListener('click', e => {
     const c = e.target.closest('.sym-chip'); if (c){ pickSymbol(c.dataset.t, chipRing(c), !!c.dataset.it, c.dataset.t2 || ''); return; }
-    const cb = e.target.closest('[data-circle]'); if (cb){ setSymCircle(cb.dataset.circle === '1'); return; }
+    const tb = e.target.closest('[data-symtab]'); if (tb){ INK.symTab = tb.dataset.symtab; try { localStorage.setItem('nt-sym-tab', INK.symTab); } catch (er) {} buildSymPanel(); markSymCur(); return; }
     if (e.target.closest('#symAdd')) addOwnSymbol();
     const dl = e.target.closest('.sym-del'); if (dl){ const a = symOwn(); a.splice(+dl.dataset.del, 1); saveSymOwn(a); buildSymPanel(); markSymCur(); return; }
   });
+  $('#spBody').addEventListener('change', e => { const cg = e.target.closest && e.target.closest('[data-circgrp]'); if (cg) setGroupCircle(cg.dataset.circgrp, cg.checked); });
   $('#spBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'symTxt'){ e.preventDefault(); addOwnSymbol(); } });
   const sizeIn = () => { const w = +$('#spW').value, h = +$('#spH').value; if (w >= 6 && h >= 6) INK.symDims[symType()] = [w, h]; };
   $('#spW').addEventListener('input', sizeIn); $('#spH').addEventListener('input', sizeIn);
