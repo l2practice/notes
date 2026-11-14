@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-13-u" />
+    <meta name="app-build" content="2026-11-14-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -3204,37 +3204,53 @@
        frame, so zooming stays on the same page. Canvases re-render ONCE, off-screen,
        shortly after the motion stops and are swapped in with no blank flash. */
     let zoomTargetScale = null, zoomAnchor = null, zoomAnimFrame = null, zoomCommitTimer = null;
+    let zoomBase = 1, zoomF = 1, zoomFT = 1, zoomLast = null, zoomT = 0;
     const zoomReducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    /* Zooming is a transform on the whole page column while the gesture runs (the graphics card does it, nothing is laid out),
+       eased toward the target like Lenis does for scrolling (an exponential lerp, independent of the frame rate).
+       When the gesture has been still for 140 ms the real size is applied once and the pages are drawn sharp. */
+    function zoomResetVisual(){ const c = $('#pagesCol'); if (c){ c.style.transform = ''; c.style.transformOrigin = ''; c.style.willChange = ''; } zoomF = 1; zoomFT = 1; zoomLast = null; }
     function cancelSmoothZoom(){
       if (zoomAnimFrame) cancelAnimationFrame(zoomAnimFrame);
       zoomAnimFrame = null; zoomTargetScale = null; zoomAnchor = null;
-      clearTimeout(zoomCommitTimer);
+      clearTimeout(zoomCommitTimer); zoomResetVisual();
     }
     function smoothZoomTo(s, fit, focus){
       const target = Math.max(0.2, Math.min(8, s));
       if (fit !== undefined) fitMode = !!fit;
       if (zoomReducedMotion || !currentReader){ setScale(target, fitMode); return; }
-      if (zoomTargetScale === null || !zoomAnchor){ zoomAnchor = focus ? captureAnchor(focus.x, focus.y) : captureAnchor(); }
-      else if (focus){ const sr = $('#pagesScroll').getBoundingClientRect(); zoomAnchor.sx = focus.x - sr.left; zoomAnchor.sy = focus.y - sr.top; }   // the fingers moved: the same page point follows them
-      zoomTargetScale = target;
+      const sc = $('#pagesScroll'), sr = sc.getBoundingClientRect();
+      const fx = focus ? focus.x : sr.left + sr.width / 2, fy = focus ? focus.y : sr.top + sr.height / 2;
+      if (zoomTargetScale === null || !zoomAnchor){
+        zoomBase = scale; zoomF = 1; zoomAnchor = captureAnchor(fx, fy);
+        const col = $('#pagesCol'), cr = col.getBoundingClientRect();
+        col.style.transformOrigin = (fx - cr.left) + 'px ' + (fy - cr.top) + 'px'; col.style.willChange = 'transform';
+        zoomLast = { x: fx, y: fy };
+      } else if (focus){   // the fingers moved: the page follows them
+        sc.scrollLeft -= focus.x - zoomLast.x; sc.scrollTop -= focus.y - zoomLast.y; zoomLast = { x: focus.x, y: focus.y };
+        zoomAnchor.sx = focus.x - sr.left; zoomAnchor.sy = focus.y - sr.top;
+      }
+      zoomTargetScale = target; zoomFT = target / zoomBase;
       $('#zoomLabel').textContent = Math.round(target * 100) + '%';
       clearTimeout(zoomCommitTimer);
-      if (!zoomAnimFrame) zoomAnimFrame = requestAnimationFrame(zoomAnimStep);
+      if (!zoomAnimFrame){ zoomT = performance.now(); zoomAnimFrame = requestAnimationFrame(zoomAnimStep); }
     }
-    function zoomAnimStep(){
+    function zoomAnimStep(now){
       zoomAnimFrame = null;
       if (zoomTargetScale === null) return;
-      let next = scale + (zoomTargetScale - scale) * 0.52;
-      if (Math.abs(zoomTargetScale - next) < 0.003) next = zoomTargetScale;
-      scale = next;
-      sizeAllPages();
-      lockPageTracking(400);
-      restoreAnchor(zoomAnchor);
-      if (next !== zoomTargetScale) zoomAnimFrame = requestAnimationFrame(zoomAnimStep);
+      const dt = Math.min(64, Math.max(1, now - zoomT)); zoomT = now;
+      zoomF += (zoomFT - zoomF) * (1 - Math.exp(-dt / 70));
+      if (Math.abs(zoomFT - zoomF) < 0.003 * zoomFT) zoomF = zoomFT;
+      $('#pagesCol').style.transform = 'scale(' + zoomF + ')';
+      if (zoomF !== zoomFT) zoomAnimFrame = requestAnimationFrame(zoomAnimStep);
       else zoomCommitTimer = setTimeout(commitSmoothZoom, 140);
     }
     function commitSmoothZoom(){
-      zoomAnimFrame = null; zoomTargetScale = null; zoomAnchor = null;
+      const target = zoomTargetScale, anchor = zoomAnchor;
+      zoomAnimFrame = null; zoomTargetScale = null; zoomAnchor = null; clearTimeout(zoomCommitTimer);
+      if (target === null) return;
+      zoomResetVisual();
+      scale = target; sizeAllPages(); lockPageTracking(400); restoreAnchor(anchor);
       Object.keys(renderStamps).forEach(k => delete renderStamps[k]);
       renderVisiblePages();
     }
@@ -3245,7 +3261,7 @@
     $('#pagesScroll').addEventListener('wheel', e => {
       if (e.ctrlKey || e.metaKey){
         e.preventDefault();
-        const f = Math.max(0.6, Math.min(1.65, Math.exp(-e.deltaY * 0.0058)));
+        const f = Math.max(0.6, Math.min(1.65, Math.exp(-e.deltaY * (Math.abs(e.deltaY) >= 40 ? 0.0012 : 0.0058))));   // mouse wheel notch = ~13 %; trackpad pinch = fine steps
         smoothZoomTo((zoomTargetScale || scale) * f, false, { x: e.clientX, y: e.clientY });
       }
     }, { passive: false });
