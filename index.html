@@ -1133,7 +1133,7 @@
 <aside class="chat" id="chat"><div class="chat-head"><span class="spark">✦</span> Gemini assistant <button id="chatClose" aria-label="Close assistant">×</button></div><div class="chat-body" id="chatBody"><div class="welcome"><strong>Ask about this notebook</strong><br>Summarize a page, clarify an idea, or turn notes into a study guide. Your Gemini key stays in this browser.</div><button class="suggest" data-prompt="Summarize this page in five clear bullet points.">Summarize this page</button><button class="suggest" data-prompt="Create three useful follow-up questions from this note.">Create follow-up questions</button></div><div class="chat-input"><textarea id="chatPrompt" placeholder="Ask Gemini about your notes…"></textarea><div class="chat-tools"><small>Powered by Gemini · Bring your own key</small><button class="send" id="sendChat">Ask Gemini ↑</button></div></div></aside>
 </div>
 <div class="toast" id="toast"></div>
-<div class="overlay" id="settingsModal"><div class="dialog"><h2>App settings</h2><p>Notehouse is independent from Microsoft. Imported notes sync to your own Google Drive; the connection can reuse the one already set up in Notes on this domain.</p><section class="drive-settings"><strong id="driveSettingsState">Google Drive is not connected</strong><p id="driveSettingsHelp">For automatic renewal beyond one hour, configure the “Always-on connection” once in Notes. Notehouse will reuse it here.</p><div class="drive-actions"><button class="secondary" id="driveConnectBtn">Connect Google Drive</button><button class="secondary" id="driveSyncBtn">Sync now</button><a href="https://l2practice.github.io/notes/" target="_blank" rel="noopener">Open Notes ↗</a><a href="https://github.com/l2practice/notes/blob/main/apps-script/HUONG-DAN.md" target="_blank" rel="noopener">Always-on setup guide ↗</a></div><details class="drive-keeper"><summary>Always-on connection settings</summary><label for="wkUrl">Apps Script web app URL</label><input id="wkUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"><label for="wkKey">Private app key</label><input id="wkKey" type="password" placeholder="Your personal APP_KEY" autocomplete="off"><div class="drive-actions"><button class="secondary" id="wkSave">Save and check</button><button class="secondary" id="wkLink">Link Google Drive</button></div><small>These settings are saved only in this browser and shared with Notes on this domain. Each person should use their own Apps Script URL and key.</small></details></section><label for="geminiKey">Gemini API key · optional</label><input type="password" id="geminiKey" placeholder="AIza…"><div class="dialog-actions"><button class="secondary" data-close>Cancel</button><button class="primary" id="saveSettings">Save settings</button></div></div></div></template>
+<div class="overlay" id="settingsModal"><div class="dialog"><h2>App settings</h2><p>Notehouse is independent from Microsoft. Imported notes sync to your own Google Drive; the connection can reuse the one already set up in Notes on this domain.</p><section class="drive-settings"><strong id="driveSettingsState">Google Drive is not connected</strong><p id="driveSettingsHelp">For automatic renewal beyond one hour, configure the “Always-on connection” once in Notes. Notehouse will reuse it here.</p><div class="drive-actions"><button class="secondary" id="driveConnectBtn">Connect Google Drive</button><button class="secondary" id="driveSyncBtn">Sync now</button><a href="https://l2practice.github.io/notes/" target="_blank" rel="noopener">Open Notes ↗</a><a href="https://github.com/l2practice/notes/blob/main/apps-script/HUONG-DAN.md" target="_blank" rel="noopener">Always-on setup guide ↗</a></div><details class="drive-keeper"><summary>Always-on connection settings</summary><label for="wkUrl">Apps Script web app URL</label><input id="wkUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"><label for="wkKey">Private app key</label><input id="wkKey" type="password" placeholder="Your personal APP_KEY" autocomplete="off"><div class="drive-actions"><button class="secondary" id="wkSave">Save and check</button><button class="secondary" id="wkLink">Link Google Drive</button></div><small>These settings are saved only in this browser and shared with Notes on this domain. Each person should use their own Apps Script URL and key.</small></details></section><label for="geminiKey">Gemini API key · optional</label><input type="password" id="geminiKey" placeholder="AIza…"><div class="dialog-actions"><button class="secondary" data-close>Cancel</button><button class="primary" id="saveSettings">Save settings</button></div></div></div><input type="file" id="imageFile" accept="image/*" hidden><input type="file" id="oneNoteFile" accept=".onepkg,.one,.onetoc2,.zip" hidden></template>
     </div>
     <!-- ================= LIBRARY ================= -->
     <div id="libraryView">
@@ -2305,11 +2305,12 @@
     const _nnw = $('#navNewsBtn'); if (_nnw) _nnw.addEventListener('click', newsModal);
     const _nh = $('#navHomeBtn'); if (_nh) _nh.addEventListener('click', () => { libView = 'home'; renderLibrary(); window.scrollTo({ top: 0 }); });
     const _nl = $('#navLibBtn'); if (_nl) _nl.addEventListener('click', () => { libView = 'library'; libViewMode = 'shelves'; renderLibrary(); });
-    const _nnh = $('#navNotehouseBtn'); if (_nnh) _nnh.addEventListener('click', () => { mountNotehouse(); libView = 'notehouse'; renderLibrary(); });
+    const _nnh = $('#navNotehouseBtn'); if (_nnh) _nnh.addEventListener('click', () => notehouseChoice(_nnh));
     const _mbn = $('#mobileBottomNav');
     if (_mbn) _mbn.addEventListener('click', e => {
       const b = e.target.closest('[data-nav]'); if (!b) return;
       const act = b.dataset.nav;
+      if (act === 'notehouse'){ notehouseChoice(b); return; }
       if (act === 'add'){
         const r = b.getBoundingClientRect();
         $('#menuRoot').innerHTML = '<div class="menu" style="bottom:' + (window.innerHeight - r.top + 10) + 'px;left:' + Math.max(8, Math.min(r.left - 80, window.innerWidth - 215)) + 'px;transform-origin:bottom center">' +
@@ -7240,12 +7241,29 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
     </script>
 
   <script>
+function notehouseChoice(anchor){
+  const r=anchor.getBoundingClientRect(), mobile=window.matchMedia('(max-width:760px)').matches;
+  const left=Math.max(8,Math.min(mobile?r.left-80:r.right+8,window.innerWidth-225));
+  const style=mobile
+    ? 'bottom:'+(window.innerHeight-r.top+10)+'px;left:'+left+'px;transform-origin:bottom center'
+    : 'top:'+Math.max(8,r.top)+'px;left:'+left+'px;transform-origin:top left';
+  $('#menuRoot').innerHTML='<div class="menu" style="'+style+'"><button data-notehouse-choice="new">Open Notehouse in a new tab</button><button data-notehouse-choice="here">Open Notehouse here</button></div>';
+  document.addEventListener('pointerdown',menuOutside,true);
+  $('.menu').addEventListener('click',e=>{
+    const action=e.target.closest('[data-notehouse-choice]'); if(!action)return;
+    closeMenu();
+    if(action.dataset.notehouseChoice==='new') window.open(location.origin+location.pathname+'?tab=notehouse','_blank','noopener');
+    else { mountNotehouse(); libView='notehouse'; renderLibrary(); }
+  });
+}
 let notehouseInitialized=false;
 function mountNotehouse(){
   if(notehouseInitialized)return;
   const host=document.getElementById('notehouseHost');
-  const root=host.attachShadow({mode:'open'});
+  const root=host.shadowRoot||host.attachShadow({mode:'open'});
+  if(root.childNodes.length)return;
   root.append(document.getElementById('notehouseTemplate').content.cloneNode(true));
+  notehouseInitialized=true;
   (function(nhRoot){
 const starter={sections:[{name:'General',color:'#6b9690',pages:[{title:'Welcome',content:'<p>Choose <b>Import OneNote file</b> to bring your notebooks into this workspace.</p><p>Your notes stay in this browser and are not sent to this site.</p>'}]}]};
 let data;try{data=JSON.parse(localStorage.getItem('notehouse_data'))||structuredClone(starter)}catch{data=structuredClone(starter)}let localNotebookFound=!!localStorage.getItem('notehouse_data'),si=0,pi=0,saveTimer;
@@ -7300,7 +7318,6 @@ $('#mobileNav').onclick=()=>{let a=$('#notebookPane'),b=$('#pagePane');if(!a.cla
 
     $('#backToLibrary').onclick=()=>{libView='library';renderLibrary();window.scrollTo({top:0})};
   })(root);
-  notehouseInitialized=true;
 }
 </script>
 <script>
