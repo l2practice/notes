@@ -7498,7 +7498,7 @@ View:[['Show or hide notebooks','notebooks'],['Show or hide pages','pages'],['Sh
 Insert:[['To-do list','todo'],['Table','table'],['Image','image'],['Symbols','symbols']],
 Format:[['Bold','bold','⌘B'],['Italic','italic','⌘I'],['Underline','underline','⌘U'],['Choose font','font']],
 Notebooks:[['Add section','add-section'],['Add page','add-page']],
-Tools:[['Search notes','search'],['Open Gemini assistant','assistant'],['App settings','settings']]
+Tools:[['Search notes','search'],['Show notebooks','notebooks'],['Show pages','pages'],['Show or hide ruler','ruler'],['Open Gemini assistant','assistant'],['Download backup','backup'],['App settings','settings']]
 };
 function closeCommandMenu(){const menu=$('#commandMenu');menu.hidden=true;menu.innerHTML='';nhRoot.querySelectorAll('[data-menu]').forEach(b=>b.setAttribute('aria-expanded','false'))}
 function showCommandMenu(name,anchor){const menu=$('#commandMenu');menu.dataset.menuName=name;menu.classList.toggle('mobile-sheet',window.matchMedia('(max-width:560px)').matches);menu.innerHTML='<div class="menu-heading">'+name+'</div>'+commandSets[name].map(([label,action,shortcut])=>'<button type="button" role="menuitem" data-action="'+action+'"><span>'+label+'</span>'+(shortcut?'<span class="menu-shortcut">'+shortcut+'</span>':'')+'</button>').join('');menu.hidden=false;const r=anchor.getBoundingClientRect(),left=Math.min(Math.max(8,r.left),window.innerWidth-Math.min(menu.offsetWidth||240,window.innerWidth-16)-8);menu.style.top=Math.min(r.bottom+4,window.innerHeight-300)+'px';menu.style.left=left+'px';anchor.setAttribute('aria-expanded','true')}
@@ -7515,14 +7515,14 @@ if(action==='ruler')return $('#ruleBtn').click();if(action==='assistant')return 
 if(action==='todo')return $('#todoBtn').click();if(action==='table')return $('#tableBtn').click();if(action==='image')return $('#imageBtn').click();
 if(action==='symbols'){activateRibbonTab('draw');$('#drawSymbols').click();return}
 if(action==='bold'||action==='italic'||action==='underline')return nhRoot.querySelector('[data-cmd="'+action+'"]').click();
-if(action==='font'){activateRibbonTab('home');$('#fontFamily').focus();return}
+if(action==='font'){activateRibbonTab('home');$('#fontFamily').focus();$('#fontFamily').click();return}
 if(action==='add-section')return showSectionDialog();if(action==='add-page')return $('#addPage').click();
 if(action==='search')return $('#searchBtn').click()
 }
 nhRoot.querySelectorAll('[data-menu]').forEach(item=>item.onclick=()=>{const name=item.dataset.menu;if(item.getAttribute('aria-expanded')==='true'){closeCommandMenu();return}closeCommandMenu();showCommandMenu(name,item)});
 $('#phoneActions').onclick=()=>showCommandMenu('Tools',$('#phoneActions'));
 $('#commandMenu').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(b)runCommand(b.dataset.action)});
-nhRoot.addEventListener('click',e=>{if(!e.target.closest('#commandMenu')&&!e.target.closest('[data-menu]')&&!e.target.closest('#phoneActions'))closeCommandMenu()});
+nhRoot.addEventListener('click',e=>{if(!e.target.closest('#commandMenu')&&!e.target.closest('[data-menu]')&&!e.target.closest('#phoneActions')&&!e.target.closest('[data-ribbon="insert"]'))closeCommandMenu()});
 nhRoot.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommandMenu()});
 
 function activateRibbonTab(mode){const tab=nhRoot.querySelector('[data-ribbon="'+mode+'"]');if(tab)tab.click()}
@@ -7531,7 +7531,7 @@ function togglePhonePane(name){const a=$('#notebookPane'),b=$('#pagePane');$('#c
 function syncPhoneNav(active){nhRoot.querySelectorAll('[data-phone]').forEach(b=>b.classList.toggle('active',b.dataset.phone===active))}
 function insertTodo(){editor.focus();document.execCommand('insertHTML',false,'<ul class="todo-list"><li><input type="checkbox"><span>To-do item</span></li></ul><p><br></p>');storeCurrent()}
 $('#phoneNav').addEventListener('click',e=>{const b=e.target.closest('[data-phone]');if(!b)return;const d=b.dataset.phone;syncPhoneNav(d);if(d==='home'){togglePhonePane('notebooks');return}if(d==='pages'){togglePhonePane('pages');return}if(d==='search'){showSearchDialog();return}$('#notebookPane').classList.remove('mobile-visible');$('#pagePane').classList.remove('mobile-visible');showCommandMenu('Tools',$('#phoneActions'))});
-nhRoot.querySelectorAll('.tab').forEach(tab=>{tab.onclick=()=>{const mode=tab.dataset.ribbon;nhRoot.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===tab));if(mode==='draw'){leaveDrawing();$('#ribbon').classList.add('hidden');$('#drawBar').classList.add('show');activateDrawing();return}leaveDrawing();$('#ribbon').dataset.mode=mode;if(mode==='tell'){$('#searchBtn').click();activateRibbonTab('home')}}});
+nhRoot.querySelectorAll('.tab').forEach(tab=>{tab.onclick=()=>{const mode=tab.dataset.ribbon;nhRoot.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===tab));if(mode==='draw'){leaveDrawing();$('#ribbon').classList.add('hidden');$('#drawBar').classList.add('show');activateDrawing();return}leaveDrawing();if(mode==='insert'&&window.matchMedia('(max-width:560px)').matches){showCommandMenu('Insert',$('#phoneActions'));return}$('#ribbon').dataset.mode=mode;if(mode==='tell'){$('#searchBtn').click();activateRibbonTab('home')}}});
 $('#todoBtn').onclick=insertTodo;
 $('#addSection').onclick=()=>showSectionDialog();
 $('#saveSection').onclick=()=>{const input=$('#sectionNameInput'),name=input.value.trim();if(!name){input.focus();return}data.sections.push({name,notebook:'My notebook',color:['#db1785','#e4a900','#188f53','#259ac0'][data.sections.length%4],pages:[{title:'Untitled page',content:'<p><br></p>'}]});si=data.sections.length-1;pi=0;$('#sectionModal').classList.remove('show');input.value='';render();queueSave()};
