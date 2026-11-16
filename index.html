@@ -7303,5 +7303,12 @@ $('#mobileNav').onclick=()=>{let a=$('#notebookPane'),b=$('#pagePane');if(!a.cla
   notehouseInitialized=true;
 }
 </script>
+<script>
+if(new URLSearchParams(location.search).get('tab')==='notehouse'){
+  mountNotehouse();
+  libView='notehouse';
+  renderLibrary();
+}
+</script>
 </body>
 </html>
