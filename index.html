@@ -7436,7 +7436,7 @@ async function driveKeepAlive(){if(driveWorkerBusy||!workerCfg())return;driveWor
 setInterval(driveKeepAlive,60000);window.addEventListener('online',driveKeepAlive);document.addEventListener('visibilitychange',()=>{if(!document.hidden)driveKeepAlive()});
 async function driveBootstrap(){const c=workerCfg();if(c){await driveKeepAlive();return}if(driveToken&&Date.now()<driveTokenExp){driveLinked=true;driveRemember();await driveSyncNow(false);return}driveLinked=false;driveStatus('Google Drive not connected',false);refreshDriveSettings()}
 
-$('#mobileNav').onclick=()=>{let a=$('#notebookPane'),b=$('#pagePane');if(!a.classList.contains('mobile-hidden'))a.classList.add('mobile-hidden');else if(!b.classList.contains('mobile-visible'))b.classList.add('mobile-visible');else{b.classList.remove('mobile-visible');a.classList.remove('mobile-hidden')}};$('#searchBtn').onclick=()=>showSearchDialog();
+$('#mobileNav').onclick=()=>togglePhonePane('notebooks');$('#searchBtn').onclick=()=>showSearchDialog();
 /* Make the visible top menus and ribbon tabs respond to clicks. */
 
 /* Notehouse draw tools, adapted to this editor from the drawing controls in Notes. */
@@ -7527,7 +7527,7 @@ nhRoot.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommandMenu()});
 
 function activateRibbonTab(mode){const tab=nhRoot.querySelector('[data-ribbon="'+mode+'"]');if(tab)tab.click()}
 function leaveDrawing(){const lay=editor.querySelector('.nh-draw-layer');if(lay)lay.style.pointerEvents='none';editor.classList.remove('drawing-active');$('#drawBar').classList.remove('show');$('#ribbon').classList.remove('hidden')}
-function togglePhonePane(name){const a=$('#notebookPane'),b=$('#pagePane');$('#chat').classList.add('hidden');if(name==='notebooks'){a.classList.toggle('mobile-visible');b.classList.remove('mobile-visible');a.classList.remove('collapsed')}else{b.classList.toggle('mobile-visible');a.classList.remove('mobile-visible');b.classList.remove('collapsed')}syncPhoneNav()}
+function togglePhonePane(name){const a=$('#notebookPane'),b=$('#pagePane');$('#chat').classList.add('hidden');if(name==='notebooks'){a.classList.toggle('mobile-visible');b.classList.remove('mobile-visible');a.classList.remove('collapsed');syncPhoneNav('home')}else{b.classList.toggle('mobile-visible');a.classList.remove('mobile-visible');b.classList.remove('collapsed');syncPhoneNav('pages')}}
 function syncPhoneNav(active){nhRoot.querySelectorAll('[data-phone]').forEach(b=>b.classList.toggle('active',b.dataset.phone===active))}
 function insertTodo(){editor.focus();document.execCommand('insertHTML',false,'<ul class="todo-list"><li><input type="checkbox"><span>To-do item</span></li></ul><p><br></p>');storeCurrent()}
 $('#phoneNav').addEventListener('click',e=>{const b=e.target.closest('[data-phone]');if(!b)return;const d=b.dataset.phone;syncPhoneNav(d);if(d==='home'){togglePhonePane('notebooks');return}if(d==='pages'){togglePhonePane('pages');return}if(d==='search'){showSearchDialog();return}$('#notebookPane').classList.remove('mobile-visible');$('#pagePane').classList.remove('mobile-visible');showCommandMenu('Tools',$('#phoneActions'))});
