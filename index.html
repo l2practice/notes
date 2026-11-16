@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-14-b" />
+    <meta name="app-build" content="2026-11-16-a" />
     <script>
       /* If the browser served a stale copy of this page, fetch the newest once and reload */
       (function(){
@@ -1501,6 +1501,7 @@
         <button class="fmt-btn fav-btn" id="favFormatBtn" title="Save the current format as the favorite for this file">
           <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.7C6.4 17 3 13.6 3 9.9 3 7.2 5 5 7.7 5c1.7 0 3.3.9 4.3 2.4C13 5.9 14.6 5 16.3 5 19 5 21 7.2 21 9.9c0 3.7-3.4 7.1-9 10.8Z"/></svg>
         </button>
+        <button class="fmt-btn" id="dupNoteBtn" title="Duplicate the selected text box (Cmd/Ctrl+D). Copy: Cmd/Ctrl+C, paste: Cmd/Ctrl+V"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V3h7l4 4v9h-4"/><path d="M16 3v4h4"/><path d="M4 8h8l3 3v10H4z"/><path d="M12 8v3h3"/></svg></button>
         <button class="fmt-btn" id="hlTypeBtn" title="Highlight what I type (Cmd/Ctrl+Shift+H). With text selected it highlights that text."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 6 6-4 4H6v-5z"/><path d="m9 11 6-6 4 4-6 6"/><path d="M3 22h18" stroke="#ffd400" stroke-width="3"/></svg></button>
         <button class="fmt-btn active" id="fxBtn" title="Typing effects (sparkle at the cursor)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 17v4M17 19h4"/></svg></button>
         <button class="fmt-btn gram-btn" id="gramBtn" aria-pressed="false" title="Grammar check (English US) — sends the text you type to the free LanguageTool service">GR</button>
@@ -2469,6 +2470,7 @@
     let saveTimer = null;
     let pageSaveTimer = null;
     let restoringPage = false;
+    let styleManual = false;   // true when you changed the format in Add Text mode before placing the box: that choice wins over the favourite
     let lastStyle = { font: 'Nunito', sizeFrac: 0.027, bold: false, italic: false, underline: false, strike: false, color: '#111827', highlight: '', align: 'left', lh: 1.4, bullet: '' };
     let moveMode = false;
     let typingHideTimer = null;
@@ -3444,7 +3446,7 @@
       selectedNoteId = id;
       if (!id && moveMode && typeof setMoveMode === 'function') setMoveMode(false);
       document.querySelectorAll('.note').forEach(el => el.classList.toggle('sel', el.dataset.nid === id));
-      if (id){ const n = findNote(id); if (n){ lastStyle = cloneStyle(n.style); overlayFav(); } }
+      if (id){ styleManual = false; const n = findNote(id); if (n){ lastStyle = cloneStyle(n.style); overlayFav(); } }
       updateToolbarVisibility();
     }
     function startEdit(id, caret){
@@ -3503,6 +3505,7 @@
         // Show the text toolbar right away, set to the style the next box will use
         // (tap the heart with nothing selected to apply this file's favorite format)
         if (selectedNoteId) selectNote(null);
+        if (currentReader && currentReader.favoriteStyle && !styleManual) lastStyle = cloneStyle(currentReader.favoriteStyle);
         moveMode = false;
         updateToolbarVisibility();
       } else {
@@ -3519,7 +3522,9 @@
     });
     function createNote(page, x, y, w, h){
       w = Math.max(0.08, Math.min(w || 0.08, 1 - x));
-      const n = { id: uid(), page, x: Math.max(0, Math.min(x, 1 - w)), y: Math.max(0, Math.min(y, 0.98)), w, h: h || 0, text: '', style: Object.assign({}, lastStyle) };
+      const fav = currentReader.favoriteStyle, base = (fav && !styleManual) ? cloneStyle(fav) : Object.assign({}, lastStyle);   // a saved favourite format is used in full for every new box
+      styleManual = false; lastStyle = cloneStyle(base);
+      const n = { id: uid(), page, x: Math.max(0, Math.min(x, 1 - w)), y: Math.max(0, Math.min(y, 0.98)), w, h: h || 0, text: '', style: base };
       currentReader.notes.push(n);
       renderNotesForPage(page);
       startEdit(n.id);
@@ -3661,6 +3666,14 @@
       if (!currentReader) return;
       if (e.key === 'Escape'){ if (editingId) finishEdit(); else if (addMode) $('#addTextBtn').click(); else selectNote(null); }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNoteId && !editingId) deleteNote(selectedNoteId);
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !editingId && !INK.tool){
+        const t = e.target && e.target.tagName, k = e.key.toLowerCase();
+        if (t !== 'INPUT' && t !== 'TEXTAREA' && t !== 'SELECT'){
+          if (selectedNoteId && k === 'c'){ e.preventDefault(); copyNoteSel(); }
+          else if (selectedNoteId && k === 'd'){ e.preventDefault(); duplicateNote(); }
+          else if (k === 'v' && INK.clipNotes && INK.clipNotes.length){ e.preventDefault(); INK.clipN++; pasteClip(currentPage, 16 * INK.clipN, 16 * INK.clipN); }
+        }
+      }
     });
 </script>
 
@@ -4788,7 +4801,7 @@
       if (prop === 'font' && value) pushRecentFont(value);
       if (applyToSelection(prop, value)){ syncFormatBar(); return; }
       lastStyle[prop] = value;
-      const n = findNote(selectedNoteId);
+      const n = findNote(selectedNoteId); if (!n) styleManual = true;
       if (n){
         n.style[prop] = value;
         lastStyle = cloneStyle(n.style); overlayFav();
@@ -5115,6 +5128,7 @@
       h.addEventListener('pointercancel', () => { d = null; });
       h.addEventListener('dblclick', () => { barPinned = null; try { localStorage.removeItem('nt-bar-pos'); } catch (e) {} positionToolbar(); });   // double-tap the handle: back to top centre
     })();
+    $('#dupNoteBtn').addEventListener('click', () => duplicateNote());
     $('#barClose').addEventListener('click', () => { barDismissed = true; updateToolbarVisibility(); });
     /* upright text toolbar: the colours collapse into one dot that opens a small panel beside the bar */
     let barVert = false; try { barVert = localStorage.getItem('nt-bar-vert') === '1'; } catch (e) {}
@@ -5574,7 +5588,7 @@ function strokePolys(st){
   return shapePaths(st);
 }
 function strokeHit(st, x, y, tol){
-  if (st.k === 'sym' || st.k === 'img') return x >= st.x - tol && x <= st.x + st.bw + tol && y >= st.y - tol && y <= st.y + st.bh + tol;
+  if (st.k === 'sym' || st.k === 'img' || st.k === 'note') return x >= st.x - tol && x <= st.x + st.bw + tol && y >= st.y - tol && y <= st.y + st.bh + tol;
   const hw = (st.sw || 2) / 2 + tol;
   for (const poly of strokePolys(st)){
     if (poly.length === 1){ if (Math.hypot(x - poly[0][0], y - poly[0][1]) <= hw) return true; continue; }
@@ -5606,7 +5620,8 @@ function scaleStroke(st, ax, ay, f){
     if (st.x3 !== undefined){ st.x3 = r1(X(st.x3)); st.y3 = r1(Y(st.y3)); }
     if (st.bw !== undefined){ st.bw = r1(st.bw * f); st.bh = r1(st.bh * f); }
   }
-  if (st.sw && st.k !== 'sym' && st.k !== 'img') st.sw = Math.max(0.4, Math.round(st.sw * f * 10) / 10);
+  if (st.k === 'note') st.fs = (st.fs || 1) * f;
+  if (st.sw && st.k !== 'sym' && st.k !== 'img' && st.k !== 'note') st.sw = Math.max(0.4, Math.round(st.sw * f * 10) / 10);
 }
 function fitStroke(st, ob, nb){
   const sx = ob.w ? nb.w / ob.w : 1, sy = ob.h ? nb.h / ob.h : 1;
@@ -5779,7 +5794,39 @@ function caretFromDrag(x0, y0, x, y, apex, sym){
   return s;
 }
 function caretDefault(x, y){ return caretFromDrag(x - 38, y + 34, x, y - 34, null, true); }
-function selList(){ if (!INK.sel) return []; const l = inkList(INK.sel.p); return INK.sel.ids.map(id => l.find(s => s.id === id)).filter(Boolean); }
+/* Text boxes can be part of a selection: each one is represented by a stand-in rectangle (k:'note', page units) that moves and scales
+   like a stroke, and is written back to the real box (syncNotes) while you drag. */
+function noteBoxPg(n){ const sz = pageSizes[n.page - 1] || { w: 1, h: 1 }, el = noteEl(n.id); return { x: n.x * sz.w, y: n.y * sz.h, w: n.w * sz.w, h: n.h ? n.h * sz.h : (el ? el.getBoundingClientRect().height / (scale || 1) : 24) }; }
+function noteProxy(n){ const b = noteBoxPg(n); return { id: 'note:' + n.id, t: 'note', k: 'note', nid: n.id, x: b.x, y: b.y, bw: b.w, bh: b.h, bh0: b.h, sf0: n.style.sizeFrac }; }
+function selList(){
+  if (!INK.sel) return [];
+  const l = inkList(INK.sel.p), a = INK.sel.ids.map(id => l.find(s => s.id === id)).filter(Boolean);
+  if (INK.sel.nids && INK.sel.nids.length){
+    INK.sel.np = INK.sel.np || {};
+    INK.sel.nids.forEach(id => { if (!INK.sel.np[id]){ const n = findNote(id); if (n) INK.sel.np[id] = noteProxy(n); } if (INK.sel.np[id]) a.push(INK.sel.np[id]); });
+  }
+  return a;
+}
+function syncNotes(arr){
+  arr.forEach(st => {
+    if (st.k !== 'note') return; const n = findNote(st.nid); if (!n) return;
+    const sz = pageSizes[n.page - 1]; if (!sz) return;
+    n.x = Math.max(0, st.x / sz.w); n.y = Math.max(0, st.y / sz.h); n.w = Math.max(0.03, st.bw / sz.w);
+    if (Math.abs(st.bh - st.bh0) > 0.5) n.h = st.bh / sz.h;
+    if (st.fs) n.style.sizeFrac = Math.max(0.008, Math.min(0.12, st.sf0 * st.fs));
+    const el = noteEl(n.id); if (el){ applyNoteStyle(el, n); el.querySelector('.note-text').style.fontSize = Math.max(9, n.style.sizeFrac * sz.w * scale) + 'px'; }
+  });
+}
+function noteAtPt(p, x, y){
+  const tol = 6 / (scale || 1);
+  for (let i = currentReader.notes.length - 1; i >= 0; i--){
+    const n = currentReader.notes[i]; if (n.page !== p) continue; const b = noteBoxPg(n);
+    if (x >= b.x - tol && x <= b.x + b.w + tol && y >= b.y - tol && y <= b.y + b.h + tol) return n;
+  }
+  return null;
+}
+const pageNotesJson = p => JSON.stringify((currentReader.notes || []).filter(n => n.page === p));
+function setPageNotes(p, json){ currentReader.notes = currentReader.notes.filter(n => n.page !== p).concat(JSON.parse(json)); renderNotesForPage(p); }
 function groupBox(arr){
   let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
   arr.forEach(st => { const b = bboxOf(st); x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.w); y1 = Math.max(y1, b.y + b.h); });
@@ -5947,19 +5994,19 @@ function sizeBadge(ctx, L, b, frame, label){
 /* ---------- undo / redo ---------- */
 function syncUndoUI(){ const u = $('#inkUndo'), r = $('#inkRedo'); if (u) u.disabled = !INK.undo.length; if (r) r.disabled = !INK.redo.length; }
 function undoAdd(p, st){ INK.undo.push({ p, add: st }); if (INK.undo.length > 40) INK.undo.shift(); INK.redo.length = 0; syncUndoUI(); }
-function pushUndo(p){ INK.undo.push({ p, snap: JSON.stringify(inkList(p)) }); if (INK.undo.length > 40) INK.undo.shift(); INK.redo.length = 0; syncUndoUI(); }
+function pushUndo(p){ INK.undo.push({ p, snap: JSON.stringify(inkList(p)), ns: currentReader ? pageNotesJson(p) : undefined }); if (INK.undo.length > 40) INK.undo.shift(); INK.redo.length = 0; syncUndoUI(); }
 function inkUndo(){
   legitUntil = performance.now() + 700;
   const u = INK.undo.pop(); if (!u) return;
   if (u.add){ setInkList(u.p, inkList(u.p).filter(s => s.id !== u.add.id)); INK.redo.push({ p: u.p, readd: u.add }); }
-  else { INK.redo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap)); }
+  else { INK.redo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)), ns: u.ns !== undefined ? pageNotesJson(u.p) : undefined }); setInkList(u.p, JSON.parse(u.snap)); if (u.ns !== undefined) setPageNotes(u.p, u.ns); }
   INK.sel = null; redrawInk(u.p); scheduleSave(); syncInkBar();
 }
 function inkRedo(){
   legitUntil = performance.now() + 700;
   const u = INK.redo.pop(); if (!u) return;
   if (u.readd){ inkList(u.p, true).push(u.readd); INK.undo.push({ p: u.p, add: u.readd }); }
-  else { INK.undo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)) }); setInkList(u.p, JSON.parse(u.snap)); }
+  else { INK.undo.push({ p: u.p, snap: JSON.stringify(inkList(u.p)), ns: u.ns !== undefined ? pageNotesJson(u.p) : undefined }); setInkList(u.p, JSON.parse(u.snap)); if (u.ns !== undefined) setPageNotes(u.p, u.ns); }
   INK.sel = null; redrawInk(u.p); scheduleSave(); syncInkBar();
 }
 
@@ -6403,7 +6450,7 @@ function inkStep(e, x, y, cv){
     const arr = selList(); if (!arr.length) return;
     if (!G.moved && Math.hypot(x - G.x0, y - G.y0) * scale < 3) return;
     if (!G.moved){ G.moved = true; pushUndo(p); }
-    arr.forEach((st, i) => { const base = clone(G.origs[i]); moveStroke(base, x - G.x0, y - G.y0); copyInto(st, base); }); compose(p);
+    arr.forEach((st, i) => { const base = clone(G.origs[i]); moveStroke(base, x - G.x0, y - G.y0); copyInto(st, base); }); syncNotes(arr); compose(p);
   } else if (G.kind === 'resize'){
     const arr = selList(); if (!arr.length) return;
     if (!G.moved){ G.moved = true; pushUndo(p); }
@@ -6434,13 +6481,13 @@ function inkStep(e, x, y, cv){
         const f = Math.max(0.05, ((x - ox) * vx + (y - oy) * vy) / vl);
         G.pct = Math.round(f * 100);
         arr.forEach((st, i) => { const base = clone(G.origs[i]); scaleStroke(base, ox, oy, f); copyInto(st, base); });
-        compose(p); return;
+        syncNotes(arr); compose(p); return;
       }
       const nb = { x: Math.min(x, ox), y: Math.min(y, oy), w: Math.max(4, Math.abs(x - ox)), h: Math.max(4, Math.abs(y - oy)) };
       if (arr.length === 1 && (arr[0].k === 'img' || (arr[0].k === 'sym' && arr[0].ring))){ nb.h = nb.w * ob.h / ob.w; nb.y = (G.h === 'nw' || G.h === 'ne') ? oy - nb.h : oy; }
       arr.forEach((st, i) => { const base = clone(G.origs[i]); fitStroke(base, ob, nb); copyInto(st, base); });
     }
-    compose(p);
+    syncNotes(arr); compose(p);
   }
 }
 function inkUp(e, cv, cancelled){
@@ -6504,7 +6551,11 @@ function inkUp(e, cv, cancelled){
         const pts = strokePolys(st).reduce((a, q) => a.concat(q), []); if (!pts.length) return false;
         return pts.filter(q => pointInPoly(q[0], q[1], poly)).length >= pts.length * 0.5;
       }).map(s => s.id);
-      INK.sel = ids.length ? { p, ids } : null;
+      const nids = (currentReader ? currentReader.notes : []).filter(n => {
+        if (n.page !== p) return false; const b = noteBoxPg(n);
+        return [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h], [b.x + b.w / 2, b.y + b.h / 2]].filter(q => pointInPoly(q[0], q[1], poly)).length >= 3;
+      }).map(n => n.id);
+      INK.sel = (ids.length || nids.length) ? { p, ids, nids } : null;
     }
     redrawInk(p); syncInkBar();
   } else if (g.kind === 'move' || g.kind === 'resize'){
@@ -6584,6 +6635,16 @@ function selectDown(p, x, y, opts){
       G = { kind: 'move', p, x0: x, y0: y, origs: arr.map(clone), moved: false }; beginInteraction(p, arr.map(s => s.id)); compose(p); return true;
     }
   }
+  if (!opts && currentReader){
+    const nh = noteAtPt(p, x, y);
+    if (nh){
+      INK.sel = { p, ids: [], nids: [nh.id] }; const pr = selList()[0];
+      G = { kind: 'move', p, x0: x, y0: y, origs: [clone(pr)], moved: false };
+      beginInteraction(p, [pr.id]); compose(p); syncInkBar();
+      if (prev && prev.p !== p) redrawInk(prev.p);
+      return true;
+    }
+  }
   for (let i = list.length - 1; i >= 0; i--){
     if ((!opts || opts.filter(list[i])) && strokeHit(list[i], x, y, tol)){
       INK.sel = { p, ids: [list[i].id] };
@@ -6600,26 +6661,34 @@ function selectDown(p, x, y, opts){
 }
 /* ---------- copy / paste / duplicate for drawings, shapes, symbols and pictures ---------- */
 INK.clip = null; INK.clipN = 0; INK.clipPage = 0;
+INK.clipNotes = [];
 function copySelected(quiet){
   const arr = selList(); if (!arr.length) return false;
-  INK.clip = arr.map(st => clone(st)); INK.clipN = 0; INK.clipPage = INK.sel.p;
+  INK.clip = arr.filter(st => st.k !== 'note').map(st => clone(st));
+  INK.clipNotes = (INK.sel.nids || []).map(id => findNote(id)).filter(Boolean).map(n => clone(n));
+  INK.clipN = 0; INK.clipPage = INK.sel.p;
   if (!quiet) toast(arr.length > 1 ? arr.length + ' items copied — paste with Cmd/Ctrl+V.' : 'Copied — paste with Cmd/Ctrl+V.');
   syncInkBar(); return true;
 }
 function pasteClip(page, dx, dy){
-  if (!INK.clip || !INK.clip.length || !currentReader) return false;
+  const strokes = INK.clip || [], nts = INK.clipNotes || [];
+  if ((!strokes.length && !nts.length) || !currentReader) return false;
   const p = page || currentPage || 1, sz = pageSizes[p - 1]; if (!sz) return false;
   const same = p === INK.clipPage;
   if (dx === undefined){ INK.clipN++; dx = same ? 16 * INK.clipN : 0; dy = same ? 16 * INK.clipN : 0; }
-  const items = INK.clip.map(st => { const c = clone(st); c.id = uid(); moveStroke(c, dx, dy); return c; });
+  const items = strokes.map(st => { const c = clone(st); c.id = uid(); moveStroke(c, dx, dy); return c; });
   // keep the group inside the page
-  const gb = groupBox(items); let ox = 0, oy = 0;
-  if (gb.x + gb.w > sz.w) ox = sz.w - gb.w - gb.x; if (gb.y + gb.h > sz.h) oy = sz.h - gb.h - gb.y; if (gb.x + ox < 0) ox = -gb.x; if (gb.y + oy < 0) oy = -gb.y;
+  const gb = items.length ? groupBox(items) : null; let ox = 0, oy = 0;
+  if (gb){ if (gb.x + gb.w > sz.w) ox = sz.w - gb.w - gb.x; if (gb.y + gb.h > sz.h) oy = sz.h - gb.h - gb.y; if (gb.x + ox < 0) ox = -gb.x; if (gb.y + oy < 0) oy = -gb.y; }
   if (ox || oy) items.forEach(c => moveStroke(c, ox, oy));
   pushUndo(p); legitUntil = performance.now() + 700;
   const list = inkList(p, true); items.forEach(c => list.push(c));
+  const newNotes = nts.map(n => { const c = clone(n); c.id = uid(); c.page = p; c.x = Math.max(0, Math.min(1 - c.w, n.x + (dx + ox) / sz.w)); c.y = Math.max(0, Math.min(0.98, n.y + (dy + oy) / sz.h)); return c; });
+  newNotes.forEach(c => currentReader.notes.push(c));
+  if (newNotes.length) renderNotesForPage(p);
+  if (!items.length && !INK.tool && newNotes.length){ selectNote(newNotes[0].id); scheduleSave(); redrawInk(p); return true; }   // text-box paste in text mode: just select the new box
   if (INK.tool !== 'select' && INK.tool !== 'shape') setInkTool('select');
-  INK.sel = { p, ids: items.map(c => c.id) }; redrawInk(p); scheduleSave(); syncInkBar();
+  INK.sel = { p, ids: items.map(c => c.id), nids: newNotes.map(c => c.id) }; redrawInk(p); scheduleSave(); syncInkBar();
   return true;
 }
 function duplicateSelected(){
@@ -6627,9 +6696,13 @@ function duplicateSelected(){
   if (!copySelected(true)) return;
   INK.clipN = 0; pasteClip(p, 18, 18); INK.clipN = 0;
 }
+/* Text mode: a selected text box can be copied, pasted and duplicated too */
+function copyNoteSel(quiet){ const n = findNote(selectedNoteId); if (!n) return false; INK.clip = []; INK.clipNotes = [clone(n)]; INK.clipN = 0; INK.clipPage = n.page; if (!quiet) toast('Text box copied — paste with Cmd/Ctrl+V.'); return true; }
+function duplicateNote(){ const n = findNote(selectedNoteId); if (!n){ toast('Select a text box first.'); return; } if (copyNoteSel(true)){ INK.clipN = 0; pasteClip(n.page, 18, 18); INK.clipN = 0; } }
 function deleteSelected(){
   if (!INK.sel) return;
-  const p = INK.sel.p, ids = new Set(INK.sel.ids); pushUndo(p);
+  const p = INK.sel.p, ids = new Set(INK.sel.ids), nids = INK.sel.nids || []; pushUndo(p);
+  if (nids.length){ currentReader.notes = currentReader.notes.filter(n => !nids.includes(n.id)); renderNotesForPage(p); if (selectedNoteId && nids.includes(selectedNoteId)) selectedNoteId = null; }
   legitUntil = performance.now() + 700; setInkList(p, inkList(p).filter(s => !ids.has(s.id))); INK.sel = null; redrawInk(p); scheduleSave(); syncInkBar();
 }
 
