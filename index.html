@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-17-meeting-template-three-items-v9" />
+    <meta name="app-build" content="2026-11-17-meeting-template-visible-three-rows-v10" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -1614,7 +1614,8 @@ const priorSelectAllRunMenu=runMenuAction;runMenuAction=function(action){if(acti
     $('#statusZoom').textContent=(localStorage.getItem('notehouse_page_zoom')||'100')+'%';
   }
   refreshStatus(); editor.addEventListener('input',refreshStatus); titleEl.addEventListener('input',refreshStatus);
-  const oldRender=render; render=function(){oldRender();refreshStatus()};
+  function upgradeMeetingTemplateBlocks(){let changed=false;const ensureList=(heading)=&gt;{let list=heading?.nextElementSibling;if(!list||list.tagName!=='OL'){list=document.createElement('ol');heading.after(list);changed=true}while(list.children.length&lt;3){const item=document.createElement('li');item.innerHTML='&amp;nbsp;';list.append(item);changed=true}for(const item of [...list.children].slice(0,3)){const content=item.innerHTML.trim();if(!item.textContent.replace(/\u00a0/g,' ').trim()&amp;&amp;(!content||/^&lt;br\s*\/?\s*&gt;$/i.test(content))){item.innerHTML='&amp;nbsp;';changed=true}}};editor.querySelectorAll('.meeting-template').forEach(template=&gt;{const findHeading=text=&gt;[...template.querySelectorAll('h2')].find(h=&gt;h.textContent.trim().toLowerCase()===text.toLowerCase());for(const title of ['Discussion Topics','Monthly Updates:','Priority Tasks:']){let heading=findHeading(title);if(!heading){heading=document.createElement('h2');heading.textContent=title;template.append(heading);changed=true}ensureList(heading)}});editor.querySelectorAll('.meeting-details-card').forEach(card=&gt;{if(card.querySelector('.legacy-meeting-sections'))return;const wrapper=document.createElement('div');wrapper.className='legacy-meeting-sections';wrapper.innerHTML='&lt;h2 class="first-meeting-heading"&gt;Discussion Topics&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;Monthly Updates:&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;/ol&gt;&lt;h2&gt;Priority Tasks:&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;li&gt;&amp;nbsp;&lt;/li&gt;&lt;/ol&gt;';card.append(wrapper);changed=true});if(changed)storeCurrent(false)}
+  const oldRender=render; render=function(){oldRender();upgradeMeetingTemplateBlocks();refreshStatus()};
   $('#statusZoomIn').onclick=()=&gt;{setPageZoom(10);refreshStatus()}; $('#statusZoomOut').onclick=()=&gt;{setPageZoom(-10);refreshStatus()};
   function updateStatusMenu(){const item=menuDefinitions.view?.flat().find(x=&gt;x.action==='toggle-status');if(item)item.label=status.classList.contains('status-hidden')?'Show Status Bar':'Hide Status Bar'}
   const previousMenuAction=runMenuAction;
@@ -1667,7 +1668,7 @@ const priorSelectAllRunMenu=runMenuAction;runMenuAction=function(action){if(acti
   $('#meetingTemplateCancel').onclick=closeMeetingTemplateDialog;
   $('#meetingTemplateDialog').addEventListener('click',e=&gt;{if(e.target===e.currentTarget)closeMeetingTemplateDialog()});
   $('#meetingTemplateForm').addEventListener('submit',e=&gt;{e.preventDefault();const values={date:$('#meetingDatePrefill').value,time:$('#meetingTimePrefill').value,attendees:$('#meetingAttendeesPrefill').value,topics:[1,2,3].map(n=&gt;$('#meetingTopic'+n+'Prefill').value),updates:[1,2,3].map(n=&gt;$('#meetingUpdate'+n+'Prefill').value),tasks:[1,2,3].map(n=&gt;$('#meetingTask'+n+'Prefill').value)};closeMeetingTemplateDialog();insertMeetingsTemplate(values)});
-  updateStyleButtons();updateStatusMenu();
+  upgradeMeetingTemplateBlocks();updateStyleButtons();updateStatusMenu();
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
