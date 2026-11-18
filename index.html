@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-18-notehouse-tags-29-v13" />
+    <meta name="app-build" content="2026-11-18-notehouse-pages-lists-v14" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -1706,6 +1706,9 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
 #tagPane header button{border:0;background:none;font-size:20px;cursor:pointer;color:#53615f}
 #tagPane .tag-controls{display:flex;flex-direction:column;gap:8px;padding:0 14px 10px;border-bottom:1px solid #e5eae8;font-size:12.5px;color:#41504d}
 #tagPane select{height:32px;border:1px solid #cfd8d5;border-radius:8px;padding:0 8px;font:inherit;background:#fff}
+#tagPane .tag-btns{display:flex;gap:8px}#tagPane .tag-btns button{flex:1;height:30px;border:1px solid #cfd8d5;border-radius:8px;background:#fff;font:inherit;font-size:12.5px;cursor:pointer}#tagPane .tag-btns button:hover{background:#eef3f1}
+.nh-pop .del{margin-left:6px;color:#9aa5a2;font-size:15px;padding:0 4px;border-radius:5px}.nh-pop .del:hover{background:#f6dcdc;color:#b23}
+.nh-pop .tag-form{display:flex;flex-direction:column;gap:8px;padding:6px 10px 8px;font-size:12.5px;color:#41504d}.nh-pop .tag-form input:not([type=checkbox]){display:block;width:100%;margin-top:3px;height:30px;border:1px solid #cfd8d5;border-radius:7px;padding:0 8px;font:inherit;box-sizing:border-box}.nh-pop .tag-form .row{display:flex;gap:8px;justify-content:flex-end}.nh-pop .tag-form .row button{width:auto;padding:6px 12px;border:1px solid #cfd8d5;background:#fff}.nh-pop .tag-form .row .pri{background:#0d7a64;color:#fff;border-color:#0d7a64}
 #tagList{flex:1;overflow:auto;padding:6px 8px 20px}
 #tagList .tg{margin-top:10px}
 #tagList .tg-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12.5px;color:#24302d;padding:4px 6px}
@@ -1744,6 +1747,7 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
   &lt;div class="tag-controls"&gt;
     &lt;label&gt;Search in &lt;select id="tagScope"&gt;&lt;option value="page"&gt;This page&lt;/option&gt;&lt;option value="section"&gt;This section&lt;/option&gt;&lt;option value="notebook"&gt;This notebook&lt;/option&gt;&lt;option value="all" selected&gt;All notebooks&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
     &lt;label&gt;&lt;input type="checkbox" id="tagOpenOnly"&gt; Show only unchecked items&lt;/label&gt;
+    &lt;div class="tag-btns"&gt;&lt;button id="tagRefresh" type="button"&gt;↻ Refresh&lt;/button&gt;&lt;button id="tagSummaryPage" type="button"&gt;Create Summary Page&lt;/button&gt;&lt;/div&gt;
   &lt;/div&gt;
   &lt;div id="tagList"&gt;&lt;/div&gt;
 &lt;/aside&gt;
@@ -1760,8 +1764,13 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
     ['movie','Movie to see','🎬'],['book','Book to read','📖'],['music','Music to listen to','🎵'],['source','Source for article','🔗'],['blog','Remember for blog','📝'],
     ['discussa','Discuss with person A','💬'],['discussb','Discuss with person B','🗨️'],['discussmgr','Discuss with manager','👔'],['email','Send in email','✉️'],['meeting','Schedule meeting','📅'],
     ['callback','Call back','📞'],['todo1','To Do priority 1','①'],['todo2','To Do priority 2','②'],['client','Client request','🤝']];
-  const TAG=Object.fromEntries(TAGS.map(t=&gt;[t[0],{id:t[0],label:t[1],icon:t[2],key:t[3]||''}]));
+  let TAG={};
   const CHECKABLE=new Set(['todo','todo1','todo2','discussa','discussb','discussmgr','email','meeting','callback','client']);
+  const BUILTIN_CHECK=new Set(CHECKABLE);
+  /* custom tags (OneNote: New Tag / Customize Tags) live in data.customTags as {id,label,icon,check} */
+  function allTags(){return TAGS.concat((data.customTags||[]).map(c=&gt;[c.id,c.label,c.icon,'']))}
+  function refreshTags(){TAG={};allTags().forEach(t=&gt;{TAG[t[0]]={id:t[0],label:t[1],icon:t[2],key:t[3]||''}});CHECKABLE.clear();BUILTIN_CHECK.forEach(x=&gt;CHECKABLE.add(x));(data.customTags||[]).forEach(c=&gt;{if(c.check)CHECKABLE.add(c.id)})}
+  refreshTags();
   const BLOCK_SEL='li,p,h1,h2,h3,h4,h5,h6,blockquote,pre';
   const isMac=/Mac|iPhone|iPad/.test(navigator.platform);
   const altLabel=n=&gt;(isMac?'⌥':'Alt+')+n;
@@ -1818,13 +1827,43 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
   }
   document.addEventListener('pointerdown',e=&gt;{if(!e.target.closest('.nh-pop,#tagsBtn,#stylesBtn'))hidePops()},true);
   document.addEventListener('keydown',e=&gt;{if(e.key==='Escape')hidePops()});
-  [tagPop,stylePop].forEach(p=&gt;p.addEventListener('pointerdown',e=&gt;e.preventDefault()));   // keep the caret in the page
+  [tagPop,stylePop].forEach(p=&gt;p.addEventListener('pointerdown',e=&gt;{if(!e.target.closest('input,select,textarea'))e.preventDefault()}));   // keep the caret in the page
 
+  function curTagged(){const b=blockAtSelectionNoFix();return b&amp;&amp;b.dataset.tags?b:null}
   function buildTagPop(){
-    tagPop.innerHTML='&lt;div class="pop-title"&gt;Tags&lt;/div&gt;'+TAGS.map(t=&gt;`&lt;button data-tag="${t[0]}" role="menuitem"&gt;&lt;span class="ico"&gt;${t[2]}&lt;/span&gt;${t[1]}&lt;span class="key"&gt;${t[3]?altLabel(t[3]):''}&lt;/span&gt;&lt;/button&gt;`).join('')+
-      `&lt;hr&gt;&lt;button data-tag-act="clear" role="menuitem"&gt;&lt;span class="ico"&gt;⌫&lt;/span&gt;Remove tags&lt;span class="key"&gt;${altLabel(0)}&lt;/span&gt;&lt;/button&gt;&lt;button data-tag-act="find" role="menuitem"&gt;&lt;span class="ico"&gt;🔎&lt;/span&gt;Find tags…&lt;/button&gt;`;
+    refreshTags();tagPop.innerHTML='&lt;div class="pop-title"&gt;Tags&lt;/div&gt;';
+    for(const t of allTags()){const b=document.createElement('button');b.dataset.tag=t[0];b.setAttribute('role','menuitem');
+      b.innerHTML='&lt;span class="ico"&gt;&lt;/span&gt;&lt;span class="lb"&gt;&lt;/span&gt;&lt;span class="key"&gt;&lt;/span&gt;';b.querySelector('.ico').textContent=t[2];b.querySelector('.lb').textContent=t[1];b.querySelector('.key').textContent=t[3]?altLabel(t[3]):'';
+      if(t[0].startsWith('c_')){const d=document.createElement('span');d.className='del';d.dataset.delTag=t[0];d.title='Delete this custom tag';d.textContent='×';b.append(d)}
+      tagPop.append(b)}
+    const cur=curTagged(),checkable=cur&amp;&amp;tagList(cur).some(t=&gt;CHECKABLE.has(t));
+    tagPop.insertAdjacentHTML('beforeend','&lt;hr&gt;'+(checkable?`&lt;button data-tag-act="mark" role="menuitem"&gt;&lt;span class="ico"&gt;${cur.dataset.done==='1'?'☐':'☑'}&lt;/span&gt;${cur.dataset.done==='1'?'Clear check mark':'Mark as done'}&lt;/button&gt;`:'')+
+      `&lt;button data-tag-act="clear" role="menuitem"&gt;&lt;span class="ico"&gt;⌫&lt;/span&gt;Remove tags&lt;span class="key"&gt;${altLabel(0)}&lt;/span&gt;&lt;/button&gt;&lt;button data-tag-act="new" role="menuitem"&gt;&lt;span class="ico"&gt;＋&lt;/span&gt;New tag…&lt;/button&gt;&lt;button data-tag-act="find" role="menuitem"&gt;&lt;span class="ico"&gt;🔎&lt;/span&gt;Find tags…&lt;/button&gt;`);
   }
-  tagPop.addEventListener('click',e=&gt;{const b=e.target.closest('button');if(!b)return;if(b.dataset.tag)toggleTag(b.dataset.tag);else if(b.dataset.tagAct==='clear')clearTags();else if(b.dataset.tagAct==='find'){hidePops();openTagPane()}});
+  function newTagForm(){
+    tagPop.innerHTML='&lt;div class="pop-title"&gt;New tag&lt;/div&gt;&lt;form class="tag-form"&gt;&lt;label&gt;Name&lt;input name="label" maxlength="40" required placeholder="e.g. Exam question"&gt;&lt;/label&gt;&lt;label&gt;Symbol&lt;input name="icon" maxlength="4" value="🔖"&gt;&lt;/label&gt;&lt;label class="ck"&gt;&lt;input type="checkbox" name="check"&gt; Has a check box&lt;/label&gt;&lt;div class="row"&gt;&lt;button type="button" data-tag-act="back"&gt;Cancel&lt;/button&gt;&lt;button type="submit" class="pri"&gt;Add tag&lt;/button&gt;&lt;/div&gt;&lt;/form&gt;';
+    const f=tagPop.querySelector('form');f.label.focus();
+    f.onsubmit=e=&gt;{e.preventDefault();const label=f.label.value.trim();if(!label)return;const c={id:'c_'+Math.random().toString(36).slice(2,8),label,icon:(f.icon.value.trim()||'🔖'),check:f.check.checked};
+      (data.customTags||(data.customTags=[])).push(c);queueSave();refreshTags();toggleTag(c.id);toast('Tag "'+label+'" added')};
+  }
+  tagPop.addEventListener('click',e=&gt;{
+    const del=e.target.closest('[data-del-tag]');if(del){e.stopPropagation();const id=del.dataset.delTag;data.customTags=(data.customTags||[]).filter(c=&gt;c.id!==id);queueSave();buildTagPop();return}
+    const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.tag)toggleTag(b.dataset.tag);
+    else if(b.dataset.tagAct==='clear')clearTags();
+    else if(b.dataset.tagAct==='mark'){const t=curTagged();if(t){t.dataset.done=t.dataset.done==='1'?'0':'1';if(t.dataset.done==='0')t.removeAttribute('data-done');paintTags(t);storeCurrent(false)}hidePops()}
+    else if(b.dataset.tagAct==='new')newTagForm();
+    else if(b.dataset.tagAct==='back')buildTagPop();
+    else if(b.dataset.tagAct==='find'){hidePops();openTagPane()}
+  });
+  /* right-click (or long-press) on a tag symbol opens the tag menu for that line, as in OneNote */
+  editor.addEventListener('contextmenu',e=&gt;{
+    const b=e.target.closest&amp;&amp;e.target.closest('[data-tags]');if(!b||!editor.contains(b))return;
+    const r=b.getBoundingClientRect(),w=parseFloat(getComputedStyle(b).paddingLeft)||28;if(e.clientX-r.left&gt;w)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const rg=document.createRange();rg.selectNodeContents(b);rg.collapse(false);const sel=getSelection();sel.removeAllRanges();sel.addRange(rg);
+    buildTagPop();showPop(tagPop,{getBoundingClientRect:()=&gt;({left:e.clientX,right:e.clientX,top:e.clientY,bottom:e.clientY})});
+  },true);
 
   const STYLES=[['h1','Heading 1','sp-h1','1'],['h2','Heading 2','sp-h2','2'],['h3','Heading 3','sp-h3','3'],['h4','Heading 4','sp-h4','4'],['h5','Heading 5','sp-h5','5'],['h6','Heading 6','sp-h6','6'],
     ['title','Page Title','sp-title',''],['cite','Citation','sp-cite',''],['quote','Quote','sp-quote',''],['code','Code','sp-code',''],['normal','Normal','','0']];
@@ -1885,11 +1924,11 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
         tpl.content.querySelectorAll('[data-tags]').forEach(el=&gt;{
           const done=el.dataset.done==='1';
           tagList(el).forEach(id=&gt;{const t=TAG[id];if(!t)return;if(openOnly&amp;&amp;(!CHECKABLE.has(id)||done))return;
-            if(!out.has(id))out.set(id,[]);out.get(id).push({sx,px,tid:el.dataset.tid||'',text:el.textContent.trim().slice(0,140)||'(empty line)',page:pg.title||'Untitled page',section:sec.name,done,checkable:CHECKABLE.has(id)})});
+            if(!out.has(id))out.set(id,[]);out.get(id).push({sx,px,pid:pg.id,tid:el.dataset.tid||'',text:el.textContent.trim().slice(0,140)||'(empty line)',page:pg.title||'Untitled page',section:sec.name,done,checkable:CHECKABLE.has(id)})});
         });
         tpl.content.querySelectorAll('.todo-row').forEach(el=&gt;{   // to-do items made with the older To-do button
           const cb=el.querySelector('input[type=checkbox]'),done=!!(cb&amp;&amp;cb.hasAttribute('checked'));if(openOnly&amp;&amp;done)return;
-          if(!out.has('todo'))out.set('todo',[]);out.get('todo').push({sx,px,tid:'',text:el.textContent.trim().slice(0,140)||'(empty to-do)',page:pg.title||'Untitled page',section:sec.name,done,checkable:true});
+          if(!out.has('todo'))out.set('todo',[]);out.get('todo').push({sx,px,pid:pg.id,tid:'',text:el.textContent.trim().slice(0,140)||'(empty to-do)',page:pg.title||'Untitled page',section:sec.name,done,checkable:true});
         });
       });
     });
@@ -1898,7 +1937,7 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
   function renderPane(){
     const groups=collect();list.innerHTML='';
     if(!groups.size){list.innerHTML='&lt;div class="empty"&gt;No tagged notes here yet.&lt;br&gt;Click a line, then choose &lt;b&gt;Tags&lt;/b&gt; on the toolbar (or press '+altLabel(1)+' for To Do).&lt;/div&gt;';return}
-    for(const t of TAGS){const items=groups.get(t[0]);if(!items)continue;
+    refreshTags();for(const t of allTags()){const items=groups.get(t[0]);if(!items)continue;
       const g=document.createElement('div');g.className='tg';g.innerHTML=`&lt;div class="tg-h"&gt;&lt;span&gt;${t[2]}&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;${items.length}&lt;/span&gt;&lt;/div&gt;`;g.querySelector('.tg-h span:nth-child(2)').textContent=t[1];
       items.forEach(it=&gt;{const b=document.createElement('button');b.className='ti'+(it.done?' done':'');b.innerHTML=(it.checkable?`&lt;span class="box"&gt;${it.done?'☑':'☐'}&lt;/span&gt;`:'')+'&lt;span class="tx"&gt;&lt;/span&gt;&lt;small&gt;&lt;/small&gt;';
         b.querySelector('.tx').textContent=it.text;b.querySelector('small').textContent=it.section+' › '+it.page;b.onclick=()=&gt;goTo(it);g.append(b)});
@@ -1915,6 +1954,15 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
   $('#tagPaneClose').onclick=()=&gt;{pane.hidden=true};
   $('#tagScope').onchange=renderPane;$('#tagOpenOnly').onchange=renderPane;
   window.nhOpenTagPane=openTagPane;
+  $('#tagRefresh').onclick=renderPane;
+  $('#tagSummaryPage').onclick=()=&gt;{
+    const groups=collect();if(!groups.size){toast('No tagged notes to summarise');return}
+    const sec=data.sections[si];if(!sec||sec.locked){toast('Open an unlocked section first');return}
+    const esc=t=&gt;String(t).replace(/[&amp;&lt;&gt;"]/g,c=&gt;({'&amp;':'&amp;amp;','&lt;':'&amp;lt;','&gt;':'&amp;gt;','"':'&amp;quot;'}[c]));let html='';
+    for(const t of allTags()){const items=groups.get(t[0]);if(!items)continue;html+=`&lt;h2&gt;${esc(t[2]+' '+t[1])}&lt;/h2&gt;`;
+      items.forEach(it=&gt;{const done=it.done?' data-done="1"':'';html+=`&lt;p data-tags="${t[0]}" data-tid="${Math.random().toString(36).slice(2,10)}"${done}&gt;${esc(it.text)} &lt;a class="wiki-link" href="#page=${encodeURIComponent(it.pid||'')}" data-page-id="${esc(it.pid||'')}"&gt;${esc(it.section+' › '+it.page)}&lt;/a&gt;&lt;/p&gt;`})}
+    storeCurrent();const d=new Date();sec.pages.unshift({id:crypto.randomUUID(),title:'Tags Summary — '+d.toLocaleDateString(),content:html});pi=0;render();queueSave();toast('Summary page created');
+  };
 
   /* ---------- menus: Format › Styles opens the gallery; Tags are in Insert and Edit ---------- */
   try{
@@ -1932,6 +1980,192 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
   /* tags drawn on every page that is opened */
   const prevRender=render;render=function(){prevRender.apply(this,arguments);paintAll()};
   paintAll();
+})();
+&lt;/script&gt;
+&lt;style&gt;
+/* ---------- page colour and rule lines ---------- */
+main.editor.nh-look{background-attachment:local!important}
+#pagePop .row{display:flex;flex-wrap:wrap;gap:7px;padding:4px 10px 10px}
+#pagePop .row button{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid #0002;justify-content:center;font-size:12px}
+#pagePop .row button.cur{outline:2px solid #0d7a64;outline-offset:2px}
+#pagePop .rules button.cur{background:#e4efec}
+#pagePop .rules .pv{width:26px;height:20px;border:1px solid #cfd8d5;border-radius:3px;background-color:#fff;flex:none}
+#pagePop label.ck{display:flex;gap:8px;align-items:center;padding:6px 10px;font-size:12.5px;color:#41504d}
+/* ---------- links between pages ---------- */
+#editorContent a.wiki-link{color:#2676b7;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer;user-select:all;-webkit-user-select:all}
+#editorContent a.wiki-link.missing{color:#b54a4a;text-decoration-style:wavy}
+.nav-hist{display:inline-flex;gap:2px;margin-right:8px;vertical-align:middle}
+.nav-hist button{border:0;background:none;width:28px;height:28px;border-radius:7px;font-size:18px;line-height:1;color:#53615f;cursor:pointer}
+.nav-hist button:hover:not(:disabled){background:#eef3f1}
+.nav-hist button:disabled{opacity:.3;cursor:default}
+/* ---------- bullet and numbering library ---------- */
+@counter-style nh-dec-p{system:extends decimal;suffix:") "}
+@counter-style nh-dec-pp{system:extends decimal;prefix:"(";suffix:") "}
+@counter-style nh-dec-d{system:extends decimal;suffix:"- "}
+@counter-style nh-la-p{system:extends lower-alpha;suffix:") "}
+@counter-style nh-la-pp{system:extends lower-alpha;prefix:"(";suffix:") "}
+@counter-style nh-ua-p{system:extends upper-alpha;suffix:") "}
+@counter-style nh-lr-p{system:extends lower-roman;suffix:") "}
+@counter-style nh-lr-pp{system:extends lower-roman;prefix:"(";suffix:") "}
+@counter-style nh-ur-p{system:extends upper-roman;suffix:") "}
+#listPop .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:2px 6px 8px}
+#listPop .grid button{justify-content:center;flex-direction:column;gap:2px;padding:8px 4px;border:1px solid #e5eae8;font-size:15px;min-height:44px}
+#listPop .grid button small{font-size:10px;color:#7d8a87}
+#listPop .grid button.cur{border-color:#0d7a64;background:#e4efec}
+.ribbon-btn.nh-caret{width:18px!important;min-width:18px!important;padding:0!important;margin-left:-4px;font-size:11px}
+&lt;/style&gt;
+&lt;div class="nh-pop" id="pagePop" hidden role="menu" aria-label="Page setup"&gt;&lt;/div&gt;
+&lt;div class="nh-pop" id="listPop" hidden role="menu" aria-label="Bullets and numbering"&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  const main=editor.closest('main.editor');
+  const pagePop=$('#pagePop'),listPop=$('#listPop'),pops=[pagePop,listPop];
+  function hide(){pops.forEach(p=&gt;p.hidden=true)}
+  function show(pop,anchor){
+    ['#tagPop','#stylePop'].forEach(s=&gt;{const x=$(s);if(x)x.hidden=true});hide();rememberEditSelection();pop.hidden=false;
+    const r=anchor.getBoundingClientRect(),w=pop.offsetWidth,h=pop.offsetHeight;let x=Math.min(r.left,innerWidth-w-8),y=r.bottom+6;if(y+h&gt;innerHeight-8)y=Math.max(8,r.top-h-6);
+    pop.style.left=Math.max(8,x)+'px';pop.style.top=y+'px';
+  }
+  document.addEventListener('pointerdown',e=&gt;{if(!e.target.closest('.nh-pop,#pageLookBtn,#listLibBtn'))hide()},true);
+  document.addEventListener('keydown',e=&gt;{if(e.key==='Escape')hide()});
+  pops.forEach(p=&gt;p.addEventListener('pointerdown',e=&gt;{if(!e.target.closest('input,select,textarea,label'))e.preventDefault()}));
+  const curPage=()=&gt;data.sections[si]?.pages?.[pi];
+  const esc=t=&gt;String(t).replace(/[&amp;&lt;&gt;"]/g,c=&gt;({'&amp;':'&amp;amp;','&lt;':'&amp;lt;','&gt;':'&amp;gt;','"':'&amp;quot;'}[c]));
+
+  /* ================= 1. Page colour and rule lines (OneNote View › Page Color / Rule Lines) ================= */
+  const COLORS=[['None',''],['Blue','#e3edf8'],['Teal','#dff1ee'],['Green','#e5f2e1'],['Yellow','#fdf6d6'],['Orange','#fcebdc'],['Pink','#f9e4ea'],['Purple','#ece5f5'],['Gray','#ececec']];
+  const RULES=[['none','No lines'],['narrow','Narrow ruled',24],['college','College ruled',29],['standard','Standard ruled',35],['grid-s','Small grid',18],['grid-m','Medium grid',27],['grid-l','Large grid',40]];
+  const LINE='rgba(64,128,190,.28)';
+  function ruleCss(kind,scale=1){
+    const r=RULES.find(x=&gt;x[0]===kind);if(!r||!r[2])return '';const g=Math.max(4,Math.round(r[2]*scale));
+    const h=`repeating-linear-gradient(to bottom,transparent 0 ${g-1}px,${LINE} ${g-1}px ${g}px)`;
+    return kind.startsWith('grid')?h+`,repeating-linear-gradient(to right,transparent 0 ${g-1}px,${LINE} ${g-1}px ${g}px)`:h;
+  }
+  function applyPageLook(){
+    const p=curPage();if(!main)return;
+    if(p&amp;&amp;p.rules===undefined&amp;&amp;data.pageDefault?.rules&amp;&amp;!p.content?.replace(/&lt;[^&gt;]+&gt;/g,'').trim())p.rules=data.pageDefault.rules; // new page takes the default
+    const rules=p?.rules||'none',color=p?.pageColor||'';
+    main.style.backgroundColor=color;main.style.backgroundImage=ruleCss(rules);
+    if(rules!=='none'){const top=Math.round(editor.getBoundingClientRect().top-main.getBoundingClientRect().top+main.scrollTop);main.style.backgroundPosition=`0 ${top}px`}else main.style.backgroundPosition='';
+    main.classList.toggle('nh-look',!!(color||rules!=='none'));
+  }
+  function buildPagePop(){
+    const p=curPage()||{},rules=p.rules||'none',color=p.pageColor||'';
+    pagePop.innerHTML='&lt;div class="pop-title"&gt;Page color&lt;/div&gt;&lt;div class="row colors"&gt;'+COLORS.map(c=&gt;`&lt;button data-color="${c[1]}" title="${c[0]}" class="${c[1]===color?'cur':''}" style="background:${c[1]||'#fff'}"&gt;${c[1]?'':'∅'}&lt;/button&gt;`).join('')+'&lt;/div&gt;'+
+      '&lt;div class="pop-title"&gt;Rule lines&lt;/div&gt;&lt;div class="rules"&gt;'+RULES.map(r=&gt;`&lt;button data-rules="${r[0]}" class="${r[0]===rules?'cur':''}" role="menuitem"&gt;&lt;span class="pv" style="background-image:${ruleCss(r[0],.22).replace(/"/g,"'")};background-size:auto"&gt;&lt;/span&gt;${r[1]}&lt;/button&gt;`).join('')+'&lt;/div&gt;&lt;hr&gt;'+
+      `&lt;label class="ck"&gt;&lt;input type="checkbox" id="rulesDefault" ${data.pageDefault?.rules&amp;&amp;data.pageDefault.rules!=='none'?'checked':''}&gt; Always create pages with these rule lines&lt;/label&gt;`;
+    pagePop.querySelector('#rulesDefault').onchange=e=&gt;{
+      if(e.target.checked){data.sections.forEach(s=&gt;(s.pages||[]).forEach(pg=&gt;{if(pg.rules===undefined)pg.rules='none'}));data.pageDefault={rules:(curPage()?.rules||'college')};if(curPage()&amp;&amp;(!curPage().rules||curPage().rules==='none')){curPage().rules=data.pageDefault.rules;applyPageLook()}}
+      else data.pageDefault={rules:'none'};
+      queueSave();buildPagePop();
+    };
+  }
+  pagePop.addEventListener('click',e=&gt;{
+    const p=curPage();if(!p)return;const c=e.target.closest('[data-color]'),r=e.target.closest('[data-rules]');
+    if(c){p.pageColor=c.dataset.color||undefined;if(!p.pageColor)delete p.pageColor}else if(r)p.rules=r.dataset.rules;else return;
+    if(data.pageDefault?.rules&amp;&amp;data.pageDefault.rules!=='none'&amp;&amp;r)data.pageDefault.rules=p.rules==='none'?data.pageDefault.rules:p.rules;
+    p.updatedAt=Date.now();applyPageLook();queueSave();buildPagePop();
+  });
+  const anchorBtn=$('#codeBtn')||$('#symbolBtn');
+  if(anchorBtn){const b=document.createElement('button');b.className='ribbon-btn nh-wide';b.id='pageLookBtn';b.title='Page color and rule lines';b.innerHTML='📄&lt;span&gt;Page&lt;/span&gt;';
+    anchorBtn.after(b);b.onclick=()=&gt;{if(!pagePop.hidden){hide();return}buildPagePop();show(pagePop,b)}}
+  addEventListener('resize',()=&gt;applyPageLook());
+
+  /* ================= 2. Links between pages: type [[Page name]]; Back / Forward ================= */
+  function findPage(id){for(let s=0;s&lt;data.sections.length;s++){const k=(data.sections[s].pages||[]).findIndex(p=&gt;p.id===id);if(k&gt;=0)return [s,k]}return null}
+  function findByTitle(t){t=t.trim().toLowerCase();const own=(data.sections[si]?.pages||[]).findIndex(p=&gt;(p.title||'').trim().toLowerCase()===t);if(own&gt;=0)return [si,own];
+    for(let s=0;s&lt;data.sections.length;s++){if(data.sections[s].locked)continue;const k=(data.sections[s].pages||[]).findIndex(p=&gt;(p.title||'').trim().toLowerCase()===t);if(k&gt;=0)return [s,k]}return null}
+  let hist=[],hi=-1,travelling=false;
+  function goToPage(id){const at=findPage(id);if(!at){toast('That page no longer exists');return false}if(data.sections[at[0]].locked){toast('That page is in a locked section');return false}
+    storeCurrent();si=at[0];pi=at[1];render();return true}
+  function travel(step){const n=hi+step;if(n&lt;0||n&gt;=hist.length)return;travelling=true;hi=n;if(!goToPage(hist[n])){hist.splice(n,1);if(step&gt;0)hi--}travelling=false;updNav()}
+  const nav=document.createElement('span');nav.className='nav-hist';
+  const backKey=isMacLike()?'⌘[':'Alt+←',fwdKey=isMacLike()?'⌘]':'Alt+→';
+  nav.innerHTML=`&lt;button id="navBack" title="Back (${backKey})" aria-label="Back"&gt;‹&lt;/button&gt;&lt;button id="navFwd" title="Forward (${fwdKey})" aria-label="Forward"&gt;›&lt;/button&gt;`;
+  $('.editor-head .crumb')?.before(nav);
+  $('#navBack').onclick=()=&gt;travel(-1);$('#navFwd').onclick=()=&gt;travel(1);
+  function updNav(){$('#navBack').disabled=hi&lt;=0;$('#navFwd').disabled=hi&gt;=hist.length-1}
+  function isMacLike(){return /Mac|iPhone|iPad/.test(navigator.platform)}
+  function notePage(){const p=curPage();if(!p||travelling){updNav();return}if(hist[hi]!==p.id){hist=hist.slice(0,hi+1);hist.push(p.id);if(hist.length&gt;100)hist.shift();hi=hist.length-1}updNav()}
+  document.addEventListener('keydown',e=&gt;{
+    const mac=isMacLike();
+    const back=mac?(e.metaKey&amp;&amp;!e.altKey&amp;&amp;!e.shiftKey&amp;&amp;e.code==='BracketLeft'):(e.altKey&amp;&amp;!e.ctrlKey&amp;&amp;!e.shiftKey&amp;&amp;e.key==='ArrowLeft');
+    const fwd=mac?(e.metaKey&amp;&amp;!e.altKey&amp;&amp;!e.shiftKey&amp;&amp;e.code==='BracketRight'):(e.altKey&amp;&amp;!e.ctrlKey&amp;&amp;!e.shiftKey&amp;&amp;e.key==='ArrowRight');
+    if(back||fwd){e.preventDefault();e.stopPropagation();travel(back?-1:1)}
+  },true);
+  // [[Page name]] turns into a link as soon as the closing ]] is typed; a page that does not exist yet is created in this section
+  editor.addEventListener('input',e=&gt;{
+    if(e.inputType!=='insertText'||e.data!==']')return;const sel=getSelection();if(!sel.rangeCount||!sel.isCollapsed)return;
+    const n=sel.anchorNode;if(!n||n.nodeType!==3)return;const before=n.data.slice(0,sel.anchorOffset),m=/\[\[([^\[\]\n]{1,120})\]\]$/.exec(before);if(!m)return;
+    const title=m[1].trim();if(!title)return;let at=findByTitle(title);
+    if(!at){const sec=data.sections[si];if(!sec||sec.locked)return;sec.pages.push({id:crypto.randomUUID(),title,content:'&lt;p&gt;&lt;br&gt;&lt;/p&gt;',parentId:undefined});at=[si,sec.pages.length-1];renderPages();toast('New page "'+title+'" created');queueSave()}
+    const pg=data.sections[at[0]].pages[at[1]];
+    const r=document.createRange();r.setStart(n,sel.anchorOffset-m[0].length);r.setEnd(n,sel.anchorOffset);sel.removeAllRanges();sel.addRange(r);
+    document.execCommand('insertHTML',false,`&lt;a class="wiki-link" href="#page=${encodeURIComponent(pg.id)}" data-page-id="${esc(pg.id)}"&gt;${esc(pg.title||title)}&lt;/a&gt;`);   // execCommand keeps it in the undo history
+    storeCurrent(false);
+  });
+  editor.addEventListener('click',e=&gt;{
+    const a=e.target.closest&amp;&amp;e.target.closest('a.wiki-link,a[href^="#page="]');if(!a||!editor.contains(a))return;
+    e.preventDefault();e.stopImmediatePropagation();const id=a.dataset.pageId||decodeURIComponent((a.getAttribute('href').match(/page=([^&amp;]+)/)||[])[1]||'');goToPage(id);
+  },true);
+  function markLinks(){editor.querySelectorAll('a.wiki-link').forEach(a=&gt;{const at=findPage(a.dataset.pageId);a.classList.toggle('missing',!at);if(at){const t=data.sections[at[0]].pages[at[1]].title;if(t&amp;&amp;a.textContent!==t&amp;&amp;!a.textContent.includes(' › '))a.textContent=t}})}
+
+  /* ================= 3. Bullet and numbering library ================= */
+  const BULLETS=[['disc','●'],['circle','○'],['square','■'],['"➤ "','➤'],['"✓ "','✓'],['"– "','–'],['"★ "','★'],['"◆ "','◆'],['"→ "','→'],['"☐ "','☐'],['"☺ "','☺'],['"• "','•']];
+  const NUMBERS=[['decimal','1.'],['nh-dec-p','1)'],['nh-dec-pp','(1)'],['nh-dec-d','1-'],['upper-alpha','A.'],['nh-ua-p','A)'],['lower-alpha','a.'],['nh-la-p','a)'],['nh-la-pp','(a)'],['upper-roman','I.'],['nh-ur-p','I)'],['lower-roman','i.'],['nh-lr-p','i)'],['nh-lr-pp','(i)']];
+  function curList(){const s=getSelection();if(!s?.rangeCount)return null;const n=s.getRangeAt(0).startContainer,el=n.nodeType===1?n:n.parentElement;const l=el&amp;&amp;el.closest('ul,ol');return l&amp;&amp;editor.contains(l)?l:null}
+  function curItem(){const s=getSelection();if(!s?.rangeCount)return null;const n=s.getRangeAt(0).startContainer,el=n.nodeType===1?n:n.parentElement;const l=el&amp;&amp;el.closest('li');return l&amp;&amp;editor.contains(l)?l:null}
+  function applyList(kind,style){
+    restoreEditSelection();let l=curList();const tag=kind==='bullet'?'UL':'OL';
+    if(!l){document.execCommand(kind==='bullet'?'insertUnorderedList':'insertOrderedList');l=curList();if(!l)return}
+    if(l.tagName!==tag){   // switch the whole list, as OneNote does, not just the current item
+      const n=document.createElement(tag);[...l.attributes].forEach(a=&gt;{if(a.name!=='start')n.setAttribute(a.name,a.value)});
+      const sel=getSelection(),r=sel.rangeCount?sel.getRangeAt(0).cloneRange():null;while(l.firstChild)n.append(l.firstChild);l.replaceWith(n);l=n;
+      n.querySelectorAll(':scope&gt;li[value]').forEach(li=&gt;li.removeAttribute('value'));if(r){sel.removeAllRanges();sel.addRange(r)}}
+    const def=kind==='bullet'?'disc':'decimal';if(style===def)l.style.removeProperty('list-style-type');else l.style.listStyleType=style;if(!l.getAttribute('style'))l.removeAttribute('style');
+    storeCurrent(false);hide();
+  }
+  function restartNumbering(){hide();restoreEditSelection();const li=curItem(),l=curList();if(!li||!l||l.tagName!=='OL'){toast('Click in a numbered list first');return}
+    if(li===l.querySelector(':scope&gt;li'))l.removeAttribute('start');li.value=1;storeCurrent(false);hide();toast('Numbering restarted')}
+  function continueNumbering(){hide();restoreEditSelection();const l=curList();if(!l||l.tagName!=='OL'){toast('Click in a numbered list first');return}
+    const lists=[...editor.querySelectorAll('ol')].filter(o=&gt;o!==l&amp;&amp;!o.contains(l)&amp;&amp;!l.contains(o)&amp;&amp;(o.compareDocumentPosition(l)&amp;Node.DOCUMENT_POSITION_FOLLOWING));
+    const scope=l.closest('.note-block-body')||editor,prev=lists.filter(o=&gt;scope.contains(o)&amp;&amp;o.parentElement.closest('ol')===l.parentElement.closest('ol')).pop()||null;
+    if(!prev){toast('There is no list above to continue from');return}
+    const items=[...prev.querySelectorAll(':scope&gt;li')];let n=(+prev.getAttribute('start')||1)-1;items.forEach(li=&gt;{n=li.hasAttribute('value')?+li.getAttribute('value'):n+1});
+    l.start=n+1;l.querySelectorAll(':scope&gt;li[value]').forEach(li=&gt;li.removeAttribute('value'));storeCurrent(false);hide();toast('Numbering continues from '+(n+1))}
+  function buildListPop(){
+    const l=curList(),cur=l?(l.style.listStyleType||(l.tagName==='UL'?'disc':'decimal')):'';
+    const grid=(arr,kind)=&gt;'&lt;div class="grid"&gt;'+arr.map(x=&gt;`&lt;button data-list="${kind}" data-style='${x[0]}' class="${l&amp;&amp;cur===x[0]&amp;&amp;(l.tagName==='UL')===(kind==='bullet')?'cur':''}"&gt;${x[1]}${kind==='number'?`&lt;small&gt;${x[1]==='1.'?'1, 2, 3':''}&lt;/small&gt;`:''}&lt;/button&gt;`).join('')+'&lt;/div&gt;';
+    listPop.innerHTML='&lt;div class="pop-title"&gt;Bullet library&lt;/div&gt;'+grid(BULLETS,'bullet')+'&lt;div class="pop-title"&gt;Numbering library&lt;/div&gt;'+grid(NUMBERS,'number')+
+      '&lt;hr&gt;&lt;button data-list-act="restart" role="menuitem"&gt;&lt;span class="ico"&gt;↺&lt;/span&gt;Restart numbering here&lt;/button&gt;&lt;button data-list-act="continue" role="menuitem"&gt;&lt;span class="ico"&gt;⤵&lt;/span&gt;Continue numbering&lt;/button&gt;'+
+      (l?'&lt;button data-list-act="remove" role="menuitem"&gt;&lt;span class="ico"&gt;✕&lt;/span&gt;Remove list&lt;/button&gt;':'');
+  }
+  listPop.addEventListener('click',e=&gt;{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.list)applyList(b.dataset.list,b.dataset.style);
+    else if(b.dataset.listAct==='restart')restartNumbering();else if(b.dataset.listAct==='continue')continueNumbering();
+    else if(b.dataset.listAct==='remove'){restoreEditSelection();const l=curList();if(l)document.execCommand(l.tagName==='UL'?'insertUnorderedList':'insertOrderedList');storeCurrent(false);hide()}});
+  const numBtn=document.querySelector('.ribbon-btn[title="Numbered list"]');
+  if(numBtn){const b=document.createElement('button');b.className='ribbon-btn nh-caret';b.id='listLibBtn';b.title='Bullet and numbering library';b.textContent='▾';numBtn.after(b);
+    b.onclick=()=&gt;{if(!listPop.hidden){hide();return}buildListPop();show(listPop,b)}}
+
+  /* ================= menus ================= */
+  try{
+    menuDefinitions.view.push([{label:'Back',icon:'edit-undo',action:'nh-back',shortcut:''},{label:'Forward',icon:'edit-redo',action:'nh-forward',shortcut:''},{label:'Page Color &amp; Rule Lines…',icon:'tools-preferences',action:'nh-page-look',shortcut:''}]);
+    menuDefinitions.format.push([{label:'Bullet &amp; Numbering Library…',icon:'paragraph-lists-bulleted-list',action:'nh-lists',shortcut:''},{label:'Restart Numbering',icon:'paragraph-lists-numbered-list',action:'nh-restart',shortcut:''},{label:'Continue Numbering',icon:'paragraph-lists-numbered-list',action:'nh-continue',shortcut:''}]);
+    menuDefinitions.insert.push([{label:'Link to Page  [[ ]]',icon:'insert-link',action:'nh-wiki',shortcut:''}]);
+  }catch{}
+  const prev=runMenuAction;
+  runMenuAction=function(action){
+    if(action==='nh-back')return travel(-1);if(action==='nh-forward')return travel(1);
+    if(action==='nh-page-look'){buildPagePop();show(pagePop,$('#pageLookBtn')||document.body);return}
+    if(action==='nh-lists'){buildListPop();show(listPop,$('#listLibBtn')||document.body);return}
+    if(action==='nh-restart')return restartNumbering();if(action==='nh-continue')return continueNumbering();
+    if(action==='nh-wiki'){restoreEditSelection();document.execCommand('insertText',false,'[[');toast('Type the page name, then ]]');return}
+    return prev.apply(this,arguments);
+  };
+
+  const prevRender=render;render=function(){prevRender.apply(this,arguments);applyPageLook();markLinks();notePage()};
+  applyPageLook();markLinks();notePage();
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
