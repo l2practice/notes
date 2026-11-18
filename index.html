@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-18-notehouse-ribbon-v17" />
+    <meta name="app-build" content="2026-11-18-notehouse-symbols-fold-v18" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -1670,7 +1670,7 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
   $('#clipboardPastePlain')?.addEventListener('click',async()=&gt;{rememberEditSelection();try{const text=await navigator.clipboard.readText();restoreEditSelection();document.execCommand('insertText',false,text);storeCurrent(false)}catch{toast('Allow clipboard access, or use the browser Paste as Plain Text command')}$('#clipboardMenu').hidden=true});
   const exit=$('#focusExit'); exit?.addEventListener('click',()=&gt;{document.body.classList.remove('focus-mode');toast('Focus mode off')});
   document.addEventListener('keydown',e=&gt;{if(e.key==='Escape'&amp;&amp;document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');toast('Focus mode off')}});
-  function openMeetingTemplateDialog(){rememberEditSelection();$('#meetingDatePrefill').value='';$('#meetingTimePrefill').value='';$('#meetingAttendeesPrefill').value='';[...document.querySelectorAll('#meetingTemplateForm input[type=text]')].forEach(input=&gt;input.value='');const dialog=$('#meetingTemplateDialog');dialog.classList.add('show');dialog.setAttribute('aria-hidden','false');$('#meetingDatePrefill').focus()}
+  function openMeetingTemplateDialog(){rememberEditSelection();const now=new Date(),p2=n=&gt;String(n).padStart(2,'0');$('#meetingDatePrefill').value=now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate());$('#meetingTimePrefill').value=p2(now.getHours())+':'+p2(now.getMinutes());/* today and now, editable */$('#meetingAttendeesPrefill').value='';[...document.querySelectorAll('#meetingTemplateForm input[type=text]')].forEach(input=&gt;input.value='');const dialog=$('#meetingTemplateDialog');dialog.classList.add('show');dialog.setAttribute('aria-hidden','false');$('#meetingAttendeesPrefill').focus()}
   function closeMeetingTemplateDialog(){const dialog=$('#meetingTemplateDialog');dialog.classList.remove('show');dialog.setAttribute('aria-hidden','true')}
   $('#meetingTemplateCancel').onclick=closeMeetingTemplateDialog;
   $('#meetingTemplateDialog').addEventListener('click',e=&gt;{if(e.target===e.currentTarget)closeMeetingTemplateDialog()});
@@ -1940,8 +1940,8 @@ function insertMeetingsTemplate(values={}){caretToNewTopBlock();const escapeValu
     h2.after(sb);sb.onclick=()=&gt;{if(!stylePop.hidden){hidePops();return}buildStylePop();showPop(stylePop,sb)};
   }
 
-  /* the ribbon's Search duplicates the sidebar's, and Ω is in Insert › Symbol…: hide both to keep the ribbon on one line */
-  ['#ribbonSearchBtn','#symbolBtn'].forEach(q=&gt;{const x=$(q);if(x)x.hidden=true});
+  /* the ribbon's Search duplicates the sidebar's */
+  ['#ribbonSearchBtn'].forEach(q=&gt;{const x=$(q);if(x)x.hidden=true});
   const rs=$('#searchBtn');if(rs)rs.innerHTML='&lt;svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width:1.9"&gt;&lt;circle cx="10.5" cy="10.5" r="6.5"/&gt;&lt;path d="m15.5 15.5 5 5"/&gt;&lt;/svg&gt;';
   /* ---------- keyboard ---------- */
   editor.addEventListener('keydown',e=&gt;{
@@ -2546,6 +2546,105 @@ main.editor.nh-look{background-attachment:local!important}
     if(d&amp;&amp;mod&amp;&amp;!e.altKey&amp;&amp;!e.shiftKey&amp;&amp;!ctl&amp;&amp;inText()){e.preventDefault();e.stopImmediatePropagation();
       editor.dispatchEvent(new KeyboardEvent('keydown',{code:'Digit'+d[1],key:d[1],altKey:true,bubbles:true}))}
   },true);
+})();
+&lt;/script&gt;
+&lt;style&gt;
+/* ---------- symbol picker ---------- */
+#symPop{width:min(372px,calc(100vw - 16px));padding:8px}
+#symPop .tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+#symPop .tabs button{width:auto;padding:4px 9px;border:1px solid #dfe5e3;border-radius:999px;font-size:12px}
+#symPop .tabs button.cur{background:#0d7a64;border-color:#0d7a64;color:#fff}
+#symPop input{width:100%;box-sizing:border-box;height:30px;border:1px solid #cfd8d5;border-radius:8px;padding:0 9px;font:inherit;font-size:12.5px;margin-bottom:6px}
+#symPop .grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-height:250px;overflow:auto}
+#symPop .grid button{width:auto;height:36px;padding:0;justify-content:center;font-size:18px;border:1px solid #eef1f0;border-radius:7px;font-family:"Cambria Math","STIX Two Math","Segoe UI Symbol","Apple Symbols",serif}
+#symPop .grid button:hover{background:#e4efec;border-color:#0d7a64}
+#symPop .hint{font-size:11.5px;color:#7d8a87;padding:6px 2px 0;min-height:16px}
+/* ---------- collapsible ribbon groups ---------- */
+.ribbon-btn.nh-fold,.ribbon-btn.nh-fold.nh-wide{display:none!important}
+.ribbon-primary.nh-c1 .nh-align-item{display:none!important}.ribbon-primary.nh-c1 #alignMenuBtn{display:grid!important}
+.ribbon-primary.nh-c2 .nh-insert-item{display:none!important}.ribbon-primary.nh-c2 #insertMenuBtn{display:inline-flex!important}
+.ribbon-primary.nh-c3 .style-tool[data-block="h1"],.ribbon-primary.nh-c3 .style-tool[data-block="h2"]{display:none!important}
+.ribbon-primary.nh-c4 #tagsBtn span,.ribbon-primary.nh-c4 #pageLookBtn span,.ribbon-primary.nh-c4 #insertMenuBtn span{display:none}
+.ribbon-primary.nh-c5 .nh-script-item{display:none!important}.ribbon-primary.nh-c5 #scriptMenuBtn{display:grid!important}
+.ribbon-primary.nh-c6 .nh-list-item{display:none!important}.ribbon-primary.nh-c6 #listMenuBtn{display:grid!important}
+/* narrowest: clipboard (the iPad has its own paste) and full screen move to the Edit / View menus */
+.ribbon-primary.nh-c7 #clipboardPaste,.ribbon-primary.nh-c7 #clipboardMenuToggle,.ribbon-primary.nh-c7 #fullscreenBtn{display:none!important}
+#listMenuBtn{width:44px!important;grid-auto-flow:column;gap:1px}#listMenuBtn .cv{width:11px!important;height:11px!important}
+#alignMenuBtn,#scriptMenuBtn{width:44px!important;grid-auto-flow:column;gap:1px}
+#alignMenuBtn .cv,#scriptMenuBtn .cv,#insertMenuBtn .cv{width:11px!important;height:11px!important}
+#foldPop button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#foldPop button use{pointer-events:none}
+&lt;/style&gt;
+&lt;div class="nh-pop" id="symPop" hidden role="dialog" aria-label="Symbols"&gt;&lt;/div&gt;
+&lt;div class="nh-pop" id="foldPop" hidden role="menu"&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  /* ================= Symbol picker (Ω on the ribbon, Insert › Symbol…) ================= */
+  const SYM={
+    'Math':'± × ÷ ⋅ = ≠ ≈ ≅ ≡ ∼ &lt; &gt; ≤ ≥ ≪ ≫ ∞ √ ∛ ∜ ∑ ∏ ∫ ∬ ∮ ∂ ∆ ∇ ∝ ∠ ∡ ⊥ ∥ ° ′ ″ ‰ ½ ⅓ ⅔ ¼ ¾ ⅛ ⁰ ¹ ² ³ ⁴ ⁿ ₀ ₁ ₂ ₃ ₙ ƒ ℓ ℏ',
+    'Sets &amp; logic':'∅ ∈ ∉ ∋ ∌ ⊂ ⊃ ⊆ ⊇ ⊄ ⊅ ⊊ ⊋ ∪ ∩ ∖ △ ℕ ℤ ℚ ℝ ℂ ℙ ∀ ∃ ∄ ¬ ∧ ∨ ⊻ ⇒ ⇔ ⊢ ⊨ ∴ ∵ ⊕ ⊗ ⊤ ⊥ ℵ ℘',
+    'Greek':'α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ ς τ υ φ χ ψ ω Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω',
+    'Arrows':'← → ↑ ↓ ↔ ↕ ↖ ↗ ↘ ↙ ⇐ ⇒ ⇑ ⇓ ⇔ ⇕ ⟵ ⟶ ⟷ ⟹ ⟸ ⟺ ↦ ↩ ↪ ↺ ↻ ⇄ ⇆ ➜ ➔ ➤ ↳ ↴',
+    'IPA':'i ɪ e ɛ æ ə ɜ ʌ ɑ ɒ ɔ ʊ u ɐ ɚ ɝ ː ˈ ˌ p b t d k ɡ f v θ ð s z ʃ ʒ h tʃ dʒ m n ŋ l r ɹ j w ʔ ɾ ɫ ʍ ‿ ˞ / [ ]',
+    'Linguistics':'→ ⇒ ∅ * ? # √ ✓ ✗ ✔ ✘ ≈ ~ ± [ ] { } ⟨ ⟩ ‖ | / \\ ' + 'Ø ø σ μ ω Φ ° ¹ ² ³ ₁ ₂',
+    'Common':'© ® ™ § ¶ † ‡ • ◦ ‣ … – — ‘ ’ “ ” « » ‹ › ¡ ¿ € £ ¥ ¢ $ ₫ ₹ ₩ % ‰ № ℃ ℉ ☐ ☑ ☒ ★ ☆ ♥ ♦ ♣ ♠ ✓ ✗ ☺ ☹ ♪ ♫ ⌘ ⌥ ⇧ ⏎'
+  };
+  const NAMES={'∅':'empty set','∈':'element of','∉':'not an element of','⊂':'subset of','⊆':'subset of or equal to','∪':'union','∩':'intersection','∖':'set minus','ℕ':'natural numbers','ℤ':'integers','ℚ':'rational numbers','ℝ':'real numbers','ℂ':'complex numbers','∀':'for all','∃':'there exists','∄':'there does not exist','¬':'not','∧':'and','∨':'or','⇒':'implies','⇔':'if and only if','∴':'therefore','∵':'because','±':'plus-minus','×':'multiplication','÷':'division','≠':'not equal','≈':'approximately','≡':'identical to','≤':'less than or equal','≥':'greater than or equal','∞':'infinity','√':'square root','∑':'sum','∏':'product','∫':'integral','∂':'partial','∆':'delta / increment','∇':'nabla','∝':'proportional to','∠':'angle','⊥':'perpendicular','∥':'parallel','°':'degree','ə':'schwa','ɪ':'near-close front vowel (kit)','ʊ':'near-close back vowel (foot)','æ':'ash (trap)','ʌ':'strut','ɑ':'open back vowel (palm)','ɒ':'lot (British)','ɔ':'thought','ɜ':'nurse','ː':'long vowel mark','ˈ':'primary stress','ˌ':'secondary stress','θ':'theta (think)','ð':'eth (this)','ʃ':'esh (ship)','ʒ':'ezh (measure)','ŋ':'eng (sing)','ʔ':'glottal stop','ɾ':'flap','ɹ':'approximant r','Ø':'null / zero morpheme','*':'ungrammatical','?':'questionable','#':'semantically odd','⟨':'left angle bracket (spelling)','⟩':'right angle bracket (spelling)'};
+  const symPop=$('#symPop');let tab=localStorage.getItem('nh_sym_tab')||'Math';
+  const recent=()=&gt;{try{return JSON.parse(localStorage.getItem('nh_sym_recent')||'[]')}catch{return []}};
+  function render(filter){
+    const tabs=['Recent',...Object.keys(SYM)];if(tab==='Recent'&amp;&amp;!recent().length)tab='Math';
+    let list=tab==='Recent'?recent():SYM[tab].split(' ').filter(Boolean);
+    if(filter){const f=filter.toLowerCase();list=[...new Set(Object.values(SYM).join(' ').split(' ').filter(Boolean))].filter(c=&gt;c===filter||(NAMES[c]||'').includes(f))}
+    symPop.innerHTML=`&lt;input type="search" id="symFind" placeholder="Search: empty, union, schwa, arrow…" value="${(filter||'').replace(/"/g,'&amp;quot;')}"&gt;&lt;div class="tabs"&gt;`+tabs.map(t=&gt;`&lt;button data-tab="${t}" class="${t===tab&amp;&amp;!filter?'cur':''}"&gt;${t}&lt;/button&gt;`).join('')+'&lt;/div&gt;&lt;div class="grid"&gt;'+
+      list.map(c=&gt;`&lt;button data-sym="${c.replace(/"/g,'&amp;quot;')}" title="${(NAMES[c]||'U+'+c.codePointAt(0).toString(16).toUpperCase().padStart(4,'0')).replace(/"/g,'&amp;quot;')}"&gt;${c.replace(/[&amp;&lt;&gt;]/g,x=&gt;({'&amp;':'&amp;amp;','&lt;':'&amp;lt;','&gt;':'&amp;gt;'}[x]))}&lt;/button&gt;`).join('')+'&lt;/div&gt;&lt;div class="hint" id="symHint"&gt;'+(list.length?'':'No match')+'&lt;/div&gt;';
+    const f=$('#symFind');f.oninput=()=&gt;{const v=f.value.trim();render(v);const g=$('#symFind');g.focus();g.setSelectionRange(g.value.length,g.value.length)};
+  }
+  symPop.addEventListener('mouseover',e=&gt;{const b=e.target.closest('[data-sym]');const h=$('#symHint');if(b&amp;&amp;h)h.textContent=b.dataset.sym+'  '+b.title});
+  symPop.addEventListener('click',e=&gt;{const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;try{localStorage.setItem('nh_sym_tab',tab)}catch{}render();return}
+    const b=e.target.closest('[data-sym]');if(!b)return;const c=b.dataset.sym;restoreEditSelection();document.execCommand('insertText',false,c);rememberEditSelection();storeCurrent(false);
+    const r=[c,...recent().filter(x=&gt;x!==c)].slice(0,27);try{localStorage.setItem('nh_sym_recent',JSON.stringify(r))}catch{}});
+  ['pointerdown','mousedown'].forEach(ev=&gt;symPop.addEventListener(ev,e=&gt;{if(!e.target.closest('input'))e.preventDefault()}));
+  function place(pop,anchor){const r=anchor.getBoundingClientRect(),w=pop.offsetWidth,h=pop.offsetHeight;let x=Math.min(r.left,innerWidth-w-8),y=r.bottom+6;if(y+h&gt;innerHeight-8)y=Math.max(8,r.top-h-6);pop.style.left=Math.max(8,x)+'px';pop.style.top=y+'px'}
+  function openSymbols(anchor){rememberEditSelection();$('#foldPop').hidden=true;render();symPop.hidden=false;place(symPop,anchor||$('#symbolBtn')||document.body)}
+  insertSymbol=function(){openSymbols($('#symbolBtn')?.offsetParent?$('#symbolBtn'):$('#insertMenuBtn')?.offsetParent?$('#insertMenuBtn'):null)};   // Insert › Symbol… uses the picker too
+  const sb=$('#symbolBtn');if(sb){sb.hidden=false;sb.onclick=()=&gt;{if(!symPop.hidden){symPop.hidden=true;return}openSymbols(sb)}}
+  document.addEventListener('pointerdown',e=&gt;{if(!e.target.closest('#symPop,#symbolBtn,#foldPop,#alignMenuBtn,#insertMenuBtn,#scriptMenuBtn,#listMenuBtn')){symPop.hidden=true;$('#foldPop').hidden=true}},true);
+  document.addEventListener('keydown',e=&gt;{if(e.key==='Escape'){symPop.hidden=true;$('#foldPop').hidden=true}});
+
+  /* ================= Ribbon groups that fold when the screen is narrow (iPad, small laptops) ================= */
+  const row=document.querySelector('.ribbon-primary');if(!row)return;
+  const CV='&lt;svg class="cv" viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path d="m6 9 6 6 6-6"/&gt;&lt;/svg&gt;';
+  const alignBtns=['justifyLeft','justifyCenter','justifyRight','justifyFull'].map(c=&gt;row.querySelector(`[data-cmd="${c}"]`)).filter(Boolean);
+  const scriptBtns=['strikeThrough','subscript','superscript'].map(c=&gt;row.querySelector(`[data-cmd="${c}"]`)).filter(Boolean);
+  const listBtns=[row.querySelector('[data-cmd="insertUnorderedList"]'),row.querySelector('[data-cmd="insertOrderedList"]'),row.querySelector('#listLibBtn'),row.querySelector('#todoBtn')].filter(Boolean);
+  const insertBtns=['#quoteBtn','#linkBtn','#imageBtn','#tableBtn','#codeBtn','#symbolBtn'].map(q=&gt;row.querySelector(q)).filter(Boolean);
+  alignBtns.forEach(b=&gt;b.classList.add('nh-align-item'));scriptBtns.forEach(b=&gt;b.classList.add('nh-script-item'));insertBtns.forEach(b=&gt;b.classList.add('nh-insert-item'));listBtns.forEach(b=&gt;b.classList.add('nh-list-item'));
+  function proxy(id,cls,html,title,after){const b=document.createElement('button');b.className='ribbon-btn nh-fold '+cls;b.id=id;b.title=title;b.innerHTML=html;after.after(b);return b}
+  const alignMenu=alignBtns.length?proxy('alignMenuBtn','',alignBtns[0].innerHTML+CV,'Alignment',alignBtns[alignBtns.length-1]):null;
+  const scriptMenu=scriptBtns.length?proxy('scriptMenuBtn','',scriptBtns[0].innerHTML+CV,'Strikethrough, subscript, superscript',scriptBtns[scriptBtns.length-1]):null;
+  const insertMenu=insertBtns.length?proxy('insertMenuBtn','nh-wide','&lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path d="M12 5v14M5 12h14"/&gt;&lt;/svg&gt;&lt;span&gt;Insert&lt;/span&gt;'+CV,'Quote, link, picture, table, code, symbol',insertBtns[0]):null;
+  if(insertMenu){insertBtns[0].before(insertMenu)}
+  const foldPop=$('#foldPop');['pointerdown','mousedown'].forEach(ev=&gt;foldPop.addEventListener(ev,e=&gt;e.preventDefault()));
+  function openFold(btn,items){
+    if(!foldPop.hidden&amp;&amp;foldPop.dataset.for===btn.id){foldPop.hidden=true;return}
+    rememberEditSelection();symPop.hidden=true;foldPop.dataset.for=btn.id;
+    foldPop.innerHTML=items.map((b,i)=&gt;`&lt;button data-i="${i}" role="menuitem" class="${b.classList.contains('on')?'cur':''}"&gt;&lt;span class="ico"&gt;${b.querySelector('svg')?b.querySelector('svg').outerHTML:b.textContent}&lt;/span&gt;${b.title||b.getAttribute('aria-label')||''}&lt;/button&gt;`).join('');
+    foldPop.onclick=e=&gt;{const x=e.target.closest('[data-i]');if(!x)return;foldPop.hidden=true;const t=items[+x.dataset.i];if(t.id==='symbolBtn'){openSymbols(btn);return}t.click()};
+    foldPop.hidden=false;place(foldPop,btn);
+  }
+  const listMenu=listBtns.length?proxy('listMenuBtn','',listBtns[0].innerHTML+CV,'Lists and to-do',listBtns[listBtns.length-1]):null;
+  if(listMenu)listMenu.onclick=()=&gt;{const items=listBtns.map(x=&gt;x.id==='listLibBtn'?Object.assign(x,{title:'Bullet &amp; numbering library'}):x);openFold(listMenu,items)};
+  if(alignMenu)alignMenu.onclick=()=&gt;openFold(alignMenu,alignBtns);
+  if(scriptMenu)scriptMenu.onclick=()=&gt;openFold(scriptMenu,scriptBtns);
+  if(insertMenu)insertMenu.onclick=()=&gt;openFold(insertMenu,insertBtns);
+  // the alignment button shows the current alignment
+  document.addEventListener('selectionchange',()=&gt;{if(!alignMenu)return;const on=alignBtns.find(b=&gt;b.classList.contains('on'))||alignBtns[0];const svg=on.querySelector('svg');const cur=alignMenu.querySelector('svg:not(.cv)');if(svg&amp;&amp;cur&amp;&amp;cur.innerHTML!==svg.innerHTML)cur.replaceWith(svg.cloneNode(true))});
+  const LEVELS=['nh-c1','nh-c2','nh-c3','nh-c4','nh-c5','nh-c6','nh-c7'];
+  function fit(){row.classList.remove(...LEVELS);for(const l of LEVELS){if(row.scrollWidth&lt;=row.clientWidth+1)break;row.classList.add(l)}}
+  let t=0;const later=()=&gt;{cancelAnimationFrame(t);t=requestAnimationFrame(fit)};
+  addEventListener('resize',later);if(window.ResizeObserver)new ResizeObserver(later).observe(row);
+  document.fonts?.ready?.then(fit);fit();
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
