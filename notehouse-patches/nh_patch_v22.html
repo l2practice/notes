@@ -1,0 +1,23 @@
+<!-- Note House patch v22: a Home button at the left of the title bar that goes back to the Notes library. Paste before </body>. -->
+<style>
+#nhHomeBtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px 0 8px;margin-right:10px;border:1px solid #dfe5e3;border-radius:999px;background:#fff;color:#24302d;font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+#nhHomeBtn:hover{background:#eef3f1;border-color:#cfd8d5}
+#nhHomeBtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:560px){#nhHomeBtn span{display:none}#nhHomeBtn{padding:0 7px;margin-right:6px}}
+</style>
+<script>
+(function(){
+  if (window.parent === window) return;                    // only inside the Notes app (Open here / new tab)
+  const brand = document.querySelector('header.top .brand'); if (!brand || document.getElementById('nhHomeBtn')) return;
+  const b = document.createElement('button'); b.id = 'nhHomeBtn'; b.type = 'button'; b.title = 'Back to the Notes library';
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" style="margin-left:-8px"><path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9"/></svg><span>Home</span>';
+  brand.before(b);
+  b.onclick = () => {
+    try { storeCurrent(); } catch (e) {}
+    try { queueSave(); } catch (e) {}                       // the frame stays open in the background, so the save still finishes
+    const o = location.origin; try { window.parent.postMessage({ type: 'notehouse:return-library' }, o && o !== 'null' ? o : '*'); } catch (e) {}   // the app itself checks where the message comes from
+  };
+  // File › Back to Notes library does the same
+  if (typeof runMenuAction === 'function'){ const prev = runMenuAction; runMenuAction = function(action){ if (action === 'return-library'){ b.click(); return; } return prev.apply(this, arguments); }; }
+})();
+</script>

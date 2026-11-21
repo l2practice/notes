@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-21-nh-merge-dupes-v22" />
+    <meta name="app-build" content="2026-11-21-nh-home-beige-v24" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -2876,6 +2876,29 @@ main.editor.nh-look{background-attachment:local!important}
     if (typeof runMenuAction === 'function'){ const prevRun = runMenuAction; runMenuAction = function(action){ if (action === 'nh-merge-dupes') return run(false); return prevRun.apply(this, arguments); }; }
   } catch (e) {}
   setTimeout(() =&gt; run(true), 600);   // once on start
+})();
+&lt;/script&gt;
+&lt;!-- Note House patch v22: a Home button at the left of the title bar that goes back to the Notes library. Paste before &lt;/body&gt;. --&gt;
+&lt;style&gt;
+#nhHomeBtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px 0 8px;margin-right:10px;border:1px solid #dfe5e3;border-radius:999px;background:#fff;color:#24302d;font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+#nhHomeBtn:hover{background:#eef3f1;border-color:#cfd8d5}
+#nhHomeBtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:560px){#nhHomeBtn span{display:none}#nhHomeBtn{padding:0 7px;margin-right:6px}}
+&lt;/style&gt;
+&lt;script&gt;
+(function(){
+  if (window.parent === window) return;                    // only inside the Notes app (Open here / new tab)
+  const brand = document.querySelector('header.top .brand'); if (!brand || document.getElementById('nhHomeBtn')) return;
+  const b = document.createElement('button'); b.id = 'nhHomeBtn'; b.type = 'button'; b.title = 'Back to the Notes library';
+  b.innerHTML = '&lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;&lt;path d="M15 6l-6 6 6 6"/&gt;&lt;/svg&gt;&lt;svg viewBox="0 0 24 24" aria-hidden="true" style="margin-left:-8px"&gt;&lt;path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9"/&gt;&lt;/svg&gt;&lt;span&gt;Home&lt;/span&gt;';
+  brand.before(b);
+  b.onclick = () =&gt; {
+    try { storeCurrent(); } catch (e) {}
+    try { queueSave(); } catch (e) {}                       // the frame stays open in the background, so the save still finishes
+    const o = location.origin; try { window.parent.postMessage({ type: 'notehouse:return-library' }, o &amp;&amp; o !== 'null' ? o : '*'); } catch (e) {}   // the app itself checks where the message comes from
+  };
+  // File › Back to Notes library does the same
+  if (typeof runMenuAction === 'function'){ const prev = runMenuAction; runMenuAction = function(action){ if (action === 'return-library'){ b.click(); return; } return prev.apply(this, arguments); }; }
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
@@ -9150,14 +9173,14 @@ if(new URLSearchParams(location.search).get('tab')==='notehouse'){
 </script>
 <style>
 /* quick actions around a selected shape / symbol / stroke: colour (left), duplicate (right), delete (below); the rotation handle keeps the top */
-.sel-qa{position:fixed;z-index:60;width:38px;height:38px;border-radius:50%;border:1px solid var(--line,#e3e3e3);background:var(--surface,#fff);color:var(--ink,#1d1f20);
-  box-shadow:0 4px 14px rgba(0,0,0,.16);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;transition:opacity .12s,transform .12s}
+.sel-qa{position:fixed;z-index:60;width:38px;height:38px;border-radius:50%;border:1px solid #e2d3b8;background:#f7efdf;color:#6b553a;
+  box-shadow:0 4px 12px rgba(107,85,58,.22);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;transition:opacity .12s,transform .12s}
 .sel-qa[hidden]{display:none}
-.sel-qa:hover{transform:scale(1.06)}
+.sel-qa:hover{transform:scale(1.06);background:#f1e4cc}
 .sel-qa svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .sel-qa:active{transform:scale(.94)}
 .sel-qa .drop{fill:var(--qa-c,#111);fill-opacity:.9}
-#selQaPal{position:fixed;z-index:61;display:grid;grid-template-columns:repeat(4,30px);gap:7px;padding:9px;border-radius:14px;background:var(--surface,#fff);border:1px solid var(--line,#e3e3e3);box-shadow:0 10px 28px rgba(0,0,0,.18)}
+#selQaPal{position:fixed;z-index:61;display:grid;grid-template-columns:repeat(4,30px);gap:7px;padding:9px;border-radius:14px;background:#f7efdf;border:1px solid #e2d3b8;box-shadow:0 10px 28px rgba(0,0,0,.18)}
 #selQaPal[hidden]{display:none}
 #selQaPal button{width:30px;height:30px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);cursor:pointer;padding:0}
 #selQaPal button.cur{box-shadow:0 0 0 2px var(--accent,#0d7a64)}
