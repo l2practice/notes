@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-21-nh-selectall-font-v29" />
+    <meta name="app-build" content="2026-11-21-nh-paste-caret-v30" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -2960,6 +2960,129 @@ main.editor.nh-look{background-attachment:local!important}
   }
   wrap('#fontFamily', 'fontFamily', v =&gt; '"' + v.replace(/"/g, '') + '"');
   wrap('#fontSize', 'fontSize', v =&gt; /^\d+(\.\d+)?$/.test(v) ? v + 'px' : v);
+})();
+&lt;/script&gt;
+&lt;!-- Note House patch v24: the caret lands where you tap below a pasted table (OneNote, Word, web).
+     Paste before &lt;/body&gt;, after patches v20–v23. --&gt;
+&lt;script&gt;
+(function(){
+  if (typeof editor === 'undefined') return;
+  const surfaceOf = el =&gt; (el &amp;&amp; el.closest &amp;&amp; el.closest('.note-block-body')) || editor;
+  const emptyLine = () =&gt; { const p = document.createElement('p'); p.innerHTML = '&lt;br&gt;'; return p; };
+  function caretIn(node, atEnd){
+    const host = surfaceOf(node); if (document.activeElement !== host) host.focus({ preventScroll: true });
+    const r = document.createRange(); r.selectNodeContents(node); r.collapse(!atEnd);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r); try { rememberEditSelection(); } catch (e) {}
+  }
+  // a table that ends its container gets an empty line under it, so there is somewhere to type below the table
+  function lineAfterTables(root){
+    let added = false;
+    (root || editor).querySelectorAll('table').forEach(t =&gt; {
+      const box = t.closest('.note-block-body') || editor;
+      let top = t; while (top.parentElement &amp;&amp; top.parentElement !== box) top = top.parentElement;
+      if (top.parentElement === box &amp;&amp; !top.nextElementSibling){ top.after(emptyLine()); added = true; }
+    });
+    return added;
+  }
+
+  /* 1. Pasted HTML keeps its text, tables, lists and formatting, but not the page layout it came with
+        (absolute positions, fixed widths and heights, large margins), which put lines far from where they show */
+  const LAYOUT = ['position', 'top', 'left', 'right', 'bottom', 'float', 'height', 'min-height', 'max-height', 'margin', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right', 'line-height'];
+  function cleanFragment(html){
+    const doc = new DOMParser().parseFromString(html, 'text/html'), body = doc.body;
+    body.querySelectorAll('script,style,meta,link,title,o\\:p,xml').forEach(n =&gt; n.remove());
+    body.querySelectorAll('[style]').forEach(el =&gt; {
+      LAYOUT.forEach(p =&gt; el.style.removeProperty(p));
+      if (!/^(TD|TH|TABLE|COL|IMG)$/.test(el.tagName)){ el.style.removeProperty('width'); el.style.removeProperty('min-width'); }
+      if (!el.getAttribute('style').trim()) el.removeAttribute('style');
+    });
+    body.querySelectorAll('div').forEach(d =&gt; { if (!d.attributes.length || [...d.attributes].every(a =&gt; a.name === 'style' &amp;&amp; /^\s*direction\s*:\s*ltr;?\s*$/i.test(a.value))) d.replaceWith(...d.childNodes); });   // OneNote's wrapper divs
+    return body.innerHTML.replace(/&lt;!--(Start|End)Fragment--&gt;/g, '').trim();
+  }
+  editor.addEventListener('paste', e =&gt; {
+    if (e.defaultPrevented) return;                               // a table on its own is handled already (own container)
+    const html = e.clipboardData &amp;&amp; e.clipboardData.getData('text/html'); if (!html) return;
+    if (!/position\s*:\s*absolute|&lt;table|width\s*:\s*[\d.]+(in|cm|pt)|margin[^;:]*:\s*[\d.]+(in|cm)/i.test(html)) return;   // ordinary rich text: leave it to the browser
+    e.preventDefault();
+    document.execCommand('insertHTML', false, cleanFragment(html));
+    const s = getSelection(), at = s.rangeCount ? s.getRangeAt(0).startContainer : null, el = at &amp;&amp; (at.nodeType === 1 ? at : at.parentElement);
+    lineAfterTables(surfaceOf(el));
+    try { expandCanvasToFit(); } catch (er) {} try { storeCurrent(false); } catch (er) {}
+  });
+  // after the app puts a pasted table in its own container, give that container a line under the table
+  editor.addEventListener('paste', () =&gt; setTimeout(() =&gt; { if (lineAfterTables()) { try { storeCurrent(false); } catch (er) {} } }, 0));
+
+  /* 2. A tap just under a container (up to 48px, within its width) puts the caret on its last line,
+        instead of the browser choosing a line elsewhere on the page */
+  const NEAR = 48;
+  function blockBelow(x, y){
+    let best = null, gap = 1e9;
+    editor.querySelectorAll('.note-block').forEach(b =&gt; {
+      const r = b.getBoundingClientRect();
+      if (x &lt; r.left - 8 || x &gt; r.right + 8) return;
+      const d = y - r.bottom; if (d &gt;= -2 &amp;&amp; d &lt;= NEAR &amp;&amp; d &lt; gap){ gap = d; best = b; }
+    });
+    return best;
+  }
+  function onBlankTap(e){
+    if (e.button &gt; 0) return;
+    if (e.target.closest &amp;&amp; e.target.closest('.note-block, a, img, input, button')) return;
+    if (e.target !== editor &amp;&amp; (e.target.textContent || '').replace(/\u00a0/g, '').trim()) return;   // a real line of text under the box keeps the tap
+    const b = blockBelow(e.clientX, e.clientY); if (!b) return;
+    const body = b.querySelector('.note-block-body'); if (!body) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    lineAfterTables(body);
+    let last = body.lastElementChild;
+    if (!last || last.tagName === 'TABLE' || last.querySelector('table')){ last = emptyLine(); body.append(last); }
+    caretIn(last, true); suppressClick = true;
+    try { expandCanvasToFit(); } catch (er) {} try { storeCurrent(false); } catch (er) {}
+  }
+  /* 3. A tap beside a line of page text (not past its end) puts the caret on that line, at the tapped spot,
+        rather than making a new container or sending the caret to another line */
+  function flowKids(){ return [...editor.children].filter(c =&gt; !c.classList.contains('note-block') &amp;&amp; !c.classList.contains('ink-layer') &amp;&amp; c.getBoundingClientRect().height &gt; 0); }
+  function caretAtPoint(x, y){
+    if (document.caretRangeFromPoint) return document.caretRangeFromPoint(x, y);
+    const p = document.caretPositionFromPoint &amp;&amp; document.caretPositionFromPoint(x, y); if (!p) return null;
+    const r = document.createRange(); r.setStart(p.offsetNode, p.offset); r.collapse(true); return r;
+  }
+  function onFlowTap(e){
+    if (e.button &gt; 0 || e.target !== editor) return;
+    const kids = flowKids(); if (!kids.length) return;
+    const bottom = Math.max(...kids.map(k =&gt; k.getBoundingClientRect().bottom));
+    if (e.clientY &gt; bottom + 2) return;                                    // past the end of the text: a new container, as before
+    let line = null, best = 1e9;                                          // the line at that height, or the nearest one (gaps between paragraphs)
+    kids.forEach(k =&gt; { const r = k.getBoundingClientRect(), d = e.clientY &lt; r.top ? r.top - e.clientY : e.clientY &gt; r.bottom ? e.clientY - r.bottom : 0; if (d &lt; best){ best = d; line = k; } });
+    if (!line || best &gt; 24) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (line.tagName === 'TABLE' || line.querySelector('table')){ lineAfterTables(editor); line = line.nextElementSibling || line; }
+    const lr = line.getBoundingClientRect(), x = Math.max(lr.left + 1, Math.min(e.clientX, lr.right - 1));
+    const r = caretAtPoint(x, Math.max(lr.top + 1, Math.min(e.clientY, lr.bottom - 1)));
+    if (r &amp;&amp; line.contains(r.startContainer)){ editor.focus({ preventScroll: true }); const s = getSelection(); s.removeAllRanges(); s.addRange(r); try { rememberEditSelection(); } catch (er) {} }
+    else caretIn(line, true);
+    suppressClick = true;
+  }
+  /* 4. A tap on the edge of a container (outside its text area) goes into its text, so an empty new container
+        is not thrown away and the caret does not jump to another line */
+  function onFrameTap(e){
+    if (e.button &gt; 0) return;
+    const b = e.target.closest &amp;&amp; e.target.closest('.note-block'); if (!b || !editor.contains(b)) return;
+    if (e.target.closest('.note-block-body, .note-block-controls, .note-block-grip, .note-block-resize, .note-block-delete')) return;
+    const body = b.querySelector('.note-block-body'); if (!body) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    let last = body.lastElementChild; if (!last || last.tagName === 'TABLE'){ last = emptyLine(); body.append(last); }
+    caretIn(last, true); suppressClick = true;
+  }
+  let suppressClick = false;
+  editor.addEventListener('click', e =&gt; { if (suppressClick){ suppressClick = false; e.stopImmediatePropagation(); } }, true);
+  editor.addEventListener('pointerdown', onFrameTap, true);
+  editor.addEventListener('pointerdown', onFlowTap, true);
+  editor.addEventListener('pointerdown', onBlankTap, true);
+  // past the end of the text, the browser must not move the caret before the new container appears
+  editor.addEventListener('mousedown', e =&gt; { if (e.target === editor) e.preventDefault(); }, true);
+
+  // tables already on a page get their line too, when the page opens
+  if (typeof render === 'function'){ const prev = render; render = function(){ const out = prev.apply(this, arguments); try { if (lineAfterTables()) storeCurrent(false); } catch (e) {} return out; }; }
+  try { if (lineAfterTables()) storeCurrent(false); } catch (e) {}
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
