@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-21-colour-palettes-v21" />
+    <meta name="app-build" content="2026-11-21-nh-merge-dupes-v22" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -2807,6 +2807,75 @@ main.editor.nh-look{background-attachment:local!important}
     };
     if (typeof queueSave === 'function'){ const prevSave = queueSave; queueSave = function(){ try { track(); } catch (e) {} return prevSave.apply(this, arguments); }; }
   })();
+})();
+&lt;/script&gt;
+&lt;!-- Note House patch v21: merge sections that have the same name (same notebook and group), and keep each group together.
+     Paste it before &lt;/body&gt;, after patch v20. Runs on start, after every Google Drive sync, and from Tools › Merge Duplicate Sections. --&gt;
+&lt;script&gt;
+(function(){
+  if (typeof data === 'undefined' || !Array.isArray(data.sections)) return;
+  const key = s =&gt; (s.notebook || 'My notebook') + '\u0001' + (s.group || '') + '\u0001' + String(s.name || '').trim().toLowerCase();
+  const plain = h =&gt; String(h || '').replace(/&lt;[^&gt;]+&gt;/g, '').replace(/\s+/g, ' ').trim();
+
+  function tidySections(){
+    const secs = data.sections, curSec = secs[si], curPage = curSec &amp;&amp; curSec.pages ? curSec.pages[pi] : null;
+    const first = new Map(), moved = new Map(), kept = [];
+    let merged = 0, pagesMoved = 0;
+    for (const s of secs){
+      if (s.passwordProtection || s.locked){ kept.push(s); continue; }       // never merge into or out of a locked section
+      const k = key(s), a = first.get(k);
+      if (!a){ first.set(k, s); kept.push(s); continue; }
+      a.pages = a.pages || [];
+      const byId = new Map(a.pages.map(p =&gt; [p.id, p]));
+      for (const p of s.pages || []){
+        const same = byId.get(p.id);
+        if (same){ if ((p.updatedAt || 0) &gt; (same.updatedAt || 0)) Object.assign(same, p); continue; }
+        if (a.pages.some(q =&gt; q.title === p.title &amp;&amp; plain(q.content) === plain(p.content))) continue;   // the same page twice (e.g. two "Welcome" pages)
+        a.pages.push(p); byId.set(p.id, p); pagesMoved++;
+      }
+      if (!a.color &amp;&amp; s.color) a.color = s.color;
+      a.updatedAt = Date.now(); moved.set(s, a); merged++;
+    }
+    // keep every notebook, and every group inside it, in one block (otherwise a group heading shows twice)
+    const books = [], byBook = new Map();
+    for (const s of kept){
+      const b = s.notebook || 'My notebook';
+      if (!byBook.has(b)){ byBook.set(b, { groups: [], byGroup: new Map() }); books.push(b); }
+      const B = byBook.get(b), g = s.group || '';
+      if (!B.byGroup.has(g)){ B.byGroup.set(g, []); B.groups.push(g); }
+      B.byGroup.get(g).push(s);
+    }
+    const ordered = books.flatMap(b =&gt; { const B = byBook.get(b); return B.groups.flatMap(g =&gt; B.byGroup.get(g)); });
+    const reordered = ordered.some((s, i) =&gt; s !== kept[i]);
+    if (!merged &amp;&amp; !reordered) return 0;
+    data.sections = ordered;
+    const target = moved.get(curSec) || curSec;
+    si = Math.max(0, data.sections.indexOf(target));
+    const pages = data.sections[si] ? data.sections[si].pages || [] : [];
+    pi = curPage ? Math.max(0, pages.findIndex(p =&gt; p.id === curPage.id)) : 0;
+    return { merged, pagesMoved };
+  }
+
+  function run(quiet){
+    try { storeCurrent(false); } catch (e) {}
+    const r = tidySections();
+    if (r){ try { render(); } catch (e) {} try { queueSave(); } catch (e) {}
+      if (r.merged &amp;&amp; typeof toast === 'function') toast('Merged ' + r.merged + ' duplicate section' + (r.merged &gt; 1 ? 's' : '') + (r.pagesMoved ? ' (' + r.pagesMoved + ' page' + (r.pagesMoved &gt; 1 ? 's' : '') + ' moved)' : ''));
+    } else if (!quiet &amp;&amp; typeof toast === 'function') toast('No duplicate sections found');
+    return r;
+  }
+  window.nhMergeDuplicateSections = () =&gt; run(false);
+
+  // after a sync: two devices that each started with their own "General" are the usual source of duplicates
+  if (typeof mergeNotebookData === 'function'){
+    const prev = mergeNotebookData;
+    mergeNotebookData = function(){ const out = prev.apply(this, arguments); try { tidySections(); } catch (e) {} return out; };
+  }
+  try {
+    if (typeof menuDefinitions !== 'undefined' &amp;&amp; menuDefinitions.tools) menuDefinitions.tools.push([{ label: 'Merge Duplicate Sections', icon: 'file-app-open', action: 'nh-merge-dupes', shortcut: '' }]);
+    if (typeof runMenuAction === 'function'){ const prevRun = runMenuAction; runMenuAction = function(action){ if (action === 'nh-merge-dupes') return run(false); return prevRun.apply(this, arguments); }; }
+  } catch (e) {}
+  setTimeout(() =&gt; run(true), 600);   // once on start
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;

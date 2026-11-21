@@ -1,0 +1,69 @@
+<!-- Note House patch v21: merge sections that have the same name (same notebook and group), and keep each group together.
+     Paste it before </body>, after patch v20. Runs on start, after every Google Drive sync, and from Tools › Merge Duplicate Sections. -->
+<script>
+(function(){
+  if (typeof data === 'undefined' || !Array.isArray(data.sections)) return;
+  const key = s => (s.notebook || 'My notebook') + '\u0001' + (s.group || '') + '\u0001' + String(s.name || '').trim().toLowerCase();
+  const plain = h => String(h || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+
+  function tidySections(){
+    const secs = data.sections, curSec = secs[si], curPage = curSec && curSec.pages ? curSec.pages[pi] : null;
+    const first = new Map(), moved = new Map(), kept = [];
+    let merged = 0, pagesMoved = 0;
+    for (const s of secs){
+      if (s.passwordProtection || s.locked){ kept.push(s); continue; }       // never merge into or out of a locked section
+      const k = key(s), a = first.get(k);
+      if (!a){ first.set(k, s); kept.push(s); continue; }
+      a.pages = a.pages || [];
+      const byId = new Map(a.pages.map(p => [p.id, p]));
+      for (const p of s.pages || []){
+        const same = byId.get(p.id);
+        if (same){ if ((p.updatedAt || 0) > (same.updatedAt || 0)) Object.assign(same, p); continue; }
+        if (a.pages.some(q => q.title === p.title && plain(q.content) === plain(p.content))) continue;   // the same page twice (e.g. two "Welcome" pages)
+        a.pages.push(p); byId.set(p.id, p); pagesMoved++;
+      }
+      if (!a.color && s.color) a.color = s.color;
+      a.updatedAt = Date.now(); moved.set(s, a); merged++;
+    }
+    // keep every notebook, and every group inside it, in one block (otherwise a group heading shows twice)
+    const books = [], byBook = new Map();
+    for (const s of kept){
+      const b = s.notebook || 'My notebook';
+      if (!byBook.has(b)){ byBook.set(b, { groups: [], byGroup: new Map() }); books.push(b); }
+      const B = byBook.get(b), g = s.group || '';
+      if (!B.byGroup.has(g)){ B.byGroup.set(g, []); B.groups.push(g); }
+      B.byGroup.get(g).push(s);
+    }
+    const ordered = books.flatMap(b => { const B = byBook.get(b); return B.groups.flatMap(g => B.byGroup.get(g)); });
+    const reordered = ordered.some((s, i) => s !== kept[i]);
+    if (!merged && !reordered) return 0;
+    data.sections = ordered;
+    const target = moved.get(curSec) || curSec;
+    si = Math.max(0, data.sections.indexOf(target));
+    const pages = data.sections[si] ? data.sections[si].pages || [] : [];
+    pi = curPage ? Math.max(0, pages.findIndex(p => p.id === curPage.id)) : 0;
+    return { merged, pagesMoved };
+  }
+
+  function run(quiet){
+    try { storeCurrent(false); } catch (e) {}
+    const r = tidySections();
+    if (r){ try { render(); } catch (e) {} try { queueSave(); } catch (e) {}
+      if (r.merged && typeof toast === 'function') toast('Merged ' + r.merged + ' duplicate section' + (r.merged > 1 ? 's' : '') + (r.pagesMoved ? ' (' + r.pagesMoved + ' page' + (r.pagesMoved > 1 ? 's' : '') + ' moved)' : ''));
+    } else if (!quiet && typeof toast === 'function') toast('No duplicate sections found');
+    return r;
+  }
+  window.nhMergeDuplicateSections = () => run(false);
+
+  // after a sync: two devices that each started with their own "General" are the usual source of duplicates
+  if (typeof mergeNotebookData === 'function'){
+    const prev = mergeNotebookData;
+    mergeNotebookData = function(){ const out = prev.apply(this, arguments); try { tidySections(); } catch (e) {} return out; };
+  }
+  try {
+    if (typeof menuDefinitions !== 'undefined' && menuDefinitions.tools) menuDefinitions.tools.push([{ label: 'Merge Duplicate Sections', icon: 'file-app-open', action: 'nh-merge-dupes', shortcut: '' }]);
+    if (typeof runMenuAction === 'function'){ const prevRun = runMenuAction; runMenuAction = function(action){ if (action === 'nh-merge-dupes') return run(false); return prevRun.apply(this, arguments); }; }
+  } catch (e) {}
+  setTimeout(() => run(true), 600);   // once on start
+})();
+</script>
