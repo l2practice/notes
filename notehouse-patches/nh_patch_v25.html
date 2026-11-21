@@ -43,7 +43,7 @@
       if (made.length === 1 && main){
         const m = main.getBoundingClientRect(), [x, y] = pagePoint(m.left + 60, m.top + 70);
         const r = made[0].getBoundingClientRect(); if (r.bottom < m.top || r.top > m.bottom){ made[0].style.top = y + 'px'; made[0].style.left = Math.max(36, x) + 'px'; fit(); }
-        made[0].scrollIntoView({ block: 'nearest' });
+        const sl = main.scrollLeft; made[0].scrollIntoView({ block: 'nearest', inline: 'nearest' }); if ((parseFloat(made[0].style.left) || 0) * Z() < main.clientWidth) main.scrollLeft = sl;   // scroll up/down to it, not sideways
       }
       return out;
     };

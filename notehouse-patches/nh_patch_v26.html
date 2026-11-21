@@ -55,7 +55,7 @@ body.nhp .nhp-sheet.show{display:block}
 .nhp-sheet button{display:flex;align-items:center;gap:16px;width:100%;border:0;background:none;text-align:left;padding:13px 22px;font:inherit;font-size:16px;color:#1f2a28}
 .nhp-sheet button:active{background:#f4efe6}
 .nhp-sheet hr{border:0;border-top:1px solid #eee8de;margin:6px 0}
-body.nhp #searchPane:not(.collapsed){position:fixed!important;inset:0!important;z-index:80!important;width:auto!important;display:flex!important;background:#fff}
+body.nhp #searchPane:not(.collapsed){position:fixed!important;inset:0!important;z-index:80!important;width:auto!important;display:flex!important;background:#fff;visibility:visible!important}
 body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
 </style>
 <div class="nhp-screen" id="nhpSections">
@@ -98,7 +98,7 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     if (v === 'pages') renderPages();
     if (v === 'page'){ const p = data.sections[si] && data.sections[si].pages[pi]; $q('#nhpPageBar b').textContent = ''; window.dispatchEvent(new Event('resize')); }
     else { hideFmt(); try { document.activeElement && document.activeElement.blur(); } catch (e) {} }
-    if (push) try { history.pushState({ nhp: v }, ''); } catch (e) {}
+    if (push) try { if (v === 'page' && !(history.state && history.state.nhp === 'pages')) history.pushState({ nhp: 'pages' }, ''); history.pushState({ nhp: v }, ''); } catch (e) {}   // a page opened from search still goes back to its section's pages
   }
   // the phone's Back button walks back the same way: page → pages → sections
   addEventListener('popstate', e => { if (!body.classList.contains('nhp')) return; closeSheet(); const v = (e.state && e.state.nhp) || 'sections'; if (view === 'page' && v !== 'page'){ try { storeCurrent(); } catch (er) {} } setView(v, false); });

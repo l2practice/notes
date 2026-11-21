@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-nh-phone-v32" />
+    <meta name="app-build" content="2026-11-22-nh-phone-qa-v33" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -3130,7 +3130,7 @@ main.editor.nh-look{background-attachment:local!important}
       if (made.length === 1 &amp;&amp; main){
         const m = main.getBoundingClientRect(), [x, y] = pagePoint(m.left + 60, m.top + 70);
         const r = made[0].getBoundingClientRect(); if (r.bottom &lt; m.top || r.top &gt; m.bottom){ made[0].style.top = y + 'px'; made[0].style.left = Math.max(36, x) + 'px'; fit(); }
-        made[0].scrollIntoView({ block: 'nearest' });
+        const sl = main.scrollLeft; made[0].scrollIntoView({ block: 'nearest', inline: 'nearest' }); if ((parseFloat(made[0].style.left) || 0) * Z() &lt; main.clientWidth) main.scrollLeft = sl;   // scroll up/down to it, not sideways
       }
       return out;
     };
@@ -3217,7 +3217,7 @@ body.nhp .nhp-sheet.show{display:block}
 .nhp-sheet button{display:flex;align-items:center;gap:16px;width:100%;border:0;background:none;text-align:left;padding:13px 22px;font:inherit;font-size:16px;color:#1f2a28}
 .nhp-sheet button:active{background:#f4efe6}
 .nhp-sheet hr{border:0;border-top:1px solid #eee8de;margin:6px 0}
-body.nhp #searchPane:not(.collapsed){position:fixed!important;inset:0!important;z-index:80!important;width:auto!important;display:flex!important;background:#fff}
+body.nhp #searchPane:not(.collapsed){position:fixed!important;inset:0!important;z-index:80!important;width:auto!important;display:flex!important;background:#fff;visibility:visible!important}
 body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
 &lt;/style&gt;
 &lt;div class="nhp-screen" id="nhpSections"&gt;
@@ -3260,7 +3260,7 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     if (v === 'pages') renderPages();
     if (v === 'page'){ const p = data.sections[si] &amp;&amp; data.sections[si].pages[pi]; $q('#nhpPageBar b').textContent = ''; window.dispatchEvent(new Event('resize')); }
     else { hideFmt(); try { document.activeElement &amp;&amp; document.activeElement.blur(); } catch (e) {} }
-    if (push) try { history.pushState({ nhp: v }, ''); } catch (e) {}
+    if (push) try { if (v === 'page' &amp;&amp; !(history.state &amp;&amp; history.state.nhp === 'pages')) history.pushState({ nhp: 'pages' }, ''); history.pushState({ nhp: v }, ''); } catch (e) {}   // a page opened from search still goes back to its section's pages
   }
   // the phone's Back button walks back the same way: page → pages → sections
   addEventListener('popstate', e =&gt; { if (!body.classList.contains('nhp')) return; closeSheet(); const v = (e.state &amp;&amp; e.state.nhp) || 'sections'; if (view === 'page' &amp;&amp; v !== 'page'){ try { storeCurrent(); } catch (er) {} } setView(v, false); });
