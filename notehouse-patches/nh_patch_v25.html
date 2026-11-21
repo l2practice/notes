@@ -1,0 +1,75 @@
+<!-- Note House patch v25: new containers and pasted tables appear where you tap / where the caret is, even when the page is
+     scrolled or zoomed. The app measured the position from the page area (which already moves with scrolling) and then
+     added the scroll distance again, so the further down the page you were, the further below the tap they landed.
+     Paste before </body>, after patches v20–v24. -->
+<script>
+(function(){
+  if (typeof editor === 'undefined') return;
+  const inner = document.querySelector('.editor-inner'), main = editor.closest('main.editor') || document.querySelector('main.editor');
+  const Z = () => { const v = parseFloat(inner && inner.style.zoom); return v ? v / 100 : 1; };
+  const pagePoint = (cx, cy) => { const r = editor.getBoundingClientRect(), z = Z(); return [Math.max(0, (cx - r.left) / z), Math.max(0, (cy - r.top) / z)]; };
+  const topBlocks = () => [...editor.children].filter(c => c.classList && c.classList.contains('note-block'));
+  const fit = () => { try { expandCanvasToFit(); } catch (e) {} };
+
+  // 1. a tap on empty page space: the new container starts exactly at the tap
+  let before = null;
+  editor.addEventListener('click', () => { before = new Set(topBlocks()); }, true);
+  editor.addEventListener('click', e => {
+    if (!before) return; const made = topBlocks().filter(b => !before.has(b)); before = null;
+    if (made.length !== 1 || made[0].classList.contains('table-note-block')) return;
+    const [x, y] = pagePoint(e.clientX, e.clientY); made[0].style.left = x + 'px'; made[0].style.top = y + 'px'; fit();
+  });
+
+  // 2. a pasted table that gets its own container: placed at the caret
+  let caretAt = null, pasteBefore = null;
+  editor.addEventListener('paste', () => {
+    pasteBefore = new Set(topBlocks());
+    const s = getSelection(); let r = s.rangeCount ? s.getRangeAt(0).getBoundingClientRect() : null;
+    if (r && !r.width && !r.height){ const n = s.getRangeAt(0).startContainer, el = n.nodeType === 1 ? n : n.parentElement; r = el ? el.getBoundingClientRect() : null; }
+    caretAt = r ? [r.left, r.top] : null;
+  }, true);
+  editor.addEventListener('paste', () => {
+    const made = pasteBefore ? topBlocks().filter(b => !pasteBefore.has(b) && b.classList.contains('table-note-block')) : []; pasteBefore = null;
+    if (!made.length || !caretAt) return;
+    const [x, y] = pagePoint(caretAt[0], caretAt[1]);
+    made.forEach((b, i) => { b.style.left = (x + i * 24) + 'px'; b.style.top = (y + i * 24) + 'px'; }); fit();
+  });
+
+  // 3. Insert › Table on the page (not inside a container): the new table appears in view, not at the top of the page
+  if (typeof insertTableAtSelection === 'function'){
+    const prev = insertTableAtSelection;
+    insertTableAtSelection = function(){
+      const had = new Set(topBlocks()), out = prev.apply(this, arguments), made = topBlocks().filter(b => !had.has(b));
+      if (made.length === 1 && main){
+        const m = main.getBoundingClientRect(), [x, y] = pagePoint(m.left + 60, m.top + 70);
+        const r = made[0].getBoundingClientRect(); if (r.bottom < m.top || r.top > m.bottom){ made[0].style.top = y + 'px'; made[0].style.left = Math.max(36, x) + 'px'; fit(); }
+        made[0].scrollIntoView({ block: 'nearest' });
+      }
+      return out;
+    };
+  }
+
+  // 5. the status bar stays across the bottom of the visible page; it no longer slides left with sideways scrolling
+  (function(){
+    const bar = document.querySelector('.note-statusbar'); if (!bar || !main) return;
+    function pin(){
+      if (getComputedStyle(bar).position === 'fixed') return;              // phone layout keeps its own fixed bar
+      bar.style.position = 'sticky'; bar.style.left = '0px'; bar.style.bottom = '0px';
+      bar.style.width = main.clientWidth + 'px'; bar.style.boxSizing = 'border-box';
+    }
+    let raf = 0; const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(pin); };
+    addEventListener('resize', later); if (window.ResizeObserver) new ResizeObserver(later).observe(main);
+    main.addEventListener('scroll', later, { passive: true }); pin();
+  })();
+
+  // 4. moving or resizing a container follows the finger at any zoom
+  editor.addEventListener('pointermove', e => {
+    if (typeof noteBlockDrag === 'undefined' || !noteBlockDrag) return;
+    const d = noteBlockDrag, z = Z(); if (z === 1) return;      // at 100% the app's own handler is right
+    e.stopImmediatePropagation();
+    if (d.type === 'resize') d.block.style.width = Math.max(220, d.width / z + (e.clientX - d.x) / z) + 'px';
+    else { d.block.style.left = Math.max(0, d.left + (e.clientX - d.x) / z) + 'px'; d.block.style.top = Math.max(0, d.top + (e.clientY - d.y) / z) + 'px'; }
+    fit();
+  }, true);
+})();
+</script>
