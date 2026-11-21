@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <script>try { var _ok = sessionStorage.getItem('nt-unlocked') === '1', _t = +localStorage.getItem('nt-unlocked-at') || 0; if (!_ok && !(_t && Date.now() - _t < 4 * 3600 * 1000 && Date.now() >= _t)) document.documentElement.classList.add('locked'); } catch (e) { document.documentElement.classList.add('locked'); }</script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="icon.svg" />
     <link rel="apple-touch-icon" href="icon.svg" />
@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-nh-phone-qa-v33" />
+    <meta name="app-build" content="2026-11-22-pages-sections-v35" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -3310,7 +3310,7 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     else if (a === 'more') openSheet();
     else if (a === 'to-sections') goUp('sections');
     else if (a === 'to-pages'){ try { storeCurrent(); } catch (e) {} goUp('pages'); }
-    else if (a === 'add-section'){ const n = data.sections.length; $q('#addSection').click(); if (data.sections.length &gt; n){ setView('pages', true); } }
+    else if (a === 'add-section'){ if (window.nhAddSection) window.nhAddSection({ done: () =&gt; setView('pages', true) }); else { const n = data.sections.length; $q('#addSection').click(); if (data.sections.length &gt; n) setView('pages', true); } }
     else if (a === 'add-page'){ $q('#addPage').click(); setView('page', true); setTimeout(() =&gt; { try { titleEl.focus(); const r = document.createRange(); r.selectNodeContents(titleEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {} }, 60); }
     else if (a === 'undo' || a === 'redo'){ const b = document.querySelector('[data-cmd="' + a + '"]'); if (b) b.click(); else document.execCommand(a); }
   }
@@ -3356,9 +3356,12 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
 
   /* ---------- the formatting bar sits on the keyboard while you type ---------- */
   const fmt = $q('#nhpFmt');
+  // inside the Notes app this page is a frame, which never sees the keyboard: the app sends how much it covers
+  let kbInset = 0;
+  addEventListener('message', e =&gt; { if (e.data &amp;&amp; e.data.type === 'notehouse:keyboard'){ kbInset = +e.data.inset || 0; placeFmt(); } });
   function placeFmt(){
     const vv = window.visualViewport; const gap = vv ? Math.max(0, innerHeight - (vv.height + vv.offsetTop)) : 0;
-    fmt.style.bottom = gap + 'px';
+    fmt.style.bottom = Math.max(gap, kbInset) + 'px';
   }
   function showFmt(){ if (!body.classList.contains('nhp') || view !== 'page') return; fmt.classList.add('show'); placeFmt(); }
   function hideFmt(){ fmt.classList.remove('show'); }
@@ -3399,6 +3402,110 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     window.dispatchEvent(new Event('resize'));
   }
   (mq.addEventListener ? mq.addEventListener('change', apply) : mq.addListener(apply)); apply();
+})();
+&lt;/script&gt;
+&lt;!-- Note House patch v27: "Add section" opens a small sheet (name, colour, group) instead of the browser's prompt box.
+     Paste before &lt;/body&gt;, after patches v20–v26. --&gt;
+&lt;style&gt;
+#nhSecDlg{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(24,22,18,.38)}
+#nhSecDlg.show{display:flex;animation:nhFade .15s ease-out}
+@keyframes nhFade{from{opacity:0}to{opacity:1}}
+#nhSecDlg .box{width:min(420px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.25);padding:20px 20px 16px;animation:nhUp .18s ease-out}
+@keyframes nhUp{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+#nhSecDlg h3{margin:0 0 4px;font-size:18px;color:#1f2a28}
+#nhSecDlg p{margin:0 0 14px;color:#6c7673;font-size:13px}
+#nhSecDlg label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#7d8a87;margin:12px 0 6px}
+#nhSecDlg input[type=text],#nhSecDlg select{width:100%;box-sizing:border-box;height:42px;border:1px solid #d6dedb;border-radius:11px;padding:0 12px;font:inherit;font-size:15px;background:#fff;color:#1f2a28}
+#nhSecDlg input[type=text]:focus,#nhSecDlg select:focus{outline:none;border-color:#0d7a64;box-shadow:0 0 0 3px #0d7a6422}
+#nhSecDlg .colors{display:flex;flex-wrap:wrap;gap:10px}
+#nhSecDlg .colors button{width:30px;height:30px;border-radius:50%;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+#nhSecDlg .colors button.cur{box-shadow:0 0 0 2px #fff,0 0 0 4px #0d7a64}
+#nhSecDlg .preview{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;border-radius:11px;background:#f6f8f7;font-weight:600;color:#24302d}
+#nhSecDlg .preview .tab{width:6px;height:22px;border-radius:2px 5px 5px 2px}
+#nhSecDlg .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+#nhSecDlg .acts button{height:40px;padding:0 18px;border-radius:11px;border:1px solid #d6dedb;background:#fff;font:inherit;font-weight:600;cursor:pointer}
+#nhSecDlg .acts .pri{background:#0d7a64;border-color:#0d7a64;color:#fff}
+#nhSecDlg .acts .pri:disabled{opacity:.45;cursor:default}
+#nhSecDlg .err{color:#b23;font-size:12.5px;margin-top:6px;min-height:16px}
+&lt;/style&gt;
+&lt;div id="nhSecDlg" role="dialog" aria-modal="true" aria-labelledby="nhSecTitle"&gt;&lt;form class="box" autocomplete="off"&gt;
+  &lt;h3 id="nhSecTitle"&gt;New section&lt;/h3&gt;&lt;p&gt;A section holds pages, like a tab in a notebook.&lt;/p&gt;
+  &lt;label for="nhSecName"&gt;Name&lt;/label&gt;&lt;input type="text" id="nhSecName" maxlength="80" placeholder="e.g. Writing 2 — Spring term"&gt;
+  &lt;div class="err" id="nhSecErr"&gt;&lt;/div&gt;
+  &lt;label&gt;Colour&lt;/label&gt;&lt;div class="colors" id="nhSecColors"&gt;&lt;/div&gt;
+  &lt;div id="nhSecWhere"&gt;&lt;/div&gt;
+  &lt;div class="preview"&gt;&lt;span class="tab" id="nhSecTab"&gt;&lt;/span&gt;&lt;span id="nhSecPrev"&gt;New section&lt;/span&gt;&lt;/div&gt;
+  &lt;div class="acts"&gt;&lt;button type="button" id="nhSecCancel"&gt;Cancel&lt;/button&gt;&lt;button type="submit" class="pri" id="nhSecOk" disabled&gt;Add section&lt;/button&gt;&lt;/div&gt;
+&lt;/form&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  if (typeof data === 'undefined') return;
+  const $q = s =&gt; document.querySelector(s), dlg = $q('#nhSecDlg'), form = dlg.querySelector('form');
+  const esc = t =&gt; String(t).replace(/[&amp;&lt;&gt;"]/g, c =&gt; ({ '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '"': '&amp;quot;' }[c]));
+  const COLORS = (typeof sectionColorOptions !== 'undefined' &amp;&amp; sectionColorOptions.length ? sectionColorOptions.map(c =&gt; c[1]) : ['#6b9690', '#2676b7', '#f07621', '#128b49', '#8c4db1', '#db3745', '#e2ae00', '#879398']);
+  let color = COLORS[0], done = null;
+  function where(book, group){
+    const books = [...new Set(data.sections.map(s =&gt; s.notebook || 'My notebook'))];
+    const groups = [...new Set(data.sections.filter(s =&gt; (s.notebook || 'My notebook') === book &amp;&amp; s.group).map(s =&gt; s.group))];
+    let h = '';
+    if (books.length &gt; 1) h += '&lt;label for="nhSecBook"&gt;Notebook&lt;/label&gt;&lt;select id="nhSecBook"&gt;' + books.map(b =&gt; `&lt;option${b === book ? ' selected' : ''}&gt;${esc(b)}&lt;/option&gt;`).join('') + '&lt;/select&gt;';
+    h += '&lt;label for="nhSecGroup"&gt;Group&lt;/label&gt;&lt;select id="nhSecGroup"&gt;&lt;option value=""&gt;No group&lt;/option&gt;' + groups.map(g =&gt; `&lt;option${g === group ? ' selected' : ''}&gt;${esc(g)}&lt;/option&gt;`).join('') + '&lt;/select&gt;';
+    $q('#nhSecWhere').innerHTML = h;
+    const bs = $q('#nhSecBook'); if (bs) bs.onchange = () =&gt; where(bs.value, '');
+  }
+  function paint(){
+    $q('#nhSecColors').innerHTML = COLORS.map(c =&gt; `&lt;button type="button" data-c="${c}" style="background:${c}" class="${c === color ? 'cur' : ''}" aria-label="Colour ${c}"&gt;&lt;/button&gt;`).join('');
+    $q('#nhSecTab').style.background = color;
+  }
+  $q('#nhSecColors').addEventListener('click', e =&gt; { const b = e.target.closest('[data-c]'); if (b){ color = b.dataset.c; paint(); } });
+  const name = $q('#nhSecName');
+  name.addEventListener('input', () =&gt; {
+    const v = name.value.trim(), book = ($q('#nhSecBook') || {}).value || cur().notebook, group = ($q('#nhSecGroup') || {}).value || '';
+    const dup = v &amp;&amp; data.sections.some(s =&gt; (s.notebook || 'My notebook') === book &amp;&amp; (s.group || '') === group &amp;&amp; String(s.name).trim().toLowerCase() === v.toLowerCase());
+    $q('#nhSecErr').textContent = dup ? 'There is already a section with this name here.' : '';
+    $q('#nhSecOk').disabled = !v || dup; $q('#nhSecPrev').textContent = v || 'New section';
+  });
+  const cur = () =&gt; { const s = data.sections[si] || {}; return { notebook: s.notebook || 'My notebook', group: s.group || '' }; };
+  function open(opts){
+    opts = opts || {}; done = opts.done || null;
+    const c = cur(); color = COLORS[data.sections.length % COLORS.length];
+    where(opts.notebook || c.notebook, opts.group != null ? opts.group : c.group);
+    name.value = ''; $q('#nhSecErr').textContent = ''; $q('#nhSecOk').disabled = true; $q('#nhSecPrev').textContent = 'New section';
+    paint(); dlg.classList.add('show'); setTimeout(() =&gt; name.focus(), 30);
+  }
+  function close(){ dlg.classList.remove('show'); done = null; }
+  $q('#nhSecCancel').onclick = close;
+  dlg.addEventListener('pointerdown', e =&gt; { if (e.target === dlg) close(); });
+  dlg.addEventListener('keydown', e =&gt; { if (e.key === 'Escape'){ e.stopPropagation(); close(); } });
+  form.addEventListener('submit', e =&gt; {
+    e.preventDefault(); const v = name.value.trim(); if (!v || $q('#nhSecOk').disabled) return;
+    const book = ($q('#nhSecBook') || {}).value || cur().notebook, group = ($q('#nhSecGroup') || {}).value || '';
+    try { storeCurrent(); } catch (er) {}
+    const sec = { id: crypto.randomUUID(), name: v, notebook: book, color, updatedAt: Date.now(), pages: [{ id: crypto.randomUUID(), title: 'Untitled page', content: '&lt;p&gt;&lt;br&gt;&lt;/p&gt;', updatedAt: Date.now() }] };
+    if (group) sec.group = group;
+    // right after the last section of the same notebook and group, so the group stays together
+    let at = -1; data.sections.forEach((s, i) =&gt; { if ((s.notebook || 'My notebook') === book &amp;&amp; (s.group || '') === group) at = i; });
+    if (at &lt; 0) data.sections.forEach((s, i) =&gt; { if ((s.notebook || 'My notebook') === book) at = i; });
+    const idx = at &lt; 0 ? data.sections.length : at + 1; data.sections.splice(idx, 0, sec);
+    si = idx; pi = 0; render(); queueSave();
+    const cb = done; close(); if (typeof toast === 'function') toast('Section "' + v + '" added'); if (cb) cb(sec);
+  });
+  window.nhAddSection = open;
+  const btn = $q('#addSection'); if (btn) btn.onclick = () =&gt; open();
+  // the sidebar menus' New Section and New Section in Group use the same sheet
+  if (typeof runMenuAction === 'function'){
+    const prev = runMenuAction;
+    runMenuAction = function(action){
+      if (action === 'sidebar-new-section' || action === 'new-section'){
+        const m = $q('#menuContext'), t = m &amp;&amp; m.dataset.sideType, nm = m &amp;&amp; m.dataset.sideName, bk = m &amp;&amp; m.dataset.sideBook;
+        try { closeMenus(); } catch (e) {}
+        if (t === 'group') return open({ notebook: bk || undefined, group: nm || '' });
+        if (t === 'notebook') return open({ notebook: nm || undefined, group: '' });
+        return open();
+      }
+      return prev.apply(this, arguments);
+    };
+  }
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
@@ -4867,7 +4974,7 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
       loadStart('Opening document');
       $('#pagesCol').innerHTML = '';
       setSaveStatus(false, doc.updatedAt);
-      thumbSideVisible = window.innerWidth > 760;
+      thumbSideVisible = false;   // the page list starts closed; the Pages button opens it
       $('#thumbSide').classList.toggle('hidden', !thumbSideVisible);
       $('#thumbToggleBtn').classList.toggle('active', thumbSideVisible);
       // Neu dang ket noi Drive va token con han: tai ban moi nhat ve truoc khi mo,
@@ -5224,6 +5331,8 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
        empty bars instead of pages. */
     const thumbQueue = [];
     let thumbBusy = false;
+    /* pixels across a thumbnail: the width of the page list (it can be dragged wider), sharp on high-density screens */
+    function thumbPx(){ const side = document.getElementById('thumbSide'), cw = side && side.offsetWidth ? side.offsetWidth - 22 : 126; return Math.round(Math.min(900, Math.max(132, cw * Math.min(2, window.devicePixelRatio || 1)))); }
     function buildThumbs(){
       const list = $('#thumbList'); if (!list) return;
       list.innerHTML = '';
@@ -5276,7 +5385,7 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
     function paintThumbFromCanvas(p, src){
       const item = document.querySelector('.thumb-item[data-tpage="' + p + '"]');
       if (!item || item.dataset.done || !src || !src.width) return;
-      const w = 132, c = document.createElement('canvas');
+      const w = thumbPx(), c = document.createElement('canvas');
       c.width = w; c.height = Math.max(1, Math.round(w * src.height / src.width));
       const ctx = c.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(src, 0, 0, c.width, c.height);
       setThumbCanvas(item, c, p);
@@ -5285,14 +5394,14 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
       if (!pdfDoc && !isBlank()) return;
       const item = document.querySelector('.thumb-item[data-tpage="' + p + '"]');
       if (!item || item.dataset.done) return;
-      if (isBlank()){ setThumbCanvas(item, blankPageCanvas(p, 132 / pageSizes[p - 1].w), p); return; }
+      if (isBlank()){ setThumbCanvas(item, blankPageCanvas(p, thumbPx() / pageSizes[p - 1].w), p); return; }
       const wrapC = document.querySelector('.page-wrap[data-page="' + p + '"][data-rendered] canvas');
       if (wrapC){ paintThumbFromCanvas(p, wrapC); if (item.dataset.done) return; }
       let task = null, timer = null;
       try {
         const page = await pdfDoc.getPage(p);
         const vp1 = page.getViewport({ scale: 1 });
-        const vp = page.getViewport({ scale: 132 / vp1.width });
+        const vp = page.getViewport({ scale: thumbPx() / vp1.width });
         const c = document.createElement('canvas');
         c.width = Math.max(1, Math.round(vp.width));
         c.height = Math.max(1, Math.round(vp.height));
@@ -9525,7 +9634,7 @@ $('#picInput').addEventListener('change', e => { const f = e.target.files; addPi
 /* ---------- wiring ---------- */
 (function(){
   $('#drawBtn').addEventListener('click', () => setInkTool(INK.tool ? null : 'pen'));
-  $('#addPageBtn').addEventListener('click', () => { if (!currentReader) return; if (isBlank()) addBlankPage(); else addPageModal(); });
+  $('#addPageBtn').addEventListener('click', () => { if (!currentReader) return; if (isBlank()) addBlankPageModal(); else addPageModal(); });
   $('#newDocBtn').addEventListener('click', newDocModal);
   applyInkOrient();
   $('#inkStyleBtn').addEventListener('click', () => toggleInkStylePop('color'));
@@ -9661,6 +9770,8 @@ function mountNotehouse(){
  host.replaceChildren(frame);
  notehouseInitialized=true;
 }
+/* Note House runs in a frame, which cannot see the on-screen keyboard; tell it how much of the screen the keyboard covers */
+(function(){const vv=window.visualViewport;if(!vv)return;let last=-1;function send(){const f=document.querySelector('#notehouseHost>.notehouse-frame');if(!f||!f.contentWindow)return;const inset=Math.max(0,Math.round(window.innerHeight-(vv.height+vv.offsetTop)));if(inset===last)return;last=inset;try{f.contentWindow.postMessage({type:'notehouse:keyboard',inset},'*')}catch(e){}}vv.addEventListener('resize',send);vv.addEventListener('scroll',send);window.addEventListener('focusin',()=>setTimeout(send,350),true)})();
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.data?.type!=='notehouse:return-library')return;
  libView='library';renderLibrary();window.scrollTo({top:0});
@@ -9758,6 +9869,148 @@ if(new URLSearchParams(location.search).get('tab')==='notehouse'){
   syncInkBar = function(){ const r = prevSync.apply(this, arguments); still = 0; loop(); return r; };
   ['pointerup', 'pointermove', 'keyup', 'scroll', 'wheel', 'touchmove', 'resize'].forEach(ev => addEventListener(ev, () => { still = 0; loop(); }, { capture: true, passive: true }));
   document.addEventListener('pointerdown', e => { if (!pal.hidden && !e.target.closest('#selQaPal,#selQaColor')) pal.hidden = true; }, true);
+})();
+</script>
+<style>
+/* ---------- page list: drag its right edge to make it wider (up to a quarter of the screen) ---------- */
+.thumb-side{position:relative}
+.thumb-resize{position:absolute;top:0;right:-4px;bottom:0;width:8px;cursor:col-resize;z-index:6;touch-action:none}
+.thumb-resize::after{content:"";position:absolute;top:50%;left:3px;width:2px;height:36px;margin-top:-18px;border-radius:2px;background:var(--line);transition:background .15s}
+.thumb-resize:hover::after,.thumb-resize.drag::after{background:var(--accent)}
+@media (max-width:760px),(pointer:coarse) and (max-width:1100px){.thumb-resize{display:none}}
+body.thumb-resizing{cursor:col-resize;user-select:none;-webkit-user-select:none}
+/* delete button on each page in the list */
+.thumb-item{position:relative}
+.thumb-del{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:8px;border:0;display:grid;place-items:center;background:rgba(255,255,255,.92);color:#8a2d2d;box-shadow:0 1px 4px rgba(0,0,0,.18);opacity:0;transition:opacity .15s;cursor:pointer;padding:0}
+.thumb-del svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.thumb-item:hover .thumb-del,.thumb-item.active .thumb-del,.thumb-del:focus-visible{opacity:1}
+@media (hover:none){.thumb-item.active .thumb-del{opacity:1}}
+/* "Page added — Undo" */
+#pageSnack{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:400;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 18px;border-radius:14px;background:#1f2321;color:#fff;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#pageSnack.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
+#pageSnack button{border:0;background:#f8edeb;color:#5a2f2a;font:inherit;font-weight:700;padding:7px 14px;border-radius:9px;cursor:pointer}
+.ap-where{display:flex;flex-direction:column;gap:8px;margin:12px 0 4px}
+.ap-where label{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;cursor:pointer;font-weight:500}
+.ap-where input{accent-color:var(--accent)}
+.ap-where label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+</style>
+<div id="pageSnack" role="status"><span id="pageSnackText"></span><button id="pageSnackUndo">Undo</button></div>
+<script>
+(function(){
+  if (typeof currentReader === 'undefined') return;
+  const side = document.getElementById('thumbSide'), list = document.getElementById('thumbList');
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* ================= 1. resizable page list ================= */
+  if (side){
+    const KEY = 'nt-thumb-w', MIN = 120, maxW = () => Math.max(MIN, Math.floor(window.innerWidth / 4));
+    const grip = document.createElement('div'); grip.className = 'thumb-resize'; grip.title = 'Drag to make the page list wider or narrower'; side.appendChild(grip);
+    const apply = w => { if (window.innerWidth <= 760){ side.style.width = ''; return; } side.style.width = Math.round(Math.max(MIN, Math.min(maxW(), w))) + 'px'; };
+    let saved = 0; try { saved = +localStorage.getItem(KEY) || 0; } catch (e) {}
+    if (saved) apply(saved);
+    let drag = null, builtAt = 0;
+    grip.addEventListener('pointerdown', e => { e.preventDefault(); drag = { x: e.clientX, w: side.offsetWidth }; grip.setPointerCapture(e.pointerId); grip.classList.add('drag'); document.body.classList.add('thumb-resizing'); builtAt = side.offsetWidth; });
+    grip.addEventListener('pointermove', e => { if (!drag) return; apply(drag.w + e.clientX - drag.x); try { if (typeof requestToolbarPos === 'function') requestToolbarPos(); } catch (er) {} });
+    const end = () => {
+      if (!drag) return; drag = null; grip.classList.remove('drag'); document.body.classList.remove('thumb-resizing');
+      try { localStorage.setItem(KEY, String(side.offsetWidth)); } catch (e) {}
+      try { if (currentReader && typeof fitMode !== 'undefined' && fitMode) requestAnimationFrame(() => { fitScale(); setScale(scale, true); }); } catch (e) {}
+      if (side.offsetWidth > builtAt + 24 && currentReader){ try { buildThumbs(); } catch (e) {} }   // wider: draw the previews again, sharper
+    };
+    grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+    grip.addEventListener('dblclick', () => { side.style.width = ''; try { localStorage.removeItem(KEY); } catch (e) {} });
+    addEventListener('resize', () => { if (side.style.width) apply(side.offsetWidth); });
+  }
+
+  /* ================= 2. delete a page ================= */
+  function shiftAfterDelete(d, p){
+    d.notes = (d.notes || []).filter(n => n.page !== p); d.notes.forEach(n => { if (n.page > p) n.page--; });
+    const ink = {}; for (const key in (d.ink || {})){ const n = +key; if (n === p) continue; ink[n > p ? n - 1 : n] = d.ink[key]; } d.ink = ink;
+    d.pages = Math.max(1, (d.pages || pageSizes.length) - 1); d.lastPage = Math.min(p, d.pages);
+    d.updatedAt = d.pageUpdatedAt = Date.now();
+  }
+  async function deletePageNow(p){
+    const d = currentReader; if (!d) return false;
+    const total = pageSizes.length; if (total <= 1){ toast('A document needs at least one page.'); return false; }
+    try {
+      if (typeof saveNow === 'function') await saveNow();
+      if (!isBlank()){
+        if (!window.PDFLib){ toast('The PDF tools did not load — check the internet connection.'); return false; }
+        const buf = await DB.get('files', d.id); if (!buf){ toast('This PDF is not on this device.'); return false; }
+        const pdf = await PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }); pdf.removePage(p - 1);
+        const out = await pdf.save(), ab = out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
+        await DB.put('files', ab, d.id); d.size = ab.byteLength; d.pdfDirty = true; if (p === 1) delete d.thumb;
+      }
+      shiftAfterDelete(d, p);
+      await DB.put('docs', d);
+      INK.undo.length = 0; INK.redo.length = 0; INK.sel = null;
+      const id = d.id, go = Math.min(p, d.pages); await reopenKeepingList(id);
+      setTimeout(() => { try { goToPage(go); } catch (e) {} }, 250);
+      return true;
+    } catch (e) { toast('Could not delete the page.'); return false; }
+  }
+  function confirmDelete(p){
+    const d = currentReader; if (!d) return;
+    const notes = (d.notes || []).filter(n => n.page === p).length, ink = ((d.ink || {})[p] || []).length;
+    const extra = notes || ink ? '<p style="color:var(--danger)">' + [notes ? notes + (notes === 1 ? ' note' : ' notes') : '', ink ? ink + (ink === 1 ? ' drawing' : ' drawings') : ''].filter(Boolean).join(' and ') + ' on this page will be deleted too.</p>' : '';
+    openModal('<h3>Delete page ' + p + '?</h3><p>' + (isBlank() ? 'The page is removed from this notebook.' : 'The page is removed from this PDF.') + ' The pages after it move up by one.</p>' + extra +
+      '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mDel" style="background:var(--danger);border-color:var(--danger)">Delete page</button></div>');
+    $('#mCancel').addEventListener('click', closeModal);
+    $('#mDel').addEventListener('click', async () => { closeModal(); toast('Deleting page ' + p + '…'); if (await deletePageNow(p)) toast('Page ' + p + ' deleted.'); });
+  }
+  window.deletePageAsk = confirmDelete;
+  // re-opening the file (after a page is added or deleted) keeps the page list open if it was
+  async function reopenKeepingList(id){
+    const open = typeof thumbSideVisible !== 'undefined' && thumbSideVisible;
+    closeReader(true); await openReader(id);
+    if (open && document.getElementById('thumbSide').classList.contains('hidden')) document.getElementById('thumbToggleBtn').click();
+  }
+  // a delete button on each page of the page list
+  const TRASH = '<svg viewBox="0 0 24 24"><path d="M4.5 6.5h15M9.5 6.5V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v1.5M6.5 6.5l.8 12a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9l.8-12"/></svg>';
+  function addDeleteButtons(){
+    if (!list || !currentReader || pageSizes.length <= 1){ list && list.querySelectorAll('.thumb-del').forEach(b => b.remove()); return; }
+    list.querySelectorAll('.thumb-item').forEach(it => {
+      if (it.querySelector('.thumb-del')) return;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'thumb-del'; b.title = 'Delete page ' + it.dataset.tpage; b.setAttribute('aria-label', b.title); b.innerHTML = TRASH;
+      b.addEventListener('click', e => { e.stopPropagation(); confirmDelete(+it.dataset.tpage); });
+      b.addEventListener('keydown', e => e.stopPropagation());
+      it.appendChild(b);
+    });
+  }
+  if (list) new MutationObserver(addDeleteButtons).observe(list, { childList: true });
+
+  /* ================= 3. adding a page asks first, and can be undone ================= */
+  let snackTimer = 0, undoFn = null;
+  function snack(text, undo){
+    const el = $('#pageSnack'); $('#pageSnackText').textContent = text; undoFn = undo; el.classList.add('show');
+    clearTimeout(snackTimer); snackTimer = setTimeout(() => { el.classList.remove('show'); undoFn = null; }, 7000);
+  }
+  $('#pageSnackUndo').addEventListener('click', async () => { const f = undoFn; undoFn = null; $('#pageSnack').classList.remove('show'); if (f) await f(); });
+  window.addBlankPageModal = function(){
+    if (!currentReader || !isBlank()) return;
+    const cur = Math.max(1, Math.min(currentPage || 1, pageSizes.length)), n = pageSizes.length;
+    openModal('<h3>Add a page?</h3><p>A new blank page is added to <b>' + esc(currentReader.name || 'this notebook') + '</b>.</p>' +
+      '<div class="ap-where"><label><input type="radio" name="apw" value="end" checked> At the end (after page ' + n + ')</label>' + (cur < n ? '<label><input type="radio" name="apw" value="after"> After this page (page ' + cur + ')</label>' : '') + '</div>' +
+      '<div class="modal-actions"><button class="btn" id="mCancel">Cancel</button><button class="btn primary" id="mAdd">Add page</button></div>');
+    $('#mCancel').addEventListener('click', closeModal);
+    $('#mAdd').addEventListener('click', async () => {
+      const where = (document.querySelector('input[name="apw"]:checked') || {}).value; closeModal();
+      addBlankPage();
+      let np = pageSizes.length;
+      if (where === 'after' && cur < np){   // move the new (last) page to just after the current one
+        const d = currentReader, to = cur + 1; await (typeof saveNow === 'function' ? saveNow() : null);
+        (d.notes || []).forEach(x => { if (x.page >= to && x.page < np) x.page++; });
+        const ink = {}; for (const key in (d.ink || {})){ const k = +key; ink[k >= to && k < np ? k + 1 : k] = d.ink[key]; } d.ink = ink; d.updatedAt = d.pageUpdatedAt = Date.now();
+        await DB.put('docs', d); await reopenKeepingList(d.id); setTimeout(() => { try { goToPage(to); } catch (e) {} }, 250); np = to;
+      }
+      snack('Page ' + np + ' added', () => deletePageNow(np));
+    });
+  };
+  // a page added to a PDF can be undone the same way
+  if (typeof insertPdfPage === 'function'){
+    const prev = insertPdfPage;
+    insertPdfPage = async function(pos){ const before = pageSizes.length, open = typeof thumbSideVisible !== 'undefined' && thumbSideVisible; await prev.apply(this, arguments); if (open && document.getElementById('thumbSide').classList.contains('hidden')) document.getElementById('thumbToggleBtn').click(); if (pageSizes.length > before || (currentReader && currentReader.pages > before)){ const np = pos + 1; snack('Page ' + np + ' added', () => deletePageNow(np)); } };
+  }
 })();
 </script>
 </body>

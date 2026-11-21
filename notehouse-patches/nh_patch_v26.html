@@ -148,7 +148,7 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     else if (a === 'more') openSheet();
     else if (a === 'to-sections') goUp('sections');
     else if (a === 'to-pages'){ try { storeCurrent(); } catch (e) {} goUp('pages'); }
-    else if (a === 'add-section'){ const n = data.sections.length; $q('#addSection').click(); if (data.sections.length > n){ setView('pages', true); } }
+    else if (a === 'add-section'){ if (window.nhAddSection) window.nhAddSection({ done: () => setView('pages', true) }); else { const n = data.sections.length; $q('#addSection').click(); if (data.sections.length > n) setView('pages', true); } }
     else if (a === 'add-page'){ $q('#addPage').click(); setView('page', true); setTimeout(() => { try { titleEl.focus(); const r = document.createRange(); r.selectNodeContents(titleEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {} }, 60); }
     else if (a === 'undo' || a === 'redo'){ const b = document.querySelector('[data-cmd="' + a + '"]'); if (b) b.click(); else document.execCommand(a); }
   }
@@ -194,9 +194,12 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
 
   /* ---------- the formatting bar sits on the keyboard while you type ---------- */
   const fmt = $q('#nhpFmt');
+  // inside the Notes app this page is a frame, which never sees the keyboard: the app sends how much it covers
+  let kbInset = 0;
+  addEventListener('message', e => { if (e.data && e.data.type === 'notehouse:keyboard'){ kbInset = +e.data.inset || 0; placeFmt(); } });
   function placeFmt(){
     const vv = window.visualViewport; const gap = vv ? Math.max(0, innerHeight - (vv.height + vv.offsetTop)) : 0;
-    fmt.style.bottom = gap + 'px';
+    fmt.style.bottom = Math.max(gap, kbInset) + 'px';
   }
   function showFmt(){ if (!body.classList.contains('nhp') || view !== 'page') return; fmt.classList.add('show'); placeFmt(); }
   function hideFmt(){ fmt.classList.remove('show'); }

@@ -1,0 +1,104 @@
+<!-- Note House patch v27: "Add section" opens a small sheet (name, colour, group) instead of the browser's prompt box.
+     Paste before </body>, after patches v20–v26. -->
+<style>
+#nhSecDlg{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(24,22,18,.38)}
+#nhSecDlg.show{display:flex;animation:nhFade .15s ease-out}
+@keyframes nhFade{from{opacity:0}to{opacity:1}}
+#nhSecDlg .box{width:min(420px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.25);padding:20px 20px 16px;animation:nhUp .18s ease-out}
+@keyframes nhUp{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+#nhSecDlg h3{margin:0 0 4px;font-size:18px;color:#1f2a28}
+#nhSecDlg p{margin:0 0 14px;color:#6c7673;font-size:13px}
+#nhSecDlg label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#7d8a87;margin:12px 0 6px}
+#nhSecDlg input[type=text],#nhSecDlg select{width:100%;box-sizing:border-box;height:42px;border:1px solid #d6dedb;border-radius:11px;padding:0 12px;font:inherit;font-size:15px;background:#fff;color:#1f2a28}
+#nhSecDlg input[type=text]:focus,#nhSecDlg select:focus{outline:none;border-color:#0d7a64;box-shadow:0 0 0 3px #0d7a6422}
+#nhSecDlg .colors{display:flex;flex-wrap:wrap;gap:10px}
+#nhSecDlg .colors button{width:30px;height:30px;border-radius:50%;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+#nhSecDlg .colors button.cur{box-shadow:0 0 0 2px #fff,0 0 0 4px #0d7a64}
+#nhSecDlg .preview{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;border-radius:11px;background:#f6f8f7;font-weight:600;color:#24302d}
+#nhSecDlg .preview .tab{width:6px;height:22px;border-radius:2px 5px 5px 2px}
+#nhSecDlg .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+#nhSecDlg .acts button{height:40px;padding:0 18px;border-radius:11px;border:1px solid #d6dedb;background:#fff;font:inherit;font-weight:600;cursor:pointer}
+#nhSecDlg .acts .pri{background:#0d7a64;border-color:#0d7a64;color:#fff}
+#nhSecDlg .acts .pri:disabled{opacity:.45;cursor:default}
+#nhSecDlg .err{color:#b23;font-size:12.5px;margin-top:6px;min-height:16px}
+</style>
+<div id="nhSecDlg" role="dialog" aria-modal="true" aria-labelledby="nhSecTitle"><form class="box" autocomplete="off">
+  <h3 id="nhSecTitle">New section</h3><p>A section holds pages, like a tab in a notebook.</p>
+  <label for="nhSecName">Name</label><input type="text" id="nhSecName" maxlength="80" placeholder="e.g. Writing 2 — Spring term">
+  <div class="err" id="nhSecErr"></div>
+  <label>Colour</label><div class="colors" id="nhSecColors"></div>
+  <div id="nhSecWhere"></div>
+  <div class="preview"><span class="tab" id="nhSecTab"></span><span id="nhSecPrev">New section</span></div>
+  <div class="acts"><button type="button" id="nhSecCancel">Cancel</button><button type="submit" class="pri" id="nhSecOk" disabled>Add section</button></div>
+</form></div>
+<script>
+(function(){
+  if (typeof data === 'undefined') return;
+  const $q = s => document.querySelector(s), dlg = $q('#nhSecDlg'), form = dlg.querySelector('form');
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const COLORS = (typeof sectionColorOptions !== 'undefined' && sectionColorOptions.length ? sectionColorOptions.map(c => c[1]) : ['#6b9690', '#2676b7', '#f07621', '#128b49', '#8c4db1', '#db3745', '#e2ae00', '#879398']);
+  let color = COLORS[0], done = null;
+  function where(book, group){
+    const books = [...new Set(data.sections.map(s => s.notebook || 'My notebook'))];
+    const groups = [...new Set(data.sections.filter(s => (s.notebook || 'My notebook') === book && s.group).map(s => s.group))];
+    let h = '';
+    if (books.length > 1) h += '<label for="nhSecBook">Notebook</label><select id="nhSecBook">' + books.map(b => `<option${b === book ? ' selected' : ''}>${esc(b)}</option>`).join('') + '</select>';
+    h += '<label for="nhSecGroup">Group</label><select id="nhSecGroup"><option value="">No group</option>' + groups.map(g => `<option${g === group ? ' selected' : ''}>${esc(g)}</option>`).join('') + '</select>';
+    $q('#nhSecWhere').innerHTML = h;
+    const bs = $q('#nhSecBook'); if (bs) bs.onchange = () => where(bs.value, '');
+  }
+  function paint(){
+    $q('#nhSecColors').innerHTML = COLORS.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${c === color ? 'cur' : ''}" aria-label="Colour ${c}"></button>`).join('');
+    $q('#nhSecTab').style.background = color;
+  }
+  $q('#nhSecColors').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b){ color = b.dataset.c; paint(); } });
+  const name = $q('#nhSecName');
+  name.addEventListener('input', () => {
+    const v = name.value.trim(), book = ($q('#nhSecBook') || {}).value || cur().notebook, group = ($q('#nhSecGroup') || {}).value || '';
+    const dup = v && data.sections.some(s => (s.notebook || 'My notebook') === book && (s.group || '') === group && String(s.name).trim().toLowerCase() === v.toLowerCase());
+    $q('#nhSecErr').textContent = dup ? 'There is already a section with this name here.' : '';
+    $q('#nhSecOk').disabled = !v || dup; $q('#nhSecPrev').textContent = v || 'New section';
+  });
+  const cur = () => { const s = data.sections[si] || {}; return { notebook: s.notebook || 'My notebook', group: s.group || '' }; };
+  function open(opts){
+    opts = opts || {}; done = opts.done || null;
+    const c = cur(); color = COLORS[data.sections.length % COLORS.length];
+    where(opts.notebook || c.notebook, opts.group != null ? opts.group : c.group);
+    name.value = ''; $q('#nhSecErr').textContent = ''; $q('#nhSecOk').disabled = true; $q('#nhSecPrev').textContent = 'New section';
+    paint(); dlg.classList.add('show'); setTimeout(() => name.focus(), 30);
+  }
+  function close(){ dlg.classList.remove('show'); done = null; }
+  $q('#nhSecCancel').onclick = close;
+  dlg.addEventListener('pointerdown', e => { if (e.target === dlg) close(); });
+  dlg.addEventListener('keydown', e => { if (e.key === 'Escape'){ e.stopPropagation(); close(); } });
+  form.addEventListener('submit', e => {
+    e.preventDefault(); const v = name.value.trim(); if (!v || $q('#nhSecOk').disabled) return;
+    const book = ($q('#nhSecBook') || {}).value || cur().notebook, group = ($q('#nhSecGroup') || {}).value || '';
+    try { storeCurrent(); } catch (er) {}
+    const sec = { id: crypto.randomUUID(), name: v, notebook: book, color, updatedAt: Date.now(), pages: [{ id: crypto.randomUUID(), title: 'Untitled page', content: '<p><br></p>', updatedAt: Date.now() }] };
+    if (group) sec.group = group;
+    // right after the last section of the same notebook and group, so the group stays together
+    let at = -1; data.sections.forEach((s, i) => { if ((s.notebook || 'My notebook') === book && (s.group || '') === group) at = i; });
+    if (at < 0) data.sections.forEach((s, i) => { if ((s.notebook || 'My notebook') === book) at = i; });
+    const idx = at < 0 ? data.sections.length : at + 1; data.sections.splice(idx, 0, sec);
+    si = idx; pi = 0; render(); queueSave();
+    const cb = done; close(); if (typeof toast === 'function') toast('Section "' + v + '" added'); if (cb) cb(sec);
+  });
+  window.nhAddSection = open;
+  const btn = $q('#addSection'); if (btn) btn.onclick = () => open();
+  // the sidebar menus' New Section and New Section in Group use the same sheet
+  if (typeof runMenuAction === 'function'){
+    const prev = runMenuAction;
+    runMenuAction = function(action){
+      if (action === 'sidebar-new-section' || action === 'new-section'){
+        const m = $q('#menuContext'), t = m && m.dataset.sideType, nm = m && m.dataset.sideName, bk = m && m.dataset.sideBook;
+        try { closeMenus(); } catch (e) {}
+        if (t === 'group') return open({ notebook: bk || undefined, group: nm || '' });
+        if (t === 'notebook') return open({ notebook: nm || undefined, group: '' });
+        return open();
+      }
+      return prev.apply(this, arguments);
+    };
+  }
+})();
+</script>
