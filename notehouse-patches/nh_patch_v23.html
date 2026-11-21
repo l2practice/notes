@@ -1,0 +1,61 @@
+<!-- Note House patch v23: font and size reach every line after Ctrl/⌘+A (Safari on iPad), finer text-colour and highlight buttons.
+     Paste before </body>, after patches v20–v22. -->
+<style>
+/* text colour and highlight: a small glyph with a thin colour bar under it, and a light chevron */
+.color-control{min-width:0!important;padding:0 7px 0 9px!important;gap:3px!important}
+.color-control .color-letter{font:600 15.5px/1 Inter,"Be Vietnam Pro",system-ui,sans-serif!important;position:relative;top:-2px;width:16px;text-align:center}
+.color-control>svg:first-child{width:17px!important;height:17px!important;stroke-width:1.6!important;position:relative;top:-2px}
+.color-control i{left:9px!important;right:auto!important;width:16px;bottom:7px!important;height:3px!important;border-radius:2px!important;box-shadow:0 0 0 .5px rgba(0,0,0,.12)}
+.highlight-control i{left:10.5px!important}
+.color-control>svg:last-child,.color-control>svg.small-chevron{width:11px!important;height:11px!important;margin-left:3px!important;stroke-width:2!important;opacity:.55}
+.color-control:hover>svg:last-child{opacity:.9}
+</style>
+<script>
+(function(){
+  if (typeof editor === 'undefined') return;
+  const BLOCK = 'p,li,h1,h2,h3,h4,h5,h6,blockquote,pre,td,th';
+  const hostOf = n => { const el = n.nodeType === 1 ? n : n.parentElement; return (el && el.closest('.note-block-body')) || editor; };
+  /* A Ctrl/⌘+A selection covers the page text and the note containers, which are separate editing areas.
+     Safari applies a font only inside the first one; colours happen to work. So apply the font line by line. */
+  function spansHosts(r){
+    if (hostOf(r.startContainer) !== hostOf(r.endContainer)) return true;
+    return hostOf(r.startContainer) === editor && [...editor.querySelectorAll('.note-block-body')].some(b => r.intersectsNode(b));
+  }
+  function applyEach(prop, value){
+    const sel = getSelection(), r = sel.getRangeAt(0).cloneRange();
+    const blocks = [...editor.querySelectorAll(BLOCK)].filter(b => r.intersectsNode(b) && !b.querySelector(BLOCK));
+    let first = null, last = null;
+    for (const b of blocks){
+      const sub = document.createRange(); sub.selectNodeContents(b);
+      if (b.contains(r.startContainer)) sub.setStart(r.startContainer, r.startOffset);
+      if (b.contains(r.endContainer)) sub.setEnd(r.endContainer, r.endOffset);
+      if (sub.collapsed || !sub.toString().trim()) continue;
+      const host = hostOf(b); if (document.activeElement !== host) host.focus({ preventScroll: true });
+      sel.removeAllRanges(); sel.addRange(sub);
+      document.execCommand('styleWithCSS', false, true);
+      if (prop === 'fontFamily') document.execCommand('fontName', false, value.replace(/"/g, ''));
+      else {
+        document.execCommand('fontSize', false, '7');
+        b.querySelectorAll('font[size="7"]').forEach(f => { const sp = document.createElement('span'); sp.style.fontSize = value; while (f.firstChild) sp.append(f.firstChild); f.replaceWith(sp); });
+        b.querySelectorAll('span[style*="xxx-large"]').forEach(sp => { sp.style.fontSize = value; });
+      }
+      b.querySelectorAll('[style]').forEach(el => { if (el.style[prop] && el.style[prop] !== value && sub.intersectsNode(el)) el.style[prop] = value; });   // pasted spans with their own font
+      first = first || b; last = b;
+    }
+    if (first){ const all = document.createRange(); all.setStart(first, 0); all.setEnd(last, last.childNodes.length); sel.removeAllRanges(); sel.addRange(all); try { rememberEditSelection(); } catch (e) {} }
+    try { storeCurrent(false); } catch (e) {}
+  }
+  function wrap(id, prop, valueOf){
+    const el = document.querySelector(id); if (!el || !el.onchange) return;
+    const prev = el.onchange;
+    el.onchange = function(e){
+      try { restoreEditSelection(); } catch (er) {}
+      const s = getSelection(), r = s.rangeCount ? s.getRangeAt(0) : null;
+      if (r && !r.collapsed && (editor.contains(r.commonAncestorContainer) || r.commonAncestorContainer === editor) && spansHosts(r)){ applyEach(prop, valueOf(el.value)); return; }
+      return prev.call(this, e);
+    };
+  }
+  wrap('#fontFamily', 'fontFamily', v => '"' + v.replace(/"/g, '') + '"');
+  wrap('#fontSize', 'fontSize', v => /^\d+(\.\d+)?$/.test(v) ? v + 'px' : v);
+})();
+</script>
