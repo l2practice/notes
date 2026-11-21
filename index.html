@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-21-nh-scroll-pos-v31" />
+    <meta name="app-build" content="2026-11-22-nh-phone-v32" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -3158,6 +3158,247 @@ main.editor.nh-look{background-attachment:local!important}
     else { d.block.style.left = Math.max(0, d.left + (e.clientX - d.x) / z) + 'px'; d.block.style.top = Math.max(0, d.top + (e.clientY - d.y) / z) + 'px'; }
     fit();
   }, true);
+})();
+&lt;/script&gt;
+&lt;!-- Note House patch v26: phone layout like OneNote on a phone — one screen at a time (sections → pages → page),
+     no ribbon or sidebars; the formatting bar shows only while typing, just above the keyboard; everything else is in ⋮.
+     Paste before &lt;/body&gt;, after patches v20–v25. Only phones (up to 640px wide) change. --&gt;
+&lt;style&gt;
+body.nhp header.top,body.nhp .ribbon,body.nhp .rail,body.nhp #notebookPane,body.nhp #pagePane,body.nhp .note-statusbar,body.nhp #mobileNav{display:none!important}
+body.nhp .editor-head{min-height:0!important;padding:0!important;border:0!important;box-shadow:none!important}
+body.nhp .editor-head&gt;:not(.table-context){display:none!important}
+body.nhp .editor-head .table-context.show{display:flex!important;padding:6px 10px;overflow-x:auto}
+body.nhp .workspace{display:block}
+body.nhp main.editor{width:100%!important}
+body.nhp .editor-inner{padding:14px 16px 120px!important}
+body.nhp[data-pv="page"]{padding-top:56px}
+body.nhp:not([data-pv="page"]) .workspace{visibility:hidden}
+.nhp-screen,.nhp-bar,.nhp-fmt,.nhp-sheet,.nhp-scrim{display:none}
+body.nhp .nhp-bar.show,body.nhp .nhp-screen.show{display:flex}
+.nhp-screen{position:fixed;inset:0;z-index:40;background:#fbfaf7;flex-direction:column}
+.nhp-bar{position:fixed;left:0;right:0;top:0;height:56px;z-index:45;align-items:center;gap:2px;padding:0 6px;background:#fbfaf7;border-bottom:1px solid #ece7de}
+.nhp-screen .nhp-bar{position:static;flex:none}
+.nhp-bar b{flex:1;min-width:0;font-size:19px;font-weight:700;color:#1f2a28;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:6px}
+.nhp-bar button,.nhp-fmt button{border:0;background:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#2b3634;flex:none;padding:0;font:inherit}
+.nhp-bar button:active,.nhp-fmt button:active{background:#efe9df}
+.nhp-bar svg,.nhp-fmt svg,.nhp-fab svg,.nhp-sheet svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nhp-bar button:disabled{opacity:.3}
+.nhp-list{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:6px 0 110px}
+.nhp-cap{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a8478;padding:16px 18px 6px}
+.nhp-row{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;text-align:left;padding:13px 18px;font:inherit;font-size:17px;color:#1f2a28}
+.nhp-row:active,.nhp-row.cur{background:#f1ebe0}
+.nhp-row .tab{width:7px;height:28px;border-radius:2px 5px 5px 2px;flex:none}
+.nhp-row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nhp-row .lock{color:#8a8478;font-size:14px}
+.nhp-grp{font-weight:600}
+.nhp-grp .chev{width:18px;height:18px;flex:none;transition:transform .15s;color:#6c665b}
+.nhp-grp.closed .chev{transform:rotate(-90deg)}
+.nhp-page{border-bottom:1px solid #eee8de;padding:15px 18px}
+.nhp-page small{display:block;color:#8a8478;font-size:12.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nhp-empty{padding:40px 24px;text-align:center;color:#8a8478}
+.nhp-fab{position:fixed;right:18px;bottom:calc(22px + env(safe-area-inset-bottom));z-index:46;display:flex;align-items:center;gap:8px;height:54px;padding:0 20px;border-radius:27px;border:1px solid #cdbfe8;background:#fff;color:#3b2c63;font:inherit;font-size:16px;font-weight:600;box-shadow:0 8px 24px rgba(60,40,100,.18)}
+.nhp-fab svg{width:22px;height:22px}
+/* the formatting bar: only while typing, just above the keyboard */
+body.nhp .nhp-fmt.show{display:flex}
+.nhp-fmt{position:fixed;left:0;right:0;bottom:0;z-index:60;height:58px;align-items:center;gap:8px;padding:0 10px;background:#fbfaf7;border-top:1px solid #ece6db;overflow-x:auto;scrollbar-width:none}
+.nhp-fmt .grp{display:flex;flex:none;border-radius:12px;background:#efe8dc;overflow:hidden}
+.nhp-fmt .grp button{width:46px;height:42px;border-radius:0}
+.nhp-fmt .grp button+button{border-left:1px solid #e2d9ca}
+.nhp-fmt .grp button.on{background:#dcd0bd}
+.nhp-fmt::-webkit-scrollbar{display:none}
+.nhp-fmt .txt{font-weight:700;font-size:19px}
+.nhp-fmt .wide{width:auto;padding:0 10px;font-size:14px;font-weight:600}
+/* ⋮ bottom sheet */
+body.nhp .nhp-scrim.show{display:block}
+.nhp-scrim{position:fixed;inset:0;z-index:70;background:rgba(20,18,14,.35)}
+body.nhp .nhp-sheet.show{display:block}
+.nhp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:71;max-height:78vh;overflow:auto;background:#fff;border-radius:18px 18px 0 0;padding:8px 0 calc(14px + env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.2)}
+.nhp-sheet .grab{width:40px;height:4px;border-radius:2px;background:#d9d2c6;margin:4px auto 8px}
+.nhp-sheet button{display:flex;align-items:center;gap:16px;width:100%;border:0;background:none;text-align:left;padding:13px 22px;font:inherit;font-size:16px;color:#1f2a28}
+.nhp-sheet button:active{background:#f4efe6}
+.nhp-sheet hr{border:0;border-top:1px solid #eee8de;margin:6px 0}
+body.nhp #searchPane:not(.collapsed){position:fixed!important;inset:0!important;z-index:80!important;width:auto!important;display:flex!important;background:#fff}
+body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
+&lt;/style&gt;
+&lt;div class="nhp-screen" id="nhpSections"&gt;
+  &lt;div class="nhp-bar show"&gt;&lt;button data-a="home" aria-label="Notes library"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M15 5l-7 7 7 7"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;b id="nhpBook"&gt;My notebook&lt;/b&gt;&lt;button data-a="search" aria-label="Search"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;circle cx="10.5" cy="10.5" r="6.5"/&gt;&lt;path d="m15.5 15.5 5 5"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-a="more" aria-label="More"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;circle cx="12" cy="5.5" r="1.2"/&gt;&lt;circle cx="12" cy="12" r="1.2"/&gt;&lt;circle cx="12" cy="18.5" r="1.2"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/div&gt;
+  &lt;div class="nhp-list" id="nhpSecList"&gt;&lt;/div&gt;
+  &lt;button class="nhp-fab" data-a="add-section"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M12 5v14M5 12h14"/&gt;&lt;/svg&gt;Add Section&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="nhp-screen" id="nhpPages"&gt;
+  &lt;div class="nhp-bar show"&gt;&lt;button data-a="to-sections" aria-label="Sections"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M15 5l-7 7 7 7"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;b id="nhpSecName"&gt;Section&lt;/b&gt;&lt;button data-a="search" aria-label="Search"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;circle cx="10.5" cy="10.5" r="6.5"/&gt;&lt;path d="m15.5 15.5 5 5"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-a="more" aria-label="More"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;circle cx="12" cy="5.5" r="1.2"/&gt;&lt;circle cx="12" cy="12" r="1.2"/&gt;&lt;circle cx="12" cy="18.5" r="1.2"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/div&gt;
+  &lt;div class="nhp-list" id="nhpPageList"&gt;&lt;/div&gt;
+  &lt;button class="nhp-fab" data-a="add-page" aria-label="New page"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M12 5v14M5 12h14"/&gt;&lt;/svg&gt;Page&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="nhp-bar" id="nhpPageBar"&gt;&lt;button data-a="to-pages" aria-label="Pages"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M15 5l-7 7 7 7"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;b&gt;&lt;/b&gt;&lt;button data-a="undo" aria-label="Undo"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M9 14 4 9l5-5"/&gt;&lt;path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-a="redo" aria-label="Redo"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="m15 14 5-5-5-5"/&gt;&lt;path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-a="more" aria-label="More"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;circle cx="12" cy="5.5" r="1.2"/&gt;&lt;circle cx="12" cy="12" r="1.2"/&gt;&lt;circle cx="12" cy="18.5" r="1.2"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/div&gt;
+&lt;div class="nhp-fmt" id="nhpFmt" role="toolbar" aria-label="Formatting"&gt;
+  &lt;span class="grp"&gt;&lt;button data-f="insert" aria-label="Insert"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M12 5v14M5 12h14"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/span&gt;
+  &lt;span class="grp"&gt;&lt;button data-f="todo" aria-label="To do"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;rect x="4" y="4" width="16" height="16" rx="3"/&gt;&lt;path d="m8.5 12 2.5 2.5 4.5-5"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/span&gt;
+  &lt;span class="grp"&gt;&lt;button data-f="insertUnorderedList" aria-label="Bullets"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M9 6h11M9 12h11M9 18h11"/&gt;&lt;circle cx="4.5" cy="6" r=".8"/&gt;&lt;circle cx="4.5" cy="12" r=".8"/&gt;&lt;circle cx="4.5" cy="18" r=".8"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-f="insertOrderedList" aria-label="Numbering"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M10 6h10M10 12h10M10 18h10M4 5l1.5-1v5M3.8 15.5a1.4 1.4 0 0 1 2.6.6c0 1-2.6 2.4-2.6 2.9h2.7"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/span&gt;
+  &lt;span class="grp"&gt;&lt;button data-f="styles" aria-label="Styles"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M3.5 17 8 5l4.5 12M5.2 13h5.6"/&gt;&lt;path d="m14 19 6.5-6.5-2-2L12 17l-.5 2.5z"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button class="txt" data-f="bold" aria-label="Bold"&gt;B&lt;/button&gt;&lt;button class="txt" data-f="italic" aria-label="Italic" style="font-style:italic;font-family:Georgia,serif;font-weight:400"&gt;I&lt;/button&gt;&lt;button class="txt" data-f="underline" aria-label="Underline" style="text-decoration:underline;font-weight:400"&gt;U&lt;/button&gt;&lt;/span&gt;
+  &lt;span class="grp"&gt;&lt;button data-f="tags" aria-label="Tags"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M3 11.5V4a1 1 0 0 1 1-1h7.5l9.5 9.5-8.5 8.5z"/&gt;&lt;circle cx="7.5" cy="7.5" r="1.4"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-f="color" aria-label="Text colour"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M7 17 12 5l5 12M8.7 13h6.6"/&gt;&lt;path d="M5 21h14" stroke="#c94759" stroke-width="2.6"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-f="highlight" aria-label="Highlight"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="m14 4 6 6-8 8H6v-6z"/&gt;&lt;path d="M4 21h16" stroke="#f3c53b" stroke-width="2.6"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/span&gt;
+  &lt;span class="grp"&gt;&lt;button data-f="outdent" aria-label="Outdent"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M11 6h9M11 12h9M11 18h9M7 9l-3 3 3 3"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;button data-f="indent" aria-label="Indent"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="M11 6h9M11 12h9M11 18h9M4 9l3 3-3 3"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/span&gt;
+  &lt;span class="grp"&gt;&lt;button data-f="done" aria-label="Hide keyboard"&gt;&lt;svg viewBox="0 0 24 24"&gt;&lt;path d="m6 9 6 6 6-6"/&gt;&lt;/svg&gt;&lt;/button&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="nhp-scrim" id="nhpScrim"&gt;&lt;/div&gt;&lt;div class="nhp-sheet" id="nhpSheet" role="menu"&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  if (typeof data === 'undefined' || typeof editor === 'undefined') return;
+  const $q = s =&gt; document.querySelector(s), body = document.body;
+  const mq = matchMedia('(max-width: 640px)');
+  const esc = t =&gt; String(t == null ? '' : t).replace(/[&amp;&lt;&gt;"]/g, c =&gt; ({ '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '"': '&amp;quot;' }[c]));
+  let view = 'sections', closed = {};
+  try { closed = JSON.parse(localStorage.getItem('nhp_closed') || '{}'); } catch (e) {}
+  const strip = h =&gt; String(h || '').replace(/&lt;[^&gt;]+&gt;/g, ' ').replace(/&amp;nbsp;/g, ' ').replace(/[⠿×]/g, ' ').replace(/\s+/g, ' ').trim();   // ⠿ × are the container's handles
+
+  function setView(v, push){
+    view = v; body.dataset.pv = v;
+    $q('#nhpSections').classList.toggle('show', v === 'sections');
+    $q('#nhpPages').classList.toggle('show', v === 'pages');
+    $q('#nhpPageBar').classList.toggle('show', v === 'page');
+    if (v === 'sections') renderSections();
+    if (v === 'pages') renderPages();
+    if (v === 'page'){ const p = data.sections[si] &amp;&amp; data.sections[si].pages[pi]; $q('#nhpPageBar b').textContent = ''; window.dispatchEvent(new Event('resize')); }
+    else { hideFmt(); try { document.activeElement &amp;&amp; document.activeElement.blur(); } catch (e) {} }
+    if (push) try { history.pushState({ nhp: v }, ''); } catch (e) {}
+  }
+  // the phone's Back button walks back the same way: page → pages → sections
+  addEventListener('popstate', e =&gt; { if (!body.classList.contains('nhp')) return; closeSheet(); const v = (e.state &amp;&amp; e.state.nhp) || 'sections'; if (view === 'page' &amp;&amp; v !== 'page'){ try { storeCurrent(); } catch (er) {} } setView(v, false); });
+  function goUp(to){ if (history.state &amp;&amp; history.state.nhp &amp;&amp; history.state.nhp !== 'sections') history.back(); else setView(to, false); }
+
+  /* ---------- sections ---------- */
+  function renderSections(){
+    const list = $q('#nhpSecList'), books = [...new Set(data.sections.map(s =&gt; s.notebook || 'My notebook'))];
+    $q('#nhpBook').textContent = books.length === 1 ? books[0] : 'Notebooks';
+    let html = '';
+    books.forEach(book =&gt; {
+      if (books.length &gt; 1) html += `&lt;div class="nhp-cap"&gt;${esc(book)}&lt;/div&gt;`; else html += '&lt;div class="nhp-cap"&gt;Sections&lt;/div&gt;';
+      let lastGroup = null;
+      data.sections.forEach((s, i) =&gt; {
+        if ((s.notebook || 'My notebook') !== book) return;
+        const g = s.group || '';
+        if (g &amp;&amp; g !== lastGroup){ const key = book + '/' + g; html += `&lt;button class="nhp-row nhp-grp${closed[key] ? ' closed' : ''}" data-grp="${esc(key)}"&gt;&lt;svg class="chev" viewBox="0 0 24 24"&gt;&lt;path d="m6 9 6 6 6-6"/&gt;&lt;/svg&gt;&lt;span class="nm"&gt;${esc(g)}&lt;/span&gt;&lt;/button&gt;`; }
+        lastGroup = g;
+        if (g &amp;&amp; closed[book + '/' + g]) return;
+        html += `&lt;button class="nhp-row${i === si ? ' cur' : ''}" data-sec="${i}" style="${g ? 'padding-left:44px' : ''}"&gt;&lt;span class="tab" style="background:${esc(s.color || '#6b9690')}"&gt;&lt;/span&gt;&lt;span class="nm"&gt;${esc(s.name)}&lt;/span&gt;${s.passwordProtection ? '&lt;span class="lock"&gt;🔒&lt;/span&gt;' : ''}&lt;/button&gt;`;
+      });
+    });
+    list.innerHTML = html || '&lt;div class="nhp-empty"&gt;No sections yet.&lt;/div&gt;';
+  }
+  $q('#nhpSecList').addEventListener('click', e =&gt; {
+    const g = e.target.closest('[data-grp]'); if (g){ closed[g.dataset.grp] = !closed[g.dataset.grp]; try { localStorage.setItem('nhp_closed', JSON.stringify(closed)); } catch (er) {} renderSections(); return; }
+    const b = e.target.closest('[data-sec]'); if (!b) return; const i = +b.dataset.sec, s = data.sections[i];
+    if (s.passwordProtection &amp;&amp; s.locked){      // the app's own unlock flow, then the pages
+      const row = document.querySelector('#sectionList [data-side-type="section"][data-side-index="' + i + '"]'); if (row) row.click();
+      const t0 = Date.now(), wait = setInterval(() =&gt; { if (!data.sections[i].locked || Date.now() - t0 &gt; 60000){ clearInterval(wait); if (!data.sections[i].locked) setView('pages', true); } }, 300); return;
+    }
+    try { storeCurrent(); } catch (er) {} si = i; pi = 0; s.lastOpenedAt = Date.now(); render(); setView('pages', true);
+  });
+
+  /* ---------- pages ---------- */
+  function renderPages(){
+    const s = data.sections[si]; $q('#nhpSecName').textContent = s ? s.name : 'Section';
+    const pages = (s &amp;&amp; s.pages) || [], ids = new Set(pages.map(p =&gt; p.id)), depth = p =&gt; { let d = 0, q = p; while (q &amp;&amp; q.parentId &amp;&amp; ids.has(q.parentId) &amp;&amp; d &lt; 5){ q = pages.find(x =&gt; x.id === q.parentId); d++; } return d; };
+    $q('#nhpPageList').innerHTML = pages.length ? '&lt;div class="nhp-cap"&gt;Pages&lt;/div&gt;' + pages.map((p, k) =&gt; `&lt;button class="nhp-row nhp-page${k === pi ? ' cur' : ''}" data-page="${k}" style="padding-left:${18 + depth(p) * 22}px;display:block"&gt;&lt;span class="nm" style="display:block"&gt;${esc(p.title || 'Untitled page')}&lt;/span&gt;&lt;small&gt;${esc(strip(p.content).slice(0, 90))}&lt;/small&gt;&lt;/button&gt;`).join('') : '&lt;div class="nhp-empty"&gt;No pages yet. Tap + to start one.&lt;/div&gt;';
+  }
+  $q('#nhpPageList').addEventListener('click', e =&gt; { const b = e.target.closest('[data-page]'); if (!b) return; try { storeCurrent(); } catch (er) {} pi = +b.dataset.page; render(); setView('page', true); });
+
+  /* ---------- bars ---------- */
+  function act(a, btn){
+    if (a === 'home'){ const h = $q('#nhHomeBtn'); if (h) h.click(); else try { runMenuAction('return-library'); } catch (e) {} }
+    else if (a === 'search'){ try { $q('#searchBtn').click(); } catch (e) {} }
+    else if (a === 'more') openSheet();
+    else if (a === 'to-sections') goUp('sections');
+    else if (a === 'to-pages'){ try { storeCurrent(); } catch (e) {} goUp('pages'); }
+    else if (a === 'add-section'){ const n = data.sections.length; $q('#addSection').click(); if (data.sections.length &gt; n){ setView('pages', true); } }
+    else if (a === 'add-page'){ $q('#addPage').click(); setView('page', true); setTimeout(() =&gt; { try { titleEl.focus(); const r = document.createRange(); r.selectNodeContents(titleEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {} }, 60); }
+    else if (a === 'undo' || a === 'redo'){ const b = document.querySelector('[data-cmd="' + a + '"]'); if (b) b.click(); else document.execCommand(a); }
+  }
+  document.querySelectorAll('.nhp-bar [data-a], .nhp-fab[data-a]').forEach(b =&gt; b.addEventListener('click', () =&gt; act(b.dataset.a, b)));
+
+  /* ---------- ⋮ sheet ---------- */
+  const I = d =&gt; `&lt;svg viewBox="0 0 24 24"&gt;${d}&lt;/svg&gt;`;
+  const SHEETS = {
+    sections: [['search', I('&lt;circle cx="10.5" cy="10.5" r="6.5"/&gt;&lt;path d="m15.5 15.5 5 5"/&gt;'), 'Search all notes'], ['recent', I('&lt;circle cx="12" cy="12" r="8.5"/&gt;&lt;path d="M12 7.5V12l3 2"/&gt;'), 'Recent &amp; Favorites'], ['tags', I('&lt;path d="M3 11.5V4a1 1 0 0 1 1-1h7.5l9.5 9.5-8.5 8.5z"/&gt;'), 'Find tags'], ['bin', I('&lt;path d="M4.5 6.5h15M9.5 6.5V5h5v1.5M6.5 6.5l.8 13h9.4l.8-13"/&gt;'), 'Deleted Notes'], 'hr', ['settings', I('&lt;circle cx="12" cy="12" r="3"/&gt;&lt;path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/&gt;'), 'Settings &amp; sync'], ['home', I('&lt;path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9"/&gt;'), 'Back to Notes library']],
+    pages: [['template', I('&lt;rect x="4" y="3.5" width="16" height="17" rx="2"/&gt;&lt;path d="M8 8h8M8 12h8M8 16h5"/&gt;'), 'New page from template'], ['search', I('&lt;circle cx="10.5" cy="10.5" r="6.5"/&gt;&lt;path d="m15.5 15.5 5 5"/&gt;'), 'Search all notes'], ['recent', I('&lt;circle cx="12" cy="12" r="8.5"/&gt;&lt;path d="M12 7.5V12l3 2"/&gt;'), 'Recent &amp; Favorites'], ['tags', I('&lt;path d="M3 11.5V4a1 1 0 0 1 1-1h7.5l9.5 9.5-8.5 8.5z"/&gt;'), 'Find tags'], 'hr', ['home', I('&lt;path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9"/&gt;'), 'Back to Notes library']],
+    page: [['fav', I('&lt;path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z"/&gt;'), 'Add to / remove from Favorites'], ['table', I('&lt;rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/&gt;&lt;path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/&gt;'), 'Insert table'], ['image', I('&lt;rect x="3.5" y="4.5" width="17" height="15" rx="2"/&gt;&lt;circle cx="9" cy="10" r="1.6"/&gt;&lt;path d="m20.5 16-5-5-8 8.5"/&gt;'), 'Insert picture'], ['meeting', I('&lt;rect x="3.5" y="5" width="17" height="15" rx="2"/&gt;&lt;path d="M3.5 9.5h17M8 3v4M16 3v4"/&gt;'), 'Meeting template'], ['symbol', I('&lt;path d="M5 19h4v-2a6 6 0 1 1 6 0v2h4"/&gt;'), 'Symbols'], 'hr', ['tags', I('&lt;path d="M3 11.5V4a1 1 0 0 1 1-1h7.5l9.5 9.5-8.5 8.5z"/&gt;'), 'Find tags'], ['versions', I('&lt;circle cx="12" cy="12" r="8.5"/&gt;&lt;path d="M12 7.5V12l3 2"/&gt;'), 'Page versions'], ['find', I('&lt;circle cx="10.5" cy="10.5" r="6.5"/&gt;&lt;path d="m15.5 15.5 5 5"/&gt;'), 'Find on this page'], ['ribbon', I('&lt;rect x="3" y="4" width="18" height="6" rx="1.5"/&gt;&lt;path d="M5 14h14M5 18h9"/&gt;'), 'Show full toolbar'], 'hr', ['delete', I('&lt;path d="M4.5 6.5h15M9.5 6.5V5h5v1.5M6.5 6.5l.8 13h9.4l.8-13"/&gt;'), 'Delete page'], ['home', I('&lt;path d="M4 11.5 12 5l8 6.5M6.5 10v9h11v-9"/&gt;'), 'Back to Notes library']]
+  };
+  function openInsert(){
+    const items = [['image', I('&lt;rect x="3.5" y="4.5" width="17" height="15" rx="2"/&gt;&lt;circle cx="9" cy="10" r="1.6"/&gt;&lt;path d="m20.5 16-5-5-8 8.5"/&gt;'), 'Picture'], ['table', I('&lt;rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/&gt;&lt;path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/&gt;'), 'Table'], ['symbol', I('&lt;path d="M5 19h4v-2a6 6 0 1 1 6 0v2h4"/&gt;'), 'Symbol'], ['meeting', I('&lt;rect x="3.5" y="5" width="17" height="15" rx="2"/&gt;&lt;path d="M3.5 9.5h17M8 3v4M16 3v4"/&gt;'), 'Meeting template'], ['dictate', I('&lt;rect x="9" y="3" width="6" height="11" rx="3"/&gt;&lt;path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/&gt;'), 'Dictate']];
+    $q('#nhpSheet').innerHTML = '&lt;div class="grab"&gt;&lt;/div&gt;' + items.map(it =&gt; `&lt;button data-s="${it[0]}"&gt;${it[1]}&lt;span&gt;${it[2]}&lt;/span&gt;&lt;/button&gt;`).join('');
+    $q('#nhpSheet').classList.add('show'); $q('#nhpScrim').classList.add('show');
+  }
+  function openSheet(){
+    const items = SHEETS[view] || SHEETS.page;
+    $q('#nhpSheet').innerHTML = '&lt;div class="grab"&gt;&lt;/div&gt;' + items.map(it =&gt; it === 'hr' ? '&lt;hr&gt;' : `&lt;button data-s="${it[0]}"&gt;${it[1]}&lt;span&gt;${it[2]}&lt;/span&gt;&lt;/button&gt;`).join('');
+    $q('#nhpSheet').classList.add('show'); $q('#nhpScrim').classList.add('show');
+  }
+  function closeSheet(){ $q('#nhpSheet').classList.remove('show'); $q('#nhpScrim').classList.remove('show'); }
+  $q('#nhpScrim').addEventListener('click', closeSheet);
+  $q('#nhpSheet').addEventListener('click', e =&gt; {
+    const b = e.target.closest('[data-s]'); if (!b) return; closeSheet(); const a = b.dataset.s;
+    const run = x =&gt; { try { runMenuAction(x); } catch (er) {} };
+    if (a === 'search') act('search'); else if (a === 'home') act('home');
+    else if (a === 'recent') run('nh-recent'); else if (a === 'tags') run('nh-find-tags'); else if (a === 'bin') run('nh-bin');
+    else if (a === 'versions') run('nh-versions'); else if (a === 'template'){ run('nh-templates'); }
+    else if (a === 'settings'){ const s = $q('#settingsBtn'); if (s) s.click(); }
+    else if (a === 'fav'){ const f = $q('#favBtn'); if (f) f.click(); }
+    else if (a === 'table'){ try { restoreEditSelection(); } catch (er) {} run('insert-table'); } else if (a === 'image') $q('#imageBtn') &amp;&amp; $q('#imageBtn').click();
+    else if (a === 'meeting') $q('#toolbarMeeting') &amp;&amp; $q('#toolbarMeeting').click(); else if (a === 'symbol') run('insert-symbol');
+    else if (a === 'find') run('find');
+    else if (a === 'dictate'){ const d = $q('#toolbarDictate'); if (d) d.click(); }
+    else if (a === 'ribbon'){ body.classList.toggle('nhp-ribbon'); }
+    else if (a === 'delete'){ if (confirm('Delete this page? It goes to Deleted Notes.')){ const m = $q('#menuContext'); if (m){ m.dataset.sideType = 'page'; m.dataset.sideIndex = String(pi); } run('sidebar-delete-page'); setView('pages', false); } }
+  });
+  // "Show full toolbar" brings the ribbon back on top of the page
+  const st = document.createElement('style'); st.textContent = 'body.nhp.nhp-ribbon .ribbon{display:block!important;position:fixed;left:0;right:0;top:56px;z-index:44;margin:0!important;border-radius:0!important}';
+  document.head.appendChild(st);
+
+  /* ---------- the formatting bar sits on the keyboard while you type ---------- */
+  const fmt = $q('#nhpFmt');
+  function placeFmt(){
+    const vv = window.visualViewport; const gap = vv ? Math.max(0, innerHeight - (vv.height + vv.offsetTop)) : 0;
+    fmt.style.bottom = gap + 'px';
+  }
+  function showFmt(){ if (!body.classList.contains('nhp') || view !== 'page') return; fmt.classList.add('show'); placeFmt(); }
+  function hideFmt(){ fmt.classList.remove('show'); }
+  document.addEventListener('focusin', e =&gt; { if (editor.contains(e.target) || e.target === editor) showFmt(); });
+  document.addEventListener('focusout', () =&gt; setTimeout(() =&gt; { const a = document.activeElement; if (!(a &amp;&amp; (editor.contains(a) || a === editor))) hideFmt(); }, 120));
+  document.addEventListener('selectionchange', () =&gt; { if (!fmt.classList.contains('show')) return; fmt.querySelectorAll('[data-f]').forEach(b =&gt; { let on = false; try { if (/^(bold|italic|underline|insertUnorderedList|insertOrderedList)$/.test(b.dataset.f)) on = document.queryCommandState(b.dataset.f); } catch (e) {} b.classList.toggle('on', on); }); });
+  if (window.visualViewport){ visualViewport.addEventListener('resize', placeFmt); visualViewport.addEventListener('scroll', placeFmt); }
+  ['pointerdown', 'mousedown'].forEach(ev =&gt; fmt.addEventListener(ev, e =&gt; e.preventDefault()));   // keep the caret and the keyboard
+  fmt.addEventListener('click', e =&gt; {
+    const b = e.target.closest('[data-f]'); if (!b) return; const f = b.dataset.f;
+    const click = s =&gt; { const x = $q(s); if (x) x.click(); return !!x; };
+    if (['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList'].includes(f)){ if (!click('.ribbon [data-cmd="' + f + '"]')) document.execCommand(f); }
+    else if (f === 'indent' || f === 'outdent'){ try { runMenuAction(f); } catch (er) { document.execCommand(f); } }
+    else if (f === 'todo') click('#todoBtn');
+    else if (f === 'color') click('#textColorBtn');
+    else if (f === 'highlight') click('#highlightBtn');
+    else if (f === 'tags' || f === 'styles'){
+      try { rememberEditSelection(); } catch (er) {}
+      click(f === 'tags' ? '#tagsBtn' : '#stylesBtn');
+      const pop = $q(f === 'tags' ? '#tagPop' : '#stylePop');
+      if (pop &amp;&amp; !pop.hidden){ const r = fmt.getBoundingClientRect(); pop.style.left = '8px'; pop.style.right = '8px'; pop.style.top = 'auto'; pop.style.bottom = (innerHeight - r.top + 6) + 'px'; pop.style.maxHeight = Math.max(200, r.top - 70) + 'px'; }
+    }
+    else if (f === 'insert'){ try { rememberEditSelection(); } catch (er) {} view = view; openInsert(); }
+    else if (f === 'done'){ try { document.activeElement.blur(); } catch (er) {} hideFmt(); }
+  });
+
+  /* ---------- search results and other navigation open the page screen ---------- */
+  const sp = $q('#searchPane');
+  if (sp) sp.addEventListener('click', e =&gt; { if (!body.classList.contains('nhp')) return; if (e.target.closest('#searchResults button, #searchResults [data-page], #searchResults .result, #searchResults a')) setTimeout(() =&gt; { try { closeSearch(); } catch (er) {} setView('page', true); }, 50); });
+  const prevRender = render;
+  render = function(){ const out = prevRender.apply(this, arguments); if (body.classList.contains('nhp')){ if (view === 'sections') renderSections(); else if (view === 'pages') renderPages(); } return out; };
+
+  /* ---------- on and off with the screen size ---------- */
+  function apply(){
+    const on = mq.matches; body.classList.toggle('nhp', on);
+    if (on){ setView(view || 'sections', false); try { history.replaceState({ nhp: 'sections' }, ''); if (view !== 'sections') history.pushState({ nhp: view }, ''); } catch (e) {} }
+    else { delete body.dataset.pv; hideFmt(); closeSheet(); ['#nhpSections', '#nhpPages', '#nhpPageBar'].forEach(s =&gt; $q(s).classList.remove('show')); }
+    window.dispatchEvent(new Event('resize'));
+  }
+  (mq.addEventListener ? mq.addEventListener('change', apply) : mq.addListener(apply)); apply();
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
