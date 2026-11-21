@@ -7,7 +7,7 @@ body.nhp .editor-head{min-height:0!important;padding:0!important;border:0!import
 body.nhp .editor-head>:not(.table-context){display:none!important}
 body.nhp .editor-head .table-context.show{display:flex!important;padding:6px 10px;overflow-x:auto}
 body.nhp .workspace{display:block}
-body.nhp main.editor{width:100%!important}
+body.nhp main.editor{width:100%!important;height:100%!important;overflow:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y pinch-zoom}   /* the page scrolls up/down inside the screen, not only sideways */
 body.nhp .editor-inner{padding:14px 16px 120px!important}
 body.nhp[data-pv="page"]{padding-top:56px}
 body.nhp:not([data-pv="page"]) .workspace{visibility:hidden}
