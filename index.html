@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-21-palette-rows-v25" />
+    <meta name="app-build" content="2026-11-21-palette-7x5-v27" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -6824,12 +6824,14 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
     $('#cpHex').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); submitCustomColor(); } });
     $('#cpPick').addEventListener('input', e => { $('#cpHex').value = e.target.value.toUpperCase(); cpFromHex(e.target.value); });
     /* the user's favourite palettes, one strip each, under the swatches */
-    const PALETTES = [                                   // one row per colour family, dark to light
-      ['#B53B3A', '#EDA44D', '#FA9548', '#FA9D54', '#EEA77F'],             // reds and oranges
-      ['#FBCB4B', '#FFCB56', '#FCD38F', '#FDE9AC', '#FDF2A4', '#FDEFC6'],  // yellows and creams
-      ['#567847', '#5F9155', '#7E9B67'],                                   // greens
-      ['#1C6287', '#558DB8', '#78A5C8', '#9DD7FD'],                        // blues
-      ['#512E5F', '#80426E']];                                             // purples
+    const PALETTES = [                                   // seven rows of five, dark to light
+      ['#48040C', '#6F0827', '#C94759', '#FA8258', '#FA9D5B'],   // wine to coral
+      ['#FF7B00', '#FF9500', '#FFA200', '#FFC300', '#FFD000'],   // orange to yellow
+      ['#344E41', '#3A5A40', '#588157', '#A3B18B', '#DAD7CD'],   // greens
+      ['#03045E', '#023E8A', '#0077B6', '#0096C7', '#00B4D8'],   // blues
+      ['#7564EC', '#9781EC', '#B89DEB', '#DEC1F0', '#EED9CF'],   // violets
+      ['#22223B', '#4A4E69', '#9A8C98', '#C9ADA7', '#F2E9E4'],   // dusk
+      ['#D5BDAF', '#D6CCC2', '#E3D5CA', '#EDEDE9', '#F5EBE0']];  // sand
     function buildPalettes(cur){
       $('#cpPal').innerHTML = PALETTES.map(p => '<div class="pal">' + p.map(c => {
         const val = (colorTarget === 'text' || colorTarget === 'ink') ? c.toLowerCase() : hexToRgba(c, 0.45);
