@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-18-notehouse-sep-v19" />
+    <meta name="app-build" content="2026-11-21-select-actions-nh-v20" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -2645,6 +2645,157 @@ main.editor.nh-look{background-attachment:local!important}
   let t=0;const later=()=&gt;{cancelAnimationFrame(t);t=requestAnimationFrame(fit)};
   addEventListener('resize',later);if(window.ResizeObserver)new ResizeObserver(later).observe(row);
   document.fonts?.ready?.then(fit);fit();
+})();
+&lt;/script&gt;
+&lt;!-- Note House patch v20: pinch zoom on iPad, font/size for the text you type next, status bar always on screen, deletions that stay deleted after sync.
+     Self-contained: paste it just before &lt;/body&gt;. It only hooks existing functions and elements. --&gt;
+&lt;script&gt;
+(function(){
+  const $q = s =&gt; document.querySelector(s);
+
+  /* ================= 1. Two-finger pinch zoom of the page (iPad), Ctrl/⌘ + trackpad pinch on a Mac ================= */
+  (function(){
+    const scroller = (typeof editor !== 'undefined' &amp;&amp; editor.closest('main.editor')) || $q('main.editor'), inner = $q('.editor-inner');
+    if (!scroller || !inner) return;
+    const MIN = 50, MAX = 300;
+    const get = () =&gt; Number(localStorage.getItem('notehouse_page_zoom') || 100);
+    let live = get();
+    function setZoom(z, cx, cy, save){
+      z = Math.max(MIN, Math.min(MAX, Math.round(z)));
+      const r = scroller.getBoundingClientRect(), ox = cx - r.left, oy = cy - r.top, old = live / 100;
+      const px = (scroller.scrollLeft + ox) / old, py = (scroller.scrollTop + oy) / old;   // the point under the fingers
+      live = z; inner.style.zoom = z + '%';
+      scroller.scrollLeft = px * z / 100 - ox; scroller.scrollTop = py * z / 100 - oy;   // stays under the fingers
+      const ro = $q('#zoomReadout'); if (ro) ro.textContent = z + '%';
+      if (save){ try { localStorage.setItem('notehouse_page_zoom', String(z)); } catch (e) {} try { if (typeof expandCanvasToFit === 'function') expandCanvasToFit(); } catch (e) {} }
+    }
+    let pinch = null;
+    const dist = t =&gt; Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const mid = t =&gt; [(t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2];
+    scroller.addEventListener('touchstart', e =&gt; { if (e.touches.length === 2){ live = get(); pinch = { d0: dist(e.touches), z0: live, m: mid(e.touches) }; } }, { passive: true });
+    scroller.addEventListener('touchmove', e =&gt; {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();                                  // keep Safari from zooming the whole app instead
+      const m = mid(e.touches);
+      scroller.scrollLeft -= m[0] - pinch.m[0]; scroller.scrollTop -= m[1] - pinch.m[1]; pinch.m = m;   // two fingers also pan
+      setZoom(pinch.z0 * dist(e.touches) / pinch.d0, m[0], m[1], false);
+    }, { passive: false });
+    const end = e =&gt; { if (pinch &amp;&amp; e.touches.length &lt; 2){ setZoom(live, pinch.m[0], pinch.m[1], true); pinch = null; } };
+    scroller.addEventListener('touchend', end, { passive: true }); scroller.addEventListener('touchcancel', end, { passive: true });
+    ['gesturestart', 'gesturechange'].forEach(ev =&gt; scroller.addEventListener(ev, e =&gt; e.preventDefault(), { passive: false }));   // iPad Safari page zoom
+    scroller.addEventListener('wheel', e =&gt; {                // trackpad pinch on a Mac arrives as Ctrl + wheel
+      if (!e.ctrlKey) return; e.preventDefault(); live = get();
+      setZoom(live * Math.exp(-e.deltaY / 120), e.clientX, e.clientY, true);
+    }, { passive: false });
+    // the − / + buttons and View › Zoom share the same range
+    if (typeof setPageZoom === 'function') setPageZoom = function(delta){ const r = scroller.getBoundingClientRect(); live = get(); setZoom(live + delta, r.left + r.width / 2, r.top + r.height / 3, true); };
+  })();
+
+  /* ================= 2. Font and size apply to selected text, pasted text, and what you type next ================= */
+  (function(){
+    if (typeof editor === 'undefined') return;
+    const ZW = '​';
+    const inEditor = r =&gt; r &amp;&amp; editor.contains(r.commonAncestorContainer);
+    function curRange(){ try { restoreEditSelection(); } catch (e) {} const s = getSelection(); return s &amp;&amp; s.rangeCount ? s.getRangeAt(0) : null; }
+    // no selection: set the typing style at the caret, so the next letters use it (the browser keeps it until the caret moves)
+    let pendingSize = null;
+    function caretStyle(prop, value){
+      document.execCommand('styleWithCSS', false, true);
+      if (prop === 'fontFamily') document.execCommand('fontName', false, value.replace(/"/g, ''));
+      else { pendingSize = value; document.execCommand('fontSize', false, '7'); }   // size 7 is a marker, swapped for the real size below
+      try { rememberEditSelection(); } catch (e) {}
+    }
+    // a selection that contains spans with their own font (typical for pasted text): those spans get the new font too
+    function overrideInside(r, prop, value){
+      const root = r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement;
+      root.querySelectorAll('[style]').forEach(el =&gt; { if (r.intersectsNode(el) &amp;&amp; el.style[prop]) el.style[prop] = value; });
+      root.querySelectorAll('font[face]').forEach(el =&gt; { if (prop === 'fontFamily' &amp;&amp; r.intersectsNode(el)) el.setAttribute('face', value.replace(/"/g, '')); });
+    }
+    function wrap(sel, prop, cssOf){
+      const el = $q(sel); if (!el || !el.onchange) return;
+      const prev = el.onchange;
+      el.onchange = function(e){
+        const r = curRange();
+        if (inEditor(r) &amp;&amp; r.collapsed){ caretStyle(prop, cssOf(el.value).split(':').slice(1).join(':').trim()); return; }
+        const out = prev.call(this, e);
+        const r2 = getSelection().rangeCount ? getSelection().getRangeAt(0) : null;
+        if (inEditor(r2) &amp;&amp; !r2.collapsed){ const v = cssOf(el.value).split(':').slice(1).join(':').trim(); overrideInside(r2, prop, v); try { storeCurrent(false); } catch (er) {} }
+        return out;
+      };
+    }
+    wrap('#fontFamily', 'fontFamily', v =&gt; 'font-family:"' + v.replace(/"/g, '') + '"');
+    wrap('#fontSize', 'fontSize', v =&gt; 'font-size:' + (/^\d+(\.\d+)?$/.test(v) ? v + 'px' : v));
+    // the letters typed with the size marker get the size that was picked
+    editor.addEventListener('input', () =&gt; {
+      if (!pendingSize) return;
+      editor.querySelectorAll('span[style*="xxx-large"],font[size="7"]').forEach(el =&gt; {
+        if (el.tagName === 'FONT'){ const sp = document.createElement('span'); sp.style.fontSize = pendingSize; while (el.firstChild) sp.append(el.firstChild); el.replaceWith(sp); const r = document.createRange(); r.selectNodeContents(sp); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+        else el.style.fontSize = pendingSize;
+      });
+    });
+    document.addEventListener('selectionchange', () =&gt; { const s = getSelection(); if (pendingSize &amp;&amp; s.rangeCount &amp;&amp; !s.getRangeAt(0).collapsed) pendingSize = null; });
+  })();
+
+  /* ================= 4. The page area ends at the bottom of the screen, so the status bar is never cut off =================
+     The stylesheet guessed the height of the header and ribbon (100dvh − 204px…); on iPad they are taller, which pushed
+     the bottom of the page and the status bar below the screen. Measure where the page area starts instead. */
+  (function(){
+    const ws = $q('.workspace'); if (!ws) return;
+    function fit(){
+      if (document.body.classList.contains('fullscreen-mode') || document.body.classList.contains('focus-mode')){ ws.style.removeProperty('height'); return; }
+      const top = ws.getBoundingClientRect().top + window.scrollY;
+      ws.style.setProperty('height', Math.max(240, Math.floor(window.innerHeight - top)) + 'px', 'important');
+    }
+    let raf = 0; const later = () =&gt; { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+    addEventListener('resize', later); addEventListener('orientationchange', later);
+    if (window.ResizeObserver){ const ro = new ResizeObserver(later); ['header.top', '.ribbon'].forEach(s =&gt; { const el = $q(s); if (el) ro.observe(el); }); }
+    new MutationObserver(later).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    fit(); setTimeout(fit, 300);
+  })();
+
+  /* ================= 3. Deleted sections and pages stay deleted after a Google Drive sync ================= */
+  (function(){
+    if (typeof data === 'undefined' || typeof mergeNotebookData !== 'function') return;
+    const KEEP = 365 * 864e5;
+    const tombs = () =&gt; data.tombstones || (data.tombstones = {});
+    function ids(){   // id -&gt; section id; pages of locked sections are not listed (locking empties them on purpose)
+      const m = new Map();
+      (data.sections || []).forEach(s =&gt; { if (!s.id) return; m.set(s.id, null); if (!s.locked &amp;&amp; !s.passwordProtection) (s.pages || []).forEach(p =&gt; { if (p.id) m.set(p.id, s.id); }); });
+      return m;
+    }
+    let known = ids();
+    function track(){
+      const now = ids(), t = tombs(), at = Date.now();
+      for (const [id, sid] of known){
+        if (now.has(id)) continue;
+        if (sid){ const s = (data.sections || []).find(x =&gt; x.id === sid); if (s &amp;&amp; (s.locked || s.passwordProtection)) continue; }
+        t[id] = at;                                       // gone from this device: remember that it was deleted
+      }
+      for (const id of now.keys()) if (t[id]){           // it is back (restored from Deleted Notes): it wins over the old deletion
+        delete t[id];
+        const s = (data.sections || []).find(x =&gt; x.id === id) || null, p = s ? null : (data.sections || []).flatMap(x =&gt; x.pages || []).find(x =&gt; x.id === id);
+        (s || p).updatedAt = at;
+      }
+      for (const id in t) if (at - t[id] &gt; KEEP) delete t[id];
+      known = now;
+    }
+    const dead = (id, upd) =&gt; { const d = tombs()[id]; return !!d &amp;&amp; d &gt;= (upd || 0); };
+    const prevMerge = mergeNotebookData;
+    mergeNotebookData = function(remote){
+      track();
+      const t = tombs(), rt = (remote &amp;&amp; remote.tombstones) || {};
+      for (const id in rt) t[id] = Math.max(t[id] || 0, rt[id]);
+      if (remote &amp;&amp; remote.sections) remote.sections = remote.sections.filter(s =&gt; !dead(s.id, s.updatedAt)).map(s =&gt; Object.assign({}, s, { pages: (s.pages || []).filter(p =&gt; !dead(p.id, p.updatedAt)) }));
+      const out = prevMerge.apply(this, arguments);
+      data.sections = data.sections.filter(s =&gt; !dead(s.id, s.updatedAt));      // deleted on another device
+      data.sections.forEach(s =&gt; { if (!s.locked) s.pages = (s.pages || []).filter(p =&gt; !dead(p.id, p.updatedAt)); });
+      if (!data.sections.length) data.sections.push({ id: crypto.randomUUID(), name: 'General', color: '#6b9690', updatedAt: Date.now(), pages: [{ id: crypto.randomUUID(), title: 'Untitled page', content: '&lt;p&gt;&lt;br&gt;&lt;/p&gt;', updatedAt: Date.now() }] });
+      if (typeof si !== 'undefined' &amp;&amp; si &gt;= data.sections.length) si = 0;
+      if (typeof pi !== 'undefined' &amp;&amp; !(data.sections[si] &amp;&amp; data.sections[si].pages &amp;&amp; data.sections[si].pages[pi])) pi = 0;
+      known = ids(); return out;
+    };
+    if (typeof queueSave === 'function'){ const prevSave = queueSave; queueSave = function(){ try { track(); } catch (e) {} return prevSave.apply(this, arguments); }; }
+  })();
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
@@ -8888,6 +9039,93 @@ if(new URLSearchParams(location.search).get('tab')==='notehouse'){
   libView='notehouse';
   renderLibrary();
 }
+</script>
+<style>
+/* quick actions around a selected shape / symbol / stroke: colour (left), duplicate (right), delete (below); the rotation handle keeps the top */
+.sel-qa{position:fixed;z-index:60;width:38px;height:38px;border-radius:50%;border:1px solid var(--line,#e3e3e3);background:var(--surface,#fff);color:var(--ink,#1d1f20);
+  box-shadow:0 4px 14px rgba(0,0,0,.16);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;transition:opacity .12s,transform .12s}
+.sel-qa[hidden]{display:none}
+.sel-qa:hover{transform:scale(1.06)}
+.sel-qa svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.sel-qa:active{transform:scale(.94)}
+.sel-qa .drop{fill:var(--qa-c,#111);fill-opacity:.9}
+#selQaPal{position:fixed;z-index:61;display:grid;grid-template-columns:repeat(4,30px);gap:7px;padding:9px;border-radius:14px;background:var(--surface,#fff);border:1px solid var(--line,#e3e3e3);box-shadow:0 10px 28px rgba(0,0,0,.18)}
+#selQaPal[hidden]{display:none}
+#selQaPal button{width:30px;height:30px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);cursor:pointer;padding:0}
+#selQaPal button.cur{box-shadow:0 0 0 2px var(--accent,#0d7a64)}
+</style>
+<button class="sel-qa" id="selQaColor" hidden title="Colour" aria-label="Change colour"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.2 3.6 5.5 6.6 5.5 9.6a5.5 5.5 0 0 1-11 0c0-3 2.3-6 5.5-9.6z"/><path class="drop" stroke="none" d="M12 9.2c1.9 2.2 3.2 3.9 3.2 5.5a3.2 3.2 0 0 1-6.4 0c0-1.6 1.3-3.3 3.2-5.5z"/></svg></button>
+<button class="sel-qa" id="selQaDup" hidden title="Duplicate" aria-label="Duplicate"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button>
+<button class="sel-qa del" id="selQaDel" hidden title="Delete" aria-label="Delete"><svg viewBox="0 0 24 24"><path d="M4.5 6.5h15M9.5 6.5V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v1.5M6.5 6.5l.8 12a2 2 0 0 0 2 1.9h5.4a2 2 0 0 0 2-1.9l.8-12"/></svg></button>
+<div id="selQaPal" hidden role="menu" aria-label="Colours"></div>
+<script>
+(function(){
+  if (typeof INK === 'undefined') return;
+  const bC = document.getElementById('selQaColor'), bD = document.getElementById('selQaDup'), bX = document.getElementById('selQaDel'), pal = document.getElementById('selQaPal');
+  const BTN = [bC, bD, bX];
+  const PALETTE = ['#111111', '#D45060', '#2D7495', '#0d7a64', '#E07B00', '#7B4BB7', '#8a8f98', '#FFFFFF'];
+  // stop the page underneath from starting a stroke, a lasso or a deselect
+  [...BTN, pal].forEach(el => ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => el.addEventListener(ev, e => { e.stopPropagation(); if (ev !== 'touchstart') e.preventDefault(); }, { passive: false })));
+  function active(){ return !!(INK.sel && (INK.tool === 'select' || INK.tool === 'shape') && selList().length); }
+  function colourable(){ return selList().filter(st => st.k !== 'note' && st.k !== 'img' && st.t !== 'er'); }
+  /* the selection's box on screen (for a rotated shape, the box around its rotated frame) */
+  function screenBox(){
+    const p = INK.sel.p, L = inkLayers(p); if (!L) return null;
+    const r = L.ic.getBoundingClientRect(), sz = pageSizes[p - 1]; if (!sz || !r.width) return null;
+    const f = r.width / sz.w, arr = selList(); let pts;
+    if (arr.length === 1 && rotatable(arr[0])){ const fr = frameOf(arr[0], 4 / (scale || 1)); pts = [fr.nw, fr.ne, fr.sw, fr.se]; }
+    else { const b = groupBox(arr), pad = 6 / (scale || 1); pts = [[b.x - pad, b.y - pad], [b.x + b.w + pad, b.y + b.h + pad]]; }
+    const xs = pts.map(q => r.left + q[0] * f), ys = pts.map(q => r.top + q[1] * f);
+    return { l: Math.min(...xs), t: Math.min(...ys), r: Math.max(...xs), b: Math.max(...ys) };
+  }
+  function hideAll(){ BTN.forEach(b => b.hidden = true); pal.hidden = true; }
+  const GAP = 12, S = 38, clampX = x => Math.max(6, Math.min(x, innerWidth - S - 6)), clampY = y => Math.max(6, Math.min(y, innerHeight - S - 6));
+  let raf = 0, last = '', still = 0;
+  function place(){
+    raf = 0;
+    if (!active()){ hideAll(); return; }
+    if (G){ BTN.forEach(b => b.hidden = true); pal.hidden = true; loop(); return; }   // moving, resizing, rotating: keep the page clear
+    const box = screenBox(); if (!box){ hideAll(); return; }
+    const cy = (box.t + box.b) / 2, cx = (box.l + box.r) / 2;
+    const cols = colourable();
+    bC.hidden = !cols.length; bD.hidden = false; bX.hidden = false;
+    bC.style.left = clampX(box.l - GAP - S) + 'px'; bC.style.top = clampY(cy - S / 2) + 'px';
+    bD.style.left = clampX(box.r + GAP) + 'px';     bD.style.top = clampY(cy - S / 2) + 'px';
+    bX.style.left = clampX(cx - S / 2) + 'px';      bX.style.top = clampY(box.b + GAP) + 'px';
+    if (cols.length) bC.style.setProperty('--qa-c', cols[0].c || '#111');
+    if (!pal.hidden) placePal();
+    const sig = Math.round(box.l) + ',' + Math.round(box.t) + ',' + Math.round(box.r) + ',' + Math.round(box.b);
+    still = sig === last ? still + 1 : 0; last = sig;
+    if (still < 20) loop();   // stop polling once the box has stayed put; scrolling, zooming or touching wakes it again
+  }
+  function loop(){ if (!raf) raf = requestAnimationFrame(place); }   // follows scrolling, zoom and moves while something is selected
+  function placePal(){
+    const r = bC.getBoundingClientRect(), w = pal.offsetWidth, h = pal.offsetHeight;
+    let x = r.left - w - 8; if (x < 6) x = r.right + 8;
+    pal.style.left = Math.max(6, Math.min(x, innerWidth - w - 6)) + 'px'; pal.style.top = Math.max(6, Math.min(r.top + r.height / 2 - h / 2, innerHeight - h - 6)) + 'px';
+  }
+  bC.addEventListener('click', () => {
+    if (!pal.hidden){ pal.hidden = true; return; }
+    const cur = (colourable()[0] || {}).c, extra = (typeof INK_SW !== 'undefined' ? (INK_SW.pen || []) : []);
+    const list = [...new Set([...PALETTE, ...extra].map(c => c.toUpperCase()))].slice(0, 12);
+    pal.innerHTML = list.map(c => `<button data-c="${c}" title="${c}" style="background:${c}" class="${cur && cur.toUpperCase() === c ? 'cur' : ''}"></button>`).join('');
+    pal.hidden = false; placePal();
+  });
+  pal.addEventListener('click', e => {
+    const b = e.target.closest('[data-c]'); if (!b || !INK.sel) return;
+    const arr = colourable(); if (!arr.length) return;
+    pushUndo(INK.sel.p); arr.forEach(st => { st.c = b.dataset.c; }); redrawInk(INK.sel.p); scheduleSave();
+    try { INK.color[inkKind()] = b.dataset.c; syncInkBar(); } catch (er) {}
+    pal.hidden = true; loop();
+  });
+  bD.addEventListener('click', () => { pal.hidden = true; duplicateSelected(); loop(); });
+  bX.addEventListener('click', () => { pal.hidden = true; deleteSelected(); hideAll(); });
+  // wake up whenever the selection may have changed
+  const prevSync = syncInkBar;
+  syncInkBar = function(){ const r = prevSync.apply(this, arguments); still = 0; loop(); return r; };
+  ['pointerup', 'pointermove', 'keyup', 'scroll', 'wheel', 'touchmove', 'resize'].forEach(ev => addEventListener(ev, () => { still = 0; loop(); }, { capture: true, passive: true }));
+  document.addEventListener('pointerdown', e => { if (!pal.hidden && !e.target.closest('#selQaPal,#selQaColor')) pal.hidden = true; }, true);
+})();
 </script>
 </body>
 </html>
