@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-21-select-actions-nh-v20" />
+    <meta name="app-build" content="2026-11-21-colour-palettes-v21" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -431,6 +431,17 @@
       .cp-sw{display:flex;flex-wrap:wrap;gap:8px;padding:6px 4px 10px;max-width:230px;}
       .cp-sw .swatch{width:24px;height:24px;border-radius:50%;}
       .cp-row{display:flex;align-items:center;gap:8px;padding:2px;}
+      .cp-pal{display:flex;flex-direction:column;gap:6px;padding:2px 4px 10px;width:230px;}
+      .cp-pal .pal{display:flex;border-radius:8px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.08);}
+      .cp-pal .pal button{flex:1;height:24px;border:0;padding:0;cursor:pointer;position:relative;}
+      .cp-pal .pal button:hover{transform:scaleY(1.18);z-index:1;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+      .cp-pal .pal button.active::after{content:"";position:absolute;inset:6px 38%;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);}
+      .cp-slide{display:flex;flex-direction:column;gap:8px;padding:2px 4px 10px;width:230px;}
+      .cp-slide input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:7px;margin:0;outline:none;border:1px solid var(--line);}
+      #cpHue{background:linear-gradient(to right,#f00,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00);}
+      .cp-slide input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.25);cursor:pointer;}
+      .cp-slide input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);cursor:pointer;}
+      .cp-prev{width:32px;height:32px;border-radius:8px;flex:none;border:1px solid var(--line);background:#2D7495;}
       .cp-row input[type=color]{width:34px;height:32px;padding:0;border:1px solid var(--line);border-radius:8px;background:none;}
       .cp-row input[type=text]{width:92px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:14px;background:var(--surface);color:var(--ink);}
       .fmt-btn.fav-btn{padding:0 7px;}
@@ -3194,7 +3205,9 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
     </div>
     <div class="fpop hidden" id="colorPop">
       <div class="cp-sw" id="cpSw"></div>
-      <div class="cp-row"><input type="color" id="cpPick" value="#2D7495" /><input type="text" id="cpHex" placeholder="#RRGGBB" maxlength="7" autocomplete="off" spellcheck="false" /><button class="btn primary" id="cpAdd" style="padding:6px 12px">Add</button></div>
+      <div class="cp-pal" id="cpPal"></div>
+      <div class="cp-slide"><input type="range" id="cpHue" min="0" max="359" value="200" aria-label="Hue" /><input type="range" id="cpShade" min="8" max="92" value="45" aria-label="Shade" /></div>
+      <div class="cp-row"><span class="cp-prev" id="cpPrev"></span><input type="color" id="cpPick" value="#2D7495" /><input type="text" id="cpHex" placeholder="#RRGGBB" maxlength="7" autocomplete="off" spellcheck="false" /><button class="btn primary" id="cpAdd" style="padding:6px 12px">Add</button></div>
     </div>
     <div class="sym-panel hidden" id="shapePanel" role="dialog" aria-label="Shapes">
       <div class="sp-head" id="shHead"><span>Shapes</span><button id="shClose" aria-label="Close shapes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -6691,8 +6704,10 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
       const pop = $('#colorPop');
       if (!pop.classList.contains('hidden') && popAnchor === anchor){ hidePops(); return; }
       buildColorPop();
+      { const cur = kind === 'ink' ? String(INK.color[inkKind()]).toLowerCase() : kind === 'text' ? String(effectiveStyle().color).toLowerCase() : (effectiveStyle().highlight || ''); buildPalettes(cur);
+        const start = /^#[0-9a-f]{6}$/i.test(cur) ? cur : '#2d7495'; cpFromHex(start); $('#cpPick').value = start; }
       showPop(pop, anchor);
-      $('#cpHex').value = ''; $('#cpHex').focus();
+      $('#cpHex').value = ''; if (!matchMedia('(pointer:coarse)').matches) $('#cpHex').focus();   // on iPad the keyboard would cover the colours
     }
     function applyPicked(hex){
       if (colorTarget === 'ink'){ setInkColor(hex); return; }
@@ -6715,7 +6730,31 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
     }
     $('#cpAdd').addEventListener('click', submitCustomColor);
     $('#cpHex').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); submitCustomColor(); } });
-    $('#cpPick').addEventListener('input', e => { $('#cpHex').value = e.target.value.toUpperCase(); });
+    $('#cpPick').addEventListener('input', e => { $('#cpHex').value = e.target.value.toUpperCase(); cpFromHex(e.target.value); });
+    /* the user's favourite palettes, one strip each, under the swatches */
+    const PALETTES = [
+      ['#FA9548', '#FFCB56', '#FDE9AC', '#78A5C8'],
+      ['#FBCB4B', '#5F9155', '#567847', '#EDA44D'],
+      ['#512E5F', '#80426E', '#EEA77F', '#FCD38F'],
+      ['#1C6287', '#558DB8', '#9DD7FD', '#FDEFC6'],
+      ['#7E9B67', '#B53B3A', '#FA9D54', '#FDF2A4']];
+    function buildPalettes(cur){
+      $('#cpPal').innerHTML = PALETTES.map(p => '<div class="pal">' + p.map(c => {
+        const val = (colorTarget === 'text' || colorTarget === 'ink') ? c.toLowerCase() : hexToRgba(c, 0.45);
+        return '<button data-pick="' + c + '" title="' + c + '" style="background:' + c + '"' + (val === cur ? ' class="active"' : '') + '></button>'; }).join('') + '</div>').join('');
+    }
+    $('#cpPal').addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (!b) return; applyPicked(b.dataset.pick); hidePops(); });
+    /* colour bar: hue and shade sliders fill in the code; Add (or Enter) applies it and keeps it under + */
+    function hslHex(h, s, l){ s /= 100; l /= 100; const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)); return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('').toUpperCase(); }
+    function hexHsl(hex){ const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+      let h = 0; if (d){ h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; } const s = d ? d / (1 - Math.abs(2 * l - 1)) : 0; return [h, s * 100, l * 100]; }
+    let cpSat = 72;
+    function cpShow(hex){ $('#cpPrev').style.background = hex; $('#cpShade').style.background = 'linear-gradient(to right,#000,' + hslHex(+$('#cpHue').value, cpSat, 50) + ',#fff)'; }
+    function cpFromSliders(){ const hex = hslHex(+$('#cpHue').value, cpSat, +$('#cpShade').value); $('#cpHex').value = hex; $('#cpPick').value = hex.toLowerCase(); $('#cpHex').style.borderColor = ''; cpShow(hex); }
+    function cpFromHex(v){ if (!/^#[0-9a-f]{6}$/i.test(v)) return; const [h, sa, l] = hexHsl(v); $('#cpHue').value = Math.round(h); $('#cpShade').value = Math.round(Math.max(8, Math.min(92, l))); cpSat = Math.max(15, Math.round(sa)); cpShow(v.toUpperCase()); }
+    $('#cpHue').addEventListener('input', () => { if (cpSat < 40) cpSat = 72; cpFromSliders(); });
+    $('#cpShade').addEventListener('input', cpFromSliders);
+    $('#cpHex').addEventListener('input', e => { let v = e.target.value.trim(); if (v && v[0] !== '#') v = '#' + v; cpFromHex(v); });
 
     /* ----- Popovers ----- */
     let popAnchor = null;

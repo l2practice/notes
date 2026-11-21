@@ -1,0 +1,151 @@
+<!-- Note House patch v20: pinch zoom on iPad, font/size for the text you type next, status bar always on screen, deletions that stay deleted after sync.
+     Self-contained: paste it just before </body>. It only hooks existing functions and elements. -->
+<script>
+(function(){
+  const $q = s => document.querySelector(s);
+
+  /* ================= 1. Two-finger pinch zoom of the page (iPad), Ctrl/⌘ + trackpad pinch on a Mac ================= */
+  (function(){
+    const scroller = (typeof editor !== 'undefined' && editor.closest('main.editor')) || $q('main.editor'), inner = $q('.editor-inner');
+    if (!scroller || !inner) return;
+    const MIN = 50, MAX = 300;
+    const get = () => Number(localStorage.getItem('notehouse_page_zoom') || 100);
+    let live = get();
+    function setZoom(z, cx, cy, save){
+      z = Math.max(MIN, Math.min(MAX, Math.round(z)));
+      const r = scroller.getBoundingClientRect(), ox = cx - r.left, oy = cy - r.top, old = live / 100;
+      const px = (scroller.scrollLeft + ox) / old, py = (scroller.scrollTop + oy) / old;   // the point under the fingers
+      live = z; inner.style.zoom = z + '%';
+      scroller.scrollLeft = px * z / 100 - ox; scroller.scrollTop = py * z / 100 - oy;   // stays under the fingers
+      const ro = $q('#zoomReadout'); if (ro) ro.textContent = z + '%';
+      if (save){ try { localStorage.setItem('notehouse_page_zoom', String(z)); } catch (e) {} try { if (typeof expandCanvasToFit === 'function') expandCanvasToFit(); } catch (e) {} }
+    }
+    let pinch = null;
+    const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const mid = t => [(t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2];
+    scroller.addEventListener('touchstart', e => { if (e.touches.length === 2){ live = get(); pinch = { d0: dist(e.touches), z0: live, m: mid(e.touches) }; } }, { passive: true });
+    scroller.addEventListener('touchmove', e => {
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();                                  // keep Safari from zooming the whole app instead
+      const m = mid(e.touches);
+      scroller.scrollLeft -= m[0] - pinch.m[0]; scroller.scrollTop -= m[1] - pinch.m[1]; pinch.m = m;   // two fingers also pan
+      setZoom(pinch.z0 * dist(e.touches) / pinch.d0, m[0], m[1], false);
+    }, { passive: false });
+    const end = e => { if (pinch && e.touches.length < 2){ setZoom(live, pinch.m[0], pinch.m[1], true); pinch = null; } };
+    scroller.addEventListener('touchend', end, { passive: true }); scroller.addEventListener('touchcancel', end, { passive: true });
+    ['gesturestart', 'gesturechange'].forEach(ev => scroller.addEventListener(ev, e => e.preventDefault(), { passive: false }));   // iPad Safari page zoom
+    scroller.addEventListener('wheel', e => {                // trackpad pinch on a Mac arrives as Ctrl + wheel
+      if (!e.ctrlKey) return; e.preventDefault(); live = get();
+      setZoom(live * Math.exp(-e.deltaY / 120), e.clientX, e.clientY, true);
+    }, { passive: false });
+    // the − / + buttons and View › Zoom share the same range
+    if (typeof setPageZoom === 'function') setPageZoom = function(delta){ const r = scroller.getBoundingClientRect(); live = get(); setZoom(live + delta, r.left + r.width / 2, r.top + r.height / 3, true); };
+  })();
+
+  /* ================= 2. Font and size apply to selected text, pasted text, and what you type next ================= */
+  (function(){
+    if (typeof editor === 'undefined') return;
+    const ZW = '​';
+    const inEditor = r => r && editor.contains(r.commonAncestorContainer);
+    function curRange(){ try { restoreEditSelection(); } catch (e) {} const s = getSelection(); return s && s.rangeCount ? s.getRangeAt(0) : null; }
+    // no selection: set the typing style at the caret, so the next letters use it (the browser keeps it until the caret moves)
+    let pendingSize = null;
+    function caretStyle(prop, value){
+      document.execCommand('styleWithCSS', false, true);
+      if (prop === 'fontFamily') document.execCommand('fontName', false, value.replace(/"/g, ''));
+      else { pendingSize = value; document.execCommand('fontSize', false, '7'); }   // size 7 is a marker, swapped for the real size below
+      try { rememberEditSelection(); } catch (e) {}
+    }
+    // a selection that contains spans with their own font (typical for pasted text): those spans get the new font too
+    function overrideInside(r, prop, value){
+      const root = r.commonAncestorContainer.nodeType === 1 ? r.commonAncestorContainer : r.commonAncestorContainer.parentElement;
+      root.querySelectorAll('[style]').forEach(el => { if (r.intersectsNode(el) && el.style[prop]) el.style[prop] = value; });
+      root.querySelectorAll('font[face]').forEach(el => { if (prop === 'fontFamily' && r.intersectsNode(el)) el.setAttribute('face', value.replace(/"/g, '')); });
+    }
+    function wrap(sel, prop, cssOf){
+      const el = $q(sel); if (!el || !el.onchange) return;
+      const prev = el.onchange;
+      el.onchange = function(e){
+        const r = curRange();
+        if (inEditor(r) && r.collapsed){ caretStyle(prop, cssOf(el.value).split(':').slice(1).join(':').trim()); return; }
+        const out = prev.call(this, e);
+        const r2 = getSelection().rangeCount ? getSelection().getRangeAt(0) : null;
+        if (inEditor(r2) && !r2.collapsed){ const v = cssOf(el.value).split(':').slice(1).join(':').trim(); overrideInside(r2, prop, v); try { storeCurrent(false); } catch (er) {} }
+        return out;
+      };
+    }
+    wrap('#fontFamily', 'fontFamily', v => 'font-family:"' + v.replace(/"/g, '') + '"');
+    wrap('#fontSize', 'fontSize', v => 'font-size:' + (/^\d+(\.\d+)?$/.test(v) ? v + 'px' : v));
+    // the letters typed with the size marker get the size that was picked
+    editor.addEventListener('input', () => {
+      if (!pendingSize) return;
+      editor.querySelectorAll('span[style*="xxx-large"],font[size="7"]').forEach(el => {
+        if (el.tagName === 'FONT'){ const sp = document.createElement('span'); sp.style.fontSize = pendingSize; while (el.firstChild) sp.append(el.firstChild); el.replaceWith(sp); const r = document.createRange(); r.selectNodeContents(sp); r.collapse(false); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+        else el.style.fontSize = pendingSize;
+      });
+    });
+    document.addEventListener('selectionchange', () => { const s = getSelection(); if (pendingSize && s.rangeCount && !s.getRangeAt(0).collapsed) pendingSize = null; });
+  })();
+
+  /* ================= 4. The page area ends at the bottom of the screen, so the status bar is never cut off =================
+     The stylesheet guessed the height of the header and ribbon (100dvh − 204px…); on iPad they are taller, which pushed
+     the bottom of the page and the status bar below the screen. Measure where the page area starts instead. */
+  (function(){
+    const ws = $q('.workspace'); if (!ws) return;
+    function fit(){
+      if (document.body.classList.contains('fullscreen-mode') || document.body.classList.contains('focus-mode')){ ws.style.removeProperty('height'); return; }
+      const top = ws.getBoundingClientRect().top + window.scrollY;
+      ws.style.setProperty('height', Math.max(240, Math.floor(window.innerHeight - top)) + 'px', 'important');
+    }
+    let raf = 0; const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+    addEventListener('resize', later); addEventListener('orientationchange', later);
+    if (window.ResizeObserver){ const ro = new ResizeObserver(later); ['header.top', '.ribbon'].forEach(s => { const el = $q(s); if (el) ro.observe(el); }); }
+    new MutationObserver(later).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    fit(); setTimeout(fit, 300);
+  })();
+
+  /* ================= 3. Deleted sections and pages stay deleted after a Google Drive sync ================= */
+  (function(){
+    if (typeof data === 'undefined' || typeof mergeNotebookData !== 'function') return;
+    const KEEP = 365 * 864e5;
+    const tombs = () => data.tombstones || (data.tombstones = {});
+    function ids(){   // id -> section id; pages of locked sections are not listed (locking empties them on purpose)
+      const m = new Map();
+      (data.sections || []).forEach(s => { if (!s.id) return; m.set(s.id, null); if (!s.locked && !s.passwordProtection) (s.pages || []).forEach(p => { if (p.id) m.set(p.id, s.id); }); });
+      return m;
+    }
+    let known = ids();
+    function track(){
+      const now = ids(), t = tombs(), at = Date.now();
+      for (const [id, sid] of known){
+        if (now.has(id)) continue;
+        if (sid){ const s = (data.sections || []).find(x => x.id === sid); if (s && (s.locked || s.passwordProtection)) continue; }
+        t[id] = at;                                       // gone from this device: remember that it was deleted
+      }
+      for (const id of now.keys()) if (t[id]){           // it is back (restored from Deleted Notes): it wins over the old deletion
+        delete t[id];
+        const s = (data.sections || []).find(x => x.id === id) || null, p = s ? null : (data.sections || []).flatMap(x => x.pages || []).find(x => x.id === id);
+        (s || p).updatedAt = at;
+      }
+      for (const id in t) if (at - t[id] > KEEP) delete t[id];
+      known = now;
+    }
+    const dead = (id, upd) => { const d = tombs()[id]; return !!d && d >= (upd || 0); };
+    const prevMerge = mergeNotebookData;
+    mergeNotebookData = function(remote){
+      track();
+      const t = tombs(), rt = (remote && remote.tombstones) || {};
+      for (const id in rt) t[id] = Math.max(t[id] || 0, rt[id]);
+      if (remote && remote.sections) remote.sections = remote.sections.filter(s => !dead(s.id, s.updatedAt)).map(s => Object.assign({}, s, { pages: (s.pages || []).filter(p => !dead(p.id, p.updatedAt)) }));
+      const out = prevMerge.apply(this, arguments);
+      data.sections = data.sections.filter(s => !dead(s.id, s.updatedAt));      // deleted on another device
+      data.sections.forEach(s => { if (!s.locked) s.pages = (s.pages || []).filter(p => !dead(p.id, p.updatedAt)); });
+      if (!data.sections.length) data.sections.push({ id: crypto.randomUUID(), name: 'General', color: '#6b9690', updatedAt: Date.now(), pages: [{ id: crypto.randomUUID(), title: 'Untitled page', content: '<p><br></p>', updatedAt: Date.now() }] });
+      if (typeof si !== 'undefined' && si >= data.sections.length) si = 0;
+      if (typeof pi !== 'undefined' && !(data.sections[si] && data.sections[si].pages && data.sections[si].pages[pi])) pi = 0;
+      known = ids(); return out;
+    };
+    if (typeof queueSave === 'function'){ const prevSave = queueSave; queueSave = function(){ try { track(); } catch (e) {} return prevSave.apply(this, arguments); }; }
+  })();
+})();
+</script>
