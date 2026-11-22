@@ -1,36 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Note Hub">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Note Hub">
   <defs>
-    <clipPath id="tile"><rect width="200" height="200" rx="45"/></clipPath>
-    <linearGradient id="paper" x1="0" y1="1" x2="1" y2="0">
-      <stop stop-color="#efca57"/><stop offset=".5" stop-color="#f9df75"/><stop offset="1" stop-color="#ffe992"/>
-    </linearGradient>
-    <linearGradient id="back" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#c3a05a"/><stop offset=".78" stop-color="#eee0c1"/><stop offset="1" stop-color="#fff3da"/>
-    </linearGradient>
-    <linearGradient id="curl" x1=".3" y1=".3" x2=".8" y2=".8">
-      <stop stop-color="#d7ac3f"/><stop offset=".43" stop-color="#f7d566"/><stop offset=".7" stop-color="#ffe782"/><stop offset="1" stop-color="#d7af48"/>
-    </linearGradient>
-    <linearGradient id="barrel" gradientUnits="userSpaceOnUse" x1="35" y1="-2" x2="5" y2="29">
-      <stop stop-color="#fff6e4"/><stop offset=".34" stop-color="#f9ecd4"/><stop offset=".68" stop-color="#e7d3b1"/><stop offset="1" stop-color="#ceb58e"/>
-    </linearGradient>
-    <linearGradient id="tip" gradientUnits="userSpaceOnUse" x1="94" y1="70" x2="70" y2="96">
-      <stop stop-color="#fff8e8"/><stop offset=".53" stop-color="#fbefd6"/><stop offset="1" stop-color="#dbc298"/>
-    </linearGradient>
-    <linearGradient id="shadow" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#9b691d" stop-opacity=".38"/><stop offset="1" stop-color="#a47725" stop-opacity="0"/>
-    </linearGradient>
-    <path id="pencil" d="M-8-16 18-12 72 41Q87 56 93 74L114 114Q117 120 112 119L71 98Q55 92 45 82L-14 22Z"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E5806A"/><stop offset="1" stop-color="#C9573F"/></linearGradient>
   </defs>
-  <g clip-path="url(#tile)">
-    <rect width="200" height="200" fill="url(#back)"/>
-    <path d="M0 0H200V88C198 122 188 139 164 160C135 187 111 200 63 200H0Z" fill="url(#paper)"/>
-    <path d="M0 80H197M0 118H190M0 157H150" stroke="#a77d25" stroke-opacity=".32" stroke-width="1.3"/>
-    <path d="M73 35H194" stroke="#a77d25" stroke-opacity=".56" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0 13"/>
-    <path d="M63 200C105 196 112 168 127 152C145 131 187 139 200 88C199 122 187 141 164 161C135 188 111 200 63 200Z" fill="url(#curl)"/>
-    <use href="#pencil" transform="translate(-1 9)" fill="url(#shadow)"/>
-    <use href="#pencil" fill="url(#barrel)"/>
-    <path d="M71 98L93 74L114 114Q117 120 112 119Z" fill="url(#tip)"/>
-    <path d="m71 98 22-24" stroke="#b89a67" stroke-width="1.35" opacity=".68"/>
-    <path d="M12 14 64 65" stroke="#fff7e5" stroke-width="14" stroke-opacity=".28" stroke-linecap="round"/>
+  <rect width="512" height="512" rx="116" fill="url(#tile)"/>
+  <rect x="24" y="24" width="464" height="464" rx="96" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="4"/>
+  <g transform="translate(76 76) scale(15)" fill="none" stroke="#FFFCF5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="3" width="13" height="18" rx="2.5"/>
+    <path d="M3.5 7.5h4.5M3.5 12h4.5M3.5 16.5h4.5"/>
+    <path d="M10.5 8h5M10.5 11.5h3.5"/>
+    <path d="m14.4 20.6.8-3 5.7-5.7a1.5 1.5 0 0 1 2.1 2.1l-5.7 5.7Z" fill="#D06049"/>
   </g>
 </svg>
