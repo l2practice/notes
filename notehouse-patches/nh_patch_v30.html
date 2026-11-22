@@ -27,11 +27,19 @@
     cancelAnimationFrame(busy); busy = requestAnimationFrame(() => {
       const s = getSelection(); if (!s.rangeCount) return;
       let n = s.getRangeAt(0).startContainer;
-      if (n.nodeType === 1){ const w = document.createTreeWalker(n.childNodes[s.getRangeAt(0).startOffset] || n, NodeFilter.SHOW_TEXT); n = w.nextNode() || n; }   // the first letters of the selection, not the paragraph around them
-      const el = n && (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el)) return;
+      // the first letters of the selection, not the paragraph around them; never the grip and × of a note container (their text has size 0)
+      const ctl = t => t.parentElement && t.parentElement.closest('.note-block-controls,.note-block-handle,[contenteditable="false"]:not(.note-block)');
+      if (n.nodeType === 1){
+        const start = n.childNodes[s.getRangeAt(0).startOffset] || null, w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, { acceptNode: t => ctl(t) || !t.data.trim() ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT });
+        let t; while ((t = w.nextNode())) if (!start || start === t || start.contains(t) || (start.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING)) break;
+        n = t || n;
+      }
+      let el = n && (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el) || el.closest('.note-block-controls')) return;
+      while (el && el !== editor && !(parseFloat(getComputedStyle(el).fontSize) > 0)) el = el.parentElement;
+      if (!el) return;
       const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), px = (v => String(Number.isInteger(v) ? v : v))(Math.round(parseFloat(cs.fontSize) * 0.75 * 2) / 2);   // shown in points, like the list
       if (fontSel && fam && fontSel.value !== fam){ ensureOption(fontSel, fam); fontSel.value = fam; if (current){ current.textContent = fam; current.style.fontFamily = '"' + fam + '", sans-serif'; } }
-      if (sizeSel && px && sizeSel.value !== px){ ensureOption(sizeSel, px); sizeSel.value = px; }
+      if (sizeSel && +px > 0 && sizeSel.value !== px){ ensureOption(sizeSel, px); sizeSel.value = px; }
     });
   });
 })();

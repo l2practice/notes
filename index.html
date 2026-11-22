@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-mindmaps-v43" />
+    <meta name="app-build" content="2026-11-22-ipad-toolbar-v44" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -3706,11 +3706,19 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     cancelAnimationFrame(busy); busy = requestAnimationFrame(() =&gt; {
       const s = getSelection(); if (!s.rangeCount) return;
       let n = s.getRangeAt(0).startContainer;
-      if (n.nodeType === 1){ const w = document.createTreeWalker(n.childNodes[s.getRangeAt(0).startOffset] || n, NodeFilter.SHOW_TEXT); n = w.nextNode() || n; }   // the first letters of the selection, not the paragraph around them
-      const el = n &amp;&amp; (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el)) return;
+      // the first letters of the selection, not the paragraph around them; never the grip and × of a note container (their text has size 0)
+      const ctl = t =&gt; t.parentElement &amp;&amp; t.parentElement.closest('.note-block-controls,.note-block-handle,[contenteditable="false"]:not(.note-block)');
+      if (n.nodeType === 1){
+        const start = n.childNodes[s.getRangeAt(0).startOffset] || null, w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, { acceptNode: t =&gt; ctl(t) || !t.data.trim() ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_ACCEPT });
+        let t; while ((t = w.nextNode())) if (!start || start === t || start.contains(t) || (start.compareDocumentPosition(t) &amp; Node.DOCUMENT_POSITION_FOLLOWING)) break;
+        n = t || n;
+      }
+      let el = n &amp;&amp; (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el) || el.closest('.note-block-controls')) return;
+      while (el &amp;&amp; el !== editor &amp;&amp; !(parseFloat(getComputedStyle(el).fontSize) &gt; 0)) el = el.parentElement;
+      if (!el) return;
       const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), px = (v =&gt; String(Number.isInteger(v) ? v : v))(Math.round(parseFloat(cs.fontSize) * 0.75 * 2) / 2);   // shown in points, like the list
       if (fontSel &amp;&amp; fam &amp;&amp; fontSel.value !== fam){ ensureOption(fontSel, fam); fontSel.value = fam; if (current){ current.textContent = fam; current.style.fontFamily = '"' + fam + '", sans-serif'; } }
-      if (sizeSel &amp;&amp; px &amp;&amp; sizeSel.value !== px){ ensureOption(sizeSel, px); sizeSel.value = px; }
+      if (sizeSel &amp;&amp; +px &gt; 0 &amp;&amp; sizeSel.value !== px){ ensureOption(sizeSel, px); sizeSel.value = px; }
     });
   });
 })();
@@ -3784,6 +3792,285 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     const v = size.value; size.innerHTML = SIZES.map(x =&gt; `&lt;option value="${x}"&gt;${x}&lt;/option&gt;`).join(''); size.value = SIZES.includes(v) ? v : '12';
     size.title = 'Font size (points)';
   }
+})();
+&lt;/script&gt;
+&lt;!-- Notebooks patch v32: a compact OneNote-style toolbar on iPad.
+     One slim top bar (Home, search, Home · Insert · Draw · View tabs, sync, Gemini, share, settings, ⋯, expand)
+     and one row of tools for the chosen tab, instead of the title bar, the menu bar and the two-row ribbon.
+     The ⤢ button hides the sections and pages panes so the page fills the screen.
+     Only on touch screens wider than a phone; the desktop layout and the phone layout do not change.
+     Paste before &lt;/body&gt;, after patches v20–v31. --&gt;
+&lt;style&gt;
+#nhiBar,#nhiMore,.nhi-only{display:none}
+body.nhi .nhi-ic{display:inline-block}
+.nhi-ic{display:none}
+body.nhi:not(.nhi-menu) header.top{display:none!important}
+
+/* ---------- top bar ---------- */
+body.nhi #nhiBar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;height:46px;padding:0 10px;background:#f5f4f1;color:#3b3f46;font:14px Inter,"Be Vietnam Pro",system-ui,sans-serif;flex:none;position:relative;z-index:6}
+#nhiBar .l,#nhiBar .r{display:flex;align-items:center;gap:2px;min-width:0}
+#nhiBar .r{justify-content:flex-end}
+#nhiBar button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#nhiBar .ib{width:38px;height:38px;border-radius:10px;display:inline-grid;place-items:center;flex:none}
+#nhiBar .ib:active,#nhiBar .ib.on{background:#e7e5e0}
+#nhiBar svg,#nhiMore svg,.nhi-ic svg,body.nhi .ribbon .nhi-ic{width:20px;height:20px}
+#nhiBar svg,#nhiMore svg,.nhi-ic svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#nhiBar .search{display:flex;align-items:center;gap:7px;height:34px;min-width:0;max-width:240px;padding:0 13px 0 10px;margin-left:4px;border-radius:999px;background:#e8e6e1;color:#4a4e57;font-weight:600;font-size:13.5px}
+#nhiBar .search span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nhiBar .search svg{width:17px;height:17px;flex:none}
+#nhiBar .tabs{display:flex;gap:2px;padding:3px;border-radius:999px}
+#nhiBar .tabs button{height:32px;padding:0 15px;border-radius:999px;font-weight:600;font-size:14px;color:#5b5f67}
+#nhiBar .tabs button.cur{background:#fff;color:#22262c;box-shadow:0 1px 3px rgba(0,0,0,.13)}
+#nhiBar .sync{color:#8b9096}#nhiBar .sync.ok{color:#2f8f6b}#nhiBar .sync.err{color:#c2412d}
+#nhiBar .spark{color:#8a4fc0}
+@media (max-width:900px){#nhiBar .search span{display:none}#nhiBar .search{padding:0 9px;margin-left:2px}#nhiBar .tabs button{padding:0 11px}#nhiBar .sync{display:none}}
+
+/* the ⋯ menu */
+#nhiMore.show{display:block;position:fixed;z-index:95;min-width:230px;padding:6px;background:#fff;border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);font:14px Inter,system-ui,sans-serif}
+#nhiMore button{display:flex;align-items:center;gap:11px;width:100%;height:42px;padding:0 12px;border:0;background:none;border-radius:9px;color:#2d3137;font:inherit;text-align:left;cursor:pointer}
+#nhiMore button:active,#nhiMore button:hover{background:#f2f1ee}
+#nhiMore hr{border:0;border-top:1px solid #eceae6;margin:5px 4px}
+
+/* ---------- one slim row of tools ---------- */
+body.nhi .ribbon{display:block!important;min-height:0!important;max-height:none!important;height:auto!important;margin:0!important;padding:0 8px!important;border:0!important;border-bottom:1px solid #e4e2dd!important;border-radius:0!important;box-shadow:none!important;background:#f5f4f1!important;overflow:visible!important}
+body.nhi .ribbon-panel:not([hidden]){display:flex!important;align-items:center;flex-wrap:nowrap;gap:1px;height:44px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+body.nhi .ribbon-panel::-webkit-scrollbar{display:none}
+body.nhi .ribbon-panel .ribbon-row,body.nhi .ribbon-panel .toolbar-group{display:contents!important}
+body.nhi .ribbon-panel&gt;*&gt;*,body.nhi .ribbon-panel .toolbar-group&gt;*{flex:none}
+body.nhi .ribbon .ribbon-panel .ribbon-sep,body.nhi .ribbon .ribbon-panel .nhi-sep{display:block!important;width:1px;height:22px;margin:0 6px;background:#dcd9d3;flex:none}
+body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action){height:36px!important;min-width:36px!important;width:auto!important;padding:0 7px!important;margin:0!important;border:0!important;border-radius:9px!important;background:transparent!important;box-shadow:none!important;color:#4a4e57!important;display:inline-flex!important;align-items:center!important;justify-content:center;gap:6px!important;font-size:13.5px!important;font-weight:500!important;white-space:nowrap}
+body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action):active,body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action).on,body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action)[aria-pressed="true"]{background:#e5e3de!important}
+body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action)&gt;svg:not(.nhi-keep){width:20px!important;height:20px!important}
+body.nhi .ribbon .ribbon-panel .text-icon{font-size:17px!important}
+body.nhi .ribbon .font-picker{order:0}
+body.nhi .ribbon .font-picker-trigger{height:32px!important;width:136px!important;min-width:0!important;border-radius:8px!important;border:1px solid #dcd9d3!important;background:#fff!important;font-size:13.5px!important;padding:0 8px 0 10px!important}
+body.nhi .ribbon #fontSize{height:32px!important;width:62px!important;min-width:0!important;margin-left:4px!important;border-radius:8px!important;border:1px solid #dcd9d3!important;background:#fff!important;font-size:13.5px!important;padding:0 4px 0 8px!important}
+body.nhi .ribbon .color-control{height:36px!important;border:0!important;background:transparent!important;box-shadow:none!important}
+body.nhi .ribbon #stylesBtn{padding:0 9px!important}
+
+/* Home keeps only what is used all the time; the rest is under Insert, View and ⋯ */
+body.nhi .ribbon .ribbon-panel :is(#clipboardPaste,#clipboardMenuToggle,#clipboardMenu,#scriptMenuBtn,[data-cmd="subscript"],[data-cmd="superscript"],.nh-align-item,#listMenuBtn,.style-tool,#insertMenuBtn,.nh-insert-item,#ribbonSearchBtn,#fullscreenBtn,#toolbarDictate,#toolbarTranscribe,#toolbarGemini,#toolbarMeeting,#toolbarSendPage,.ribbon-sep){display:none!important}
+body.nhi .ribbon .ribbon-panel :is([data-cmd="strikeThrough"],.nh-list-item,#alignMenuBtn,#tagsBtn,#stylesBtn,#formatPainter){display:inline-flex!important}
+body.nhi .ribbon .ribbon-panel #tagsBtn span,body.nhi .ribbon .ribbon-panel #formatPainter{font-size:0!important}
+body.nhi .ribbon .ribbon-panel #formatPainter svg{font-size:13px}
+/* the order of the Home row, like OneNote: undo · font · B I U S · colours · lists · align · styles · tags */
+body.nhi .ribbon [data-ribbon-panel="home"] [data-cmd="undo"],body.nhi .ribbon [data-ribbon-panel="home"] [data-cmd="redo"]{order:1}
+body.nhi .ribbon [data-ribbon-panel="home"] .font-picker{order:3}
+body.nhi .ribbon [data-ribbon-panel="home"] #fontSize{order:4}
+body.nhi .ribbon [data-ribbon-panel="home"] :is([data-cmd="bold"],[data-cmd="italic"],[data-cmd="underline"],[data-cmd="strikeThrough"]){order:6}
+body.nhi .ribbon [data-ribbon-panel="home"] :is(#textColorBtn,#highlightBtn,#textColorPicker,#highlightPicker){order:8}
+body.nhi .ribbon [data-ribbon-panel="home"] .nh-list-item{order:10}
+body.nhi .ribbon [data-ribbon-panel="home"] #alignMenuBtn{order:11}
+body.nhi .ribbon [data-ribbon-panel="home"] #stylesBtn{order:13}
+body.nhi .ribbon [data-ribbon-panel="home"] #tagsBtn{order:14}
+body.nhi .ribbon [data-ribbon-panel="home"] #formatPainter{order:15}
+body.nhi .ribbon [data-ribbon-panel="home"] .nhi-sep.s1{order:2}
+body.nhi .ribbon [data-ribbon-panel="home"] .nhi-sep.s2{order:5}
+body.nhi .ribbon [data-ribbon-panel="home"] .nhi-sep.s3{order:7}
+body.nhi .ribbon [data-ribbon-panel="home"] .nhi-sep.s4{order:9}
+body.nhi .ribbon [data-ribbon-panel="home"] .nhi-sep.s5{order:12}
+/* Insert, Draw and View rows */
+body.nhi .ribbon [data-ribbon-panel="draw"] .draw-color-label{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 8px;color:#4a4e57;font-size:13.5px;flex:none}
+body.nhi .ribbon [data-ribbon-panel="draw"] .draw-color-label input{width:26px;height:26px;padding:0;border:0;border-radius:50%;background:none}
+body.nhi .ribbon .ribbon-panel #pageLookBtn{display:inline-flex!important}
+
+/* ⤢: the page fills the screen (the sections and pages panes go away) */
+body.nhi.nhi-full .rail,body.nhi.nhi-full #notebookPane,body.nhi.nhi-full #pagePane{display:none!important}
+&lt;/style&gt;
+&lt;div id="nhiMore" role="menu"&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  if (typeof editor === 'undefined') return;
+  const $q = s =&gt; document.querySelector(s), body = document.body;
+  const ribbon = $q('.ribbon'); if (!ribbon) return;
+  const I = {
+    home: '&lt;path d="M4 11.5 12 4.5l8 7"/&gt;&lt;path d="M6.5 9.5V20h11V9.5"/&gt;&lt;path d="M10 20v-5.5h4V20"/&gt;',
+    search: '&lt;circle cx="11" cy="11" r="6.5"/&gt;&lt;path d="m16 16 4.5 4.5"/&gt;',
+    cloud: '&lt;path d="M7 18.5h10a4 4 0 0 0 .6-8 6 6 0 0 0-11.6 1.6A3.3 3.3 0 0 0 7 18.5z"/&gt;',
+    spark: '&lt;path d="M12 3.5c.6 4.3 2.7 6.4 7 7-4.3.6-6.4 2.7-7 7-.6-4.3-2.7-6.4-7-7 4.3-.6 6.4-2.7 7-7z"/&gt;',
+    share: '&lt;path d="M12 15V4M8 8l4-4 4 4"/&gt;&lt;path d="M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/&gt;',
+    gear: '&lt;circle cx="12" cy="12" r="3"/&gt;&lt;path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/&gt;',
+    more: '&lt;circle cx="5.5" cy="12" r="1.3"/&gt;&lt;circle cx="12" cy="12" r="1.3"/&gt;&lt;circle cx="18.5" cy="12" r="1.3"/&gt;',
+    expand: '&lt;path d="M14 4h6v6M20 4l-6.5 6.5M10 20H4v-6M4 20l6.5-6.5"/&gt;',
+    collapse: '&lt;path d="M19 10h-5V5M14 10l6.5-6.5M5 14h5v5M10 14l-6.5 6.5"/&gt;',
+    mic: '&lt;rect x="9" y="3" width="6" height="11" rx="3"/&gt;&lt;path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/&gt;',
+    wave: '&lt;path d="M4 11v2M8 8v8M12 4.5v15M16 8v8M20 11v2"/&gt;',
+    cal: '&lt;rect x="4" y="5" width="16" height="15" rx="2"/&gt;&lt;path d="M4 10h16M9 3v4M15 3v4"/&gt;',
+    send: '&lt;path d="M20.5 3.5 10 14M20.5 3.5 14 20.5l-4-6.5-6.5-4z"/&gt;',
+    imp: '&lt;path d="M12 4v11M8 11l4 4 4-4M5 19.5h14"/&gt;',
+    menu: '&lt;path d="M4 7h16M4 12h16M4 17h10"/&gt;',
+    full: '&lt;path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/&gt;',
+    read: '&lt;path d="M4 5.5c3-1 5.5-.5 8 1.5 2.5-2 5-2.5 8-1.5V19c-3-1-5.5-.5-8 1.5-2.5-2-5-2.5-8-1.5z"/&gt;&lt;path d="M12 7v13"/&gt;',
+    table: '&lt;rect x="4" y="5" width="16" height="14" rx="1.5"/&gt;&lt;path d="M4 10h16M4 14.5h16M10 5v14"/&gt;',
+    image: '&lt;rect x="4" y="5" width="16" height="14" rx="2"/&gt;&lt;circle cx="9" cy="10" r="1.6"/&gt;&lt;path d="m5 18 5-5 3 3 2-2 4 4"/&gt;',
+    link: '&lt;path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/&gt;&lt;path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/&gt;',
+    quote: '&lt;path d="M6 7h4v4c0 3-1.3 5-4 6M14 7h4v4c0 3-1.3 5-4 6"/&gt;',
+    todo: '&lt;rect x="4" y="4" width="16" height="16" rx="3"/&gt;&lt;path d="m8 12 3 3 5-6"/&gt;',
+    symbol: '&lt;path d="M6 19h4v-2.2A6 6 0 0 1 6 11a6 6 0 0 1 12 0 6 6 0 0 1-4 5.8V19h4"/&gt;',
+    code: '&lt;path d="m9 8-4 4 4 4M15 8l4 4-4 4"/&gt;',
+    pen: '&lt;path d="M4.5 19.5 5.5 15 16 4.5l3.5 3.5L9 18.5z"/&gt;&lt;path d="m14 6.5 3.5 3.5"/&gt;',
+    hl: '&lt;path d="m9.5 14.5 6.5-10 4 2.5-6.5 10z"/&gt;&lt;path d="m9.5 14.5-1.5 4h4.5l1.5-1.5"/&gt;',
+    eraser: '&lt;path d="M8.5 19.5h11M5 15l8.5-8.5a1.5 1.5 0 0 1 2.1 0l2.9 2.9a1.5 1.5 0 0 1 0 2.1L11 19.5H8.5z"/&gt;',
+    done: '&lt;path d="m5 12.5 4.5 4.5L19 7.5"/&gt;',
+    sections: '&lt;rect x="4" y="4" width="16" height="16" rx="2.5"/&gt;&lt;path d="M9 4v16"/&gt;',
+    pages: '&lt;path d="M7 3.5h7l4 4v13H7z"/&gt;&lt;path d="M13.5 3.5v4.5H18"/&gt;'
+  };
+  const svg = k =&gt; '&lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;' + I[k] + '&lt;/svg&gt;';
+  const ic = k =&gt; '&lt;span class="nhi-ic"&gt;' + svg(k) + '&lt;/span&gt;';
+  const click = sel =&gt; { const el = $q(sel); if (el) el.click(); };
+  const keepSel = el =&gt; ['pointerdown', 'mousedown'].forEach(ev =&gt; el.addEventListener(ev, e =&gt; { if (!e.target.closest('input,select')) e.preventDefault(); }));
+
+  /* ---------- the top bar ---------- */
+  const bar = document.createElement('div'); bar.id = 'nhiBar';
+  bar.innerHTML =
+    '&lt;div class="l"&gt;&lt;button class="ib" data-a="home" title="Back to Note Hub" aria-label="Back to Note Hub"&gt;' + svg('home') + '&lt;/button&gt;' +
+    '&lt;button class="search" data-a="search" title="Search all notes" aria-label="Search all notes"&gt;' + svg('search') + '&lt;span id="nhiBook"&gt;Notebooks&lt;/span&gt;&lt;/button&gt;&lt;/div&gt;' +
+    '&lt;div class="tabs" role="tablist"&gt;' + ['Home', 'Insert', 'Draw', 'View'].map(t =&gt; '&lt;button role="tab" data-tab="' + t.toLowerCase() + '"&gt;' + t + '&lt;/button&gt;').join('') + '&lt;/div&gt;' +
+    '&lt;div class="r"&gt;&lt;button class="ib sync" data-a="sync" title="Google Drive sync" aria-label="Google Drive sync"&gt;' + svg('cloud') + '&lt;/button&gt;' +
+    '&lt;button class="ib spark" data-a="gemini" title="Gemini assistant" aria-label="Gemini assistant"&gt;' + svg('spark') + '&lt;/button&gt;' +
+    '&lt;button class="ib" data-a="share" title="Share this page" aria-label="Share this page"&gt;' + svg('share') + '&lt;/button&gt;' +
+    '&lt;button class="ib" data-a="settings" title="Settings" aria-label="Settings"&gt;' + svg('gear') + '&lt;/button&gt;' +
+    '&lt;button class="ib" data-a="more" title="More" aria-label="More"&gt;' + svg('more') + '&lt;/button&gt;' +
+    '&lt;button class="ib" data-a="full" title="Expand the page" aria-label="Expand the page"&gt;' + svg('expand') + '&lt;/button&gt;&lt;/div&gt;';
+  ribbon.parentNode.insertBefore(bar, ribbon);
+  keepSel(bar);
+
+  /* ---------- extra tools: separators on Home, icons and more tools on Insert, Draw and View ---------- */
+  const home = $q('[data-ribbon-panel="home"]'), ins = $q('[data-ribbon-panel="insert"]'), draw = $q('[data-ribbon-panel="draw"]'), view = $q('[data-ribbon-panel="view"]');
+  const panels = { home, insert: ins, draw, view };
+  if (home) for (let i = 1; i &lt;= 5; i++){ const s = document.createElement('span'); s.className = 'nhi-sep nhi-only s' + i; home.appendChild(s); }
+  const addIcon = (el, k) =&gt; { if (el &amp;&amp; !el.querySelector('.nhi-ic,svg')) el.insertAdjacentHTML('afterbegin', ic(k)); };   // only buttons that have no icon of their own
+  const shorten = (el, txt) =&gt; { if (!el) return; [...el.childNodes].forEach(n =&gt; { if (n.nodeType === 3) n.textContent = n.textContent.replace(/^[^A-Za-z0-9%]+/, ''); }); el.dataset.nhiLabel = txt || ''; };
+  if (ins){
+    const map = { table: 'table', image: 'image', link: 'link', quote: 'quote', todo: 'todo', symbol: 'symbol', code: 'code' };
+    ins.querySelectorAll('[data-insert]').forEach(b =&gt; { addIcon(b, map[b.dataset.insert] || 'todo'); shorten(b); });
+    const row = ins.querySelector('.ribbon-row') || ins;
+    const proxy = (k, label, fn, title) =&gt; { const b = document.createElement('button'); b.type = 'button'; b.className = 'ribbon-action nhi-only'; b.title = title || label; b.innerHTML = ic(k) + '&lt;span&gt;' + label + '&lt;/span&gt;'; b.addEventListener('click', fn); keepSel(b); row.appendChild(b); return b; };
+    const sep = () =&gt; { const s = document.createElement('span'); s.className = 'nhi-sep nhi-only'; row.appendChild(s); };
+    sep();
+    proxy('cal', 'Meeting', () =&gt; click('#toolbarMeeting'), 'Insert a meeting template');
+    proxy('mic', 'Dictate', () =&gt; click('#toolbarDictate'));
+    proxy('wave', 'Transcribe', () =&gt; click('#toolbarTranscribe'), 'Transcribe or record audio');
+    proxy('send', 'Send page', () =&gt; click('#toolbarSendPage'), 'Send this page by email');
+    sep();
+    proxy('imp', 'OneNote', () =&gt; click('#oneNoteBtn'), 'Import OneNote');
+    proxy('imp', 'Markdown/ZIP', () =&gt; click('#markdownImportBtn'), 'Import a Markdown export folder or ZIP');
+  }
+  if (draw){
+    const map = { pen: 'pen', highlighter: 'hl', eraser: 'eraser', off: 'done' };
+    draw.querySelectorAll('[data-draw-mode]').forEach(b =&gt; { addIcon(b, map[b.dataset.drawMode] || 'pen'); shorten(b); });
+  }
+  if (view){
+    const row = view.querySelector('.ribbon-row') || view;
+    [['#viewNotebooks', 'sections'], ['#viewPages', 'pages'], ['#viewGemini', 'spark'], ['#viewFullscreen', 'full']].forEach(([s, k]) =&gt; addIcon($q(s), k));
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ribbon-action nhi-only'; b.innerHTML = ic('read') + '&lt;span&gt;Read mode&lt;/span&gt;';
+    b.addEventListener('click', () =&gt; { try { runMenuAction('read-mode'); } catch (e) {} }); row.appendChild(b);
+    view._row = row;
+  }
+
+  /* ---------- tabs ---------- */
+  let tab = 'home';
+  try { tab = localStorage.getItem('nh_ipad_tab') || 'home'; } catch (e) {}
+  function showTab(t, save){
+    if (!panels[t]) t = 'home';
+    if (tab === 'draw' &amp;&amp; t !== 'draw' &amp;&amp; editor.classList.contains('draw-active')){ try { runMenuAction('draw-off'); } catch (e) {} }
+    tab = t;
+    Object.entries(panels).forEach(([k, p]) =&gt; { if (p) p.hidden = k !== t; });
+    bar.querySelectorAll('[data-tab]').forEach(b =&gt; { const on = b.dataset.tab === t; b.classList.toggle('cur', on); b.setAttribute('aria-selected', String(on)); });
+    if (save){ try { localStorage.setItem('nh_ipad_tab', t); } catch (e) {} }
+  }
+
+  /* Page look sits under View on iPad (its menu opens under the button, so the button itself moves; it goes back on a computer) */
+  const pageLook = $q('#pageLookBtn'), plHome = pageLook &amp;&amp; document.createComment('pageLook');
+  function placePageLook(on){
+    if (!pageLook || !view) return;
+    if (on &amp;&amp; pageLook.parentNode !== view._row){ pageLook.parentNode.insertBefore(plHome, pageLook); view._row.insertBefore(pageLook, view._row.querySelector('.nhi-only')); }
+    else if (!on &amp;&amp; plHome.parentNode){ plHome.parentNode.insertBefore(pageLook, plHome); plHome.remove(); }
+  }
+
+  /* ---------- the notebook name in the search pill, the sync state ---------- */
+  function label(){
+    const s = (typeof data !== 'undefined' &amp;&amp; data.sections &amp;&amp; data.sections[typeof si !== 'undefined' ? si : 0]) || {};
+    const el = $q('#nhiBook'); if (el) el.textContent = s.name || s.notebook || 'Notebooks';
+  }
+  if (typeof render === 'function'){ const prev = render; render = function(){ const out = prev.apply(this, arguments); try { label(); } catch (e) {} return out; }; }
+  const ds = $q('#driveStatus'), syncBtn = bar.querySelector('[data-a="sync"]');
+  function sync(){ if (!ds || !syncBtn) return; const t = ds.textContent.trim(); syncBtn.title = t || 'Google Drive sync'; syncBtn.classList.toggle('ok', /synced|saved/i.test(t)); syncBtn.classList.toggle('err', /not connected|error|failed|offline/i.test(t)); }
+  if (ds) new MutationObserver(sync).observe(ds, { childList: true, characterData: true, subtree: true });
+
+  /* ---------- ⋯ menu ---------- */
+  const more = $q('#nhiMore');
+  function openMore(btn){
+    const menuOn = body.classList.contains('nhi-menu');
+    more.innerHTML =
+      '&lt;button data-m="menu"&gt;' + svg('menu') + (menuOn ? 'Hide the menu bar' : 'Show the menu bar (File, Edit…)') + '&lt;/button&gt;' +
+      '&lt;button data-m="onenote"&gt;' + svg('imp') + 'Import OneNote&lt;/button&gt;' +
+      '&lt;button data-m="md"&gt;' + svg('imp') + 'Import Markdown / ZIP&lt;/button&gt;&lt;hr&gt;' +
+      '&lt;button data-m="fs"&gt;' + svg('full') + 'Full screen&lt;/button&gt;' +
+      '&lt;button data-m="classic"&gt;' + svg('sections') + 'Use the computer toolbar&lt;/button&gt;';
+    const r = btn.getBoundingClientRect(); more.classList.add('show');
+    more.style.top = (r.bottom + 6) + 'px'; more.style.left = Math.max(8, Math.min(innerWidth - more.offsetWidth - 8, r.right - more.offsetWidth)) + 'px';
+  }
+  const closeMore = () =&gt; more.classList.remove('show');
+  more.addEventListener('click', e =&gt; {
+    const b = e.target.closest('[data-m]'); if (!b) return; closeMore();
+    const m = b.dataset.m;
+    if (m === 'menu') body.classList.toggle('nhi-menu');
+    else if (m === 'onenote') click('#oneNoteBtn');
+    else if (m === 'md') click('#markdownImportBtn');
+    else if (m === 'fs') click('#viewFullscreen');
+    else if (m === 'classic'){ try { localStorage.setItem('nh_ipad_ui', 'off'); } catch (er) {} apply(); if (typeof toast === 'function') toast('Computer toolbar on. Tap “Compact” at the top right to go back.'); }
+    dispatchEvent(new Event('resize'));
+  });
+  document.addEventListener('pointerdown', e =&gt; { if (more.classList.contains('show') &amp;&amp; !e.target.closest('#nhiMore,[data-a="more"]')) closeMore(); }, true);
+
+  /* ---------- top bar buttons ---------- */
+  function setFull(on){
+    body.classList.toggle('nhi-full', on);
+    const b = bar.querySelector('[data-a="full"]'); b.innerHTML = svg(on ? 'collapse' : 'expand'); b.title = on ? 'Show the sections and pages' : 'Expand the page'; b.setAttribute('aria-label', b.title);
+    try { localStorage.setItem('nh_ipad_full', on ? '1' : '0'); } catch (e) {}
+    dispatchEvent(new Event('resize'));
+  }
+  bar.addEventListener('click', e =&gt; {
+    const t = e.target.closest('[data-tab]'); if (t){ showTab(t.dataset.tab, true); return; }
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const a = b.dataset.a;
+    if (a === 'home'){ if ($q('#nhHomeBtn')) click('#nhHomeBtn'); else try { runMenuAction('return-library'); } catch (er) {} }
+    else if (a === 'search'){ if (body.classList.contains('nhi-full')) setFull(false); click('#searchBtn'); }
+    else if (a === 'sync') click('#driveStatus');
+    else if (a === 'gemini') click('#chatToggle');
+    else if (a === 'share'){ try { runMenuAction('share'); } catch (er) { click('#toolbarSendPage'); } }
+    else if (a === 'settings') click('#settingsBtn');
+    else if (a === 'more'){ more.classList.contains('show') ? closeMore() : openMore(b); }
+    else if (a === 'full') setFull(!body.classList.contains('nhi-full'));
+  });
+
+  /* a way back from the computer toolbar */
+  const tr = $q('header.top .topright');
+  if (tr){ const c = document.createElement('button'); c.className = 'tiny-btn'; c.id = 'nhiCompactBtn'; c.textContent = 'Compact'; c.title = 'The compact iPad toolbar'; c.style.display = 'none'; c.onclick = () =&gt; { try { localStorage.removeItem('nh_ipad_ui'); } catch (e) {} apply(); }; tr.insertBefore(c, tr.firstChild); }
+
+  /* ---------- on / off ---------- */
+  const mq = matchMedia('(pointer: coarse) and (min-width: 641px)');
+  function pref(){ try { return localStorage.getItem('nh_ipad_ui') || ''; } catch (e) { return ''; } }
+  let was = null;
+  function apply(){
+    const p = pref(), on = p === 'on' || (p !== 'off' &amp;&amp; mq.matches);
+    const c = $q('#nhiCompactBtn'); if (c) c.style.display = !on &amp;&amp; mq.matches ? '' : 'none';
+    if (on === was) return; was = on;
+    body.classList.toggle('nhi', on);
+    placePageLook(on);
+    if (on){
+      showTab(tab, false);
+      let f = false; try { f = localStorage.getItem('nh_ipad_full') === '1'; } catch (e) {}
+      setFull(f); label(); sync();
+    } else {
+      body.classList.remove('nhi-full', 'nhi-menu'); closeMore();
+      Object.entries(panels).forEach(([k, p]) =&gt; { if (p) p.hidden = k !== 'home'; });
+    }
+    dispatchEvent(new Event('resize'));
+  }
+  (mq.addEventListener ? mq.addEventListener('change', apply) : mq.addListener(apply));
+  apply();
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
