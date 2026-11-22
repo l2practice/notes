@@ -57,6 +57,6 @@
     };
   }
   wrap('#fontFamily', 'fontFamily', v => '"' + v.replace(/"/g, '') + '"');
-  wrap('#fontSize', 'fontSize', v => /^\d+(\.\d+)?$/.test(v) ? v + 'px' : v);
+  wrap('#fontSize', 'fontSize', v => /^\d+(\.\d+)?$/.test(v) ? v + 'pt' : v);
 })();
 </script>

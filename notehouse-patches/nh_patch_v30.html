@@ -26,8 +26,10 @@
   document.addEventListener('selectionchange', () => {
     cancelAnimationFrame(busy); busy = requestAnimationFrame(() => {
       const s = getSelection(); if (!s.rangeCount) return;
-      const n = s.focusNode, el = n && (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el)) return;
-      const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), px = String(Math.round(parseFloat(cs.fontSize)));
+      let n = s.getRangeAt(0).startContainer;
+      if (n.nodeType === 1){ const w = document.createTreeWalker(n.childNodes[s.getRangeAt(0).startOffset] || n, NodeFilter.SHOW_TEXT); n = w.nextNode() || n; }   // the first letters of the selection, not the paragraph around them
+      const el = n && (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el)) return;
+      const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), px = (v => String(Number.isInteger(v) ? v : v))(Math.round(parseFloat(cs.fontSize) * 0.75 * 2) / 2);   // shown in points, like the list
       if (fontSel && fam && fontSel.value !== fam){ ensureOption(fontSel, fam); fontSel.value = fam; if (current){ current.textContent = fam; current.style.fontFamily = '"' + fam + '", sans-serif'; } }
       if (sizeSel && px && sizeSel.value !== px){ ensureOption(sizeSel, px); sizeSel.value = px; }
     });

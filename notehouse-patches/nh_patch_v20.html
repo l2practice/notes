@@ -78,7 +78,7 @@
       };
     }
     wrap('#fontFamily', 'fontFamily', v => 'font-family:"' + v.replace(/"/g, '') + '"');
-    wrap('#fontSize', 'fontSize', v => 'font-size:' + (/^\d+(\.\d+)?$/.test(v) ? v + 'px' : v));
+    wrap('#fontSize', 'fontSize', v => 'font-size:' + (/^\d+(\.\d+)?$/.test(v) ? v + 'pt' : v));   // sizes are points, as in Word and OneNote
     // the letters typed with the size marker get the size that was picked
     editor.addEventListener('input', () => {
       if (!pendingSize) return;

@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-nh-fonts-v39" />
+    <meta name="app-build" content="2026-11-22-nh-fontlist-v40" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -2738,7 +2738,7 @@ main.editor.nh-look{background-attachment:local!important}
       };
     }
     wrap('#fontFamily', 'fontFamily', v =&gt; 'font-family:"' + v.replace(/"/g, '') + '"');
-    wrap('#fontSize', 'fontSize', v =&gt; 'font-size:' + (/^\d+(\.\d+)?$/.test(v) ? v + 'px' : v));
+    wrap('#fontSize', 'fontSize', v =&gt; 'font-size:' + (/^\d+(\.\d+)?$/.test(v) ? v + 'pt' : v));   // sizes are points, as in Word and OneNote
     // the letters typed with the size marker get the size that was picked
     editor.addEventListener('input', () =&gt; {
       if (!pendingSize) return;
@@ -2963,7 +2963,7 @@ main.editor.nh-look{background-attachment:local!important}
     };
   }
   wrap('#fontFamily', 'fontFamily', v =&gt; '"' + v.replace(/"/g, '') + '"');
-  wrap('#fontSize', 'fontSize', v =&gt; /^\d+(\.\d+)?$/.test(v) ? v + 'px' : v);
+  wrap('#fontSize', 'fontSize', v =&gt; /^\d+(\.\d+)?$/.test(v) ? v + 'pt' : v);
 })();
 &lt;/script&gt;
 &lt;!-- Note House patch v24: the caret lands where you tap below a pasted table (OneNote, Word, web).
@@ -3694,12 +3694,85 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
   document.addEventListener('selectionchange', () =&gt; {
     cancelAnimationFrame(busy); busy = requestAnimationFrame(() =&gt; {
       const s = getSelection(); if (!s.rangeCount) return;
-      const n = s.focusNode, el = n &amp;&amp; (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el)) return;
-      const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), px = String(Math.round(parseFloat(cs.fontSize)));
+      let n = s.getRangeAt(0).startContainer;
+      if (n.nodeType === 1){ const w = document.createTreeWalker(n.childNodes[s.getRangeAt(0).startOffset] || n, NodeFilter.SHOW_TEXT); n = w.nextNode() || n; }   // the first letters of the selection, not the paragraph around them
+      const el = n &amp;&amp; (n.nodeType === 1 ? n : n.parentElement); if (!el || !editor.contains(el)) return;
+      const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), px = (v =&gt; String(Number.isInteger(v) ? v : v))(Math.round(parseFloat(cs.fontSize) * 0.75 * 2) / 2);   // shown in points, like the list
       if (fontSel &amp;&amp; fam &amp;&amp; fontSel.value !== fam){ ensureOption(fontSel, fam); fontSel.value = fam; if (current){ current.textContent = fam; current.style.fontFamily = '"' + fam + '", sans-serif'; } }
       if (sizeSel &amp;&amp; px &amp;&amp; sizeSel.value !== px){ ensureOption(sizeSel, px); sizeSel.value = px; }
     });
   });
+})();
+&lt;/script&gt;
+&lt;!-- Note House patch v31: fonts that really work, like the Notes app — web fonts that load, the fonts installed on this device
+     (only those that are there), "Scan fonts" (remembered), and your own font files. Sizes in points like Word, up to 150.
+     Paste before &lt;/body&gt;, after patches v20–v30 (needs the updated v20, v23 and v30). --&gt;
+&lt;style&gt;
+.font-section-title .nh-font-btns{display:inline-flex;gap:6px;margin-left:8px}
+.font-section-title .nh-font-btns button{border:1px solid #d6dedb;background:#fff;border-radius:8px;padding:2px 8px;font:inherit;font-size:11px;font-weight:600;cursor:pointer;color:#2b3634}
+.font-section-title .nh-font-btns button:hover{background:#eef3f1}
+.font-option .nh-tag{float:right;font:500 10.5px Inter,system-ui,sans-serif;color:#8a9592;margin-left:8px}
+&lt;/style&gt;
+&lt;script&gt;
+(function(){
+  if (typeof builtInFonts === 'undefined') return;
+  const $q = s =&gt; document.querySelector(s);
+  /* ---------- 1. the built-in list: only fonts that render ---------- */
+  // web fonts this page loads from Google Fonts (the same set as the Notes app, and a few more)
+  const WEB = ['Inter', 'Be Vietnam Pro', 'Nunito', 'Fraunces', 'Patrick Hand', 'Noto Serif', 'Roboto', 'Open Sans', 'Montserrat', 'Quicksand', 'Raleway', 'Work Sans', 'Playfair Display', 'Lora', 'Merriweather', 'EB Garamond', 'Libre Baskerville', 'Oswald', 'Itim', 'Dancing Script', 'Caveat', 'Kalam', 'IBM Plex Mono', 'Source Sans 3', 'Source Serif 4', 'DM Sans', 'Manrope', 'Fira Sans', 'Ubuntu', 'PT Sans', 'PT Serif', 'Space Grotesk', 'Cabin', 'Josefin Sans', 'Comfortaa', 'Archivo', 'Barlow', 'Mulish'];
+  // common system fonts: listed only when this device has them
+  const SYSTEM = ['Arial', 'Helvetica', 'Helvetica Neue', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Palatino', 'Palatino Linotype', 'Book Antiqua', 'Garamond', 'Baskerville', 'Didot', 'Optima', 'Futura', 'Gill Sans', 'Avenir', 'Avenir Next', 'Menlo', 'Monaco', 'American Typewriter', 'Hoefler Text', 'Calibri', 'Cambria', 'Candara', 'Aptos', 'Segoe UI', 'Arial Narrow', 'Arial Black', 'Century Gothic', 'Comic Sans MS', 'Impact', 'Lucida Grande', 'Lucida Console', 'Consolas', 'Noteworthy', 'Chalkboard SE', 'Marker Felt', 'Snell Roundhand'];
+  function installed(name){
+    try {
+      const c = document.createElement('canvas').getContext('2d'), txt = 'mmmmmmmmmmlli1WQ@#àáạệ';
+      return ['monospace', 'serif', 'sans-serif'].some(base =&gt; { c.font = '40px ' + base; const w0 = c.measureText(txt).width; c.font = '40px "' + name + '", ' + base; return c.measureText(txt).width !== w0; });
+    } catch (e) { return true; }
+  }
+  const sys = SYSTEM.filter(installed);
+  builtInFonts.length = 0; builtInFonts.push(...WEB, ...sys);
+
+  /* ---------- 2. device fonts: Scan fonts (remembered) and font files ---------- */
+  const KEY = 'notehouse_device_fonts', FILES = 'notehouse_font_files';
+  const read = k =&gt; { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } };
+  const fileFonts = read(FILES);
+  // what this device's Notes app has already scanned is shared (same site)
+  deviceFontFamilies = [...new Set([...read(KEY), ...read('ghichu-device-fonts'), ...fileFonts])].filter(n =&gt; !WEB.includes(n)).sort((a, b) =&gt; a.localeCompare(b));
+  const db = new Promise(res =&gt; { try { const r = indexedDB.open('notehouse-fonts', 1); r.onupgradeneeded = () =&gt; r.result.createObjectStore('f'); r.onsuccess = () =&gt; res(r.result); r.onerror = () =&gt; res(null); } catch (e) { res(null); } });
+  async function idb(mode, fn){ const d = await db; if (!d) return null; return new Promise(res =&gt; { const t = d.transaction('f', mode), q = fn(t.objectStore('f')); t.oncomplete = () =&gt; res(q &amp;&amp; q.result); t.onerror = () =&gt; res(null); }); }
+  (async () =&gt; { for (const name of fileFonts){ const buf = await idb('readonly', s =&gt; s.get(name)); if (buf){ try { const ff = new FontFace(name, buf); await ff.load(); document.fonts.add(ff); } catch (e) {} } } })();   // your font files come back every visit
+  async function addFontFile(file){
+    const name = file.name.replace(/\.(ttf|otf|woff2?|ttc)$/i, '').replace(/[-_]+/g, ' ').replace(/["'\;{}&lt;&gt;]/g, '').trim().slice(0, 60) || 'My font';
+    try {
+      const buf = await file.arrayBuffer(), ff = new FontFace(name, buf); await ff.load(); document.fonts.add(ff);
+      await idb('readwrite', s =&gt; s.put(buf, name));
+      const list = read(FILES); if (!list.includes(name)){ list.push(name); localStorage.setItem(FILES, JSON.stringify(list)); }
+      if (!deviceFontFamilies.includes(name)) deviceFontFamilies = [...deviceFontFamilies, name].sort((a, b) =&gt; a.localeCompare(b));
+      try { renderFontOptions(); } catch (e) {} if (typeof toast === 'function') toast('Font "' + name + '" added');
+    } catch (e) { if (typeof toast === 'function') toast('This file is not a font this browser can use (.ttf, .otf, .woff or .woff2).'); }
+  }
+  const scan = $q('#loadDeviceFonts');
+  if (scan){
+    scan.textContent = 'Scan fonts';
+    const prev = scan.onclick;
+    scan.onclick = async function(){ await prev.apply(this, arguments); if (deviceFontFamilies.length){ deviceFontFamilies = [...new Set([...deviceFontFamilies, ...read(FILES)])].sort((a, b) =&gt; a.localeCompare(b)); try { localStorage.setItem(KEY, JSON.stringify(deviceFontFamilies.slice(0, 5000))); } catch (e) {} scan.textContent = 'Scan fonts (' + deviceFontFamilies.length + ')'; try { renderFontOptions(); } catch (e) {} } };
+    const add = document.createElement('button'); add.type = 'button'; add.className = scan.className; add.textContent = 'Add font file…';
+    const input = document.createElement('input'); input.type = 'file'; input.accept = '.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2'; input.multiple = true; input.hidden = true;
+    add.onclick = e =&gt; { e.stopPropagation(); input.click(); }; input.onchange = async () =&gt; { for (const f of input.files) await addFontFile(f); input.value = ''; };
+    scan.after(add, input);
+  }
+  /* ---------- 3. the page's own font is Inter: show that instead of a font this device does not have ---------- */
+  const sel = $q('#fontFamily'), cur = $q('#fontPickerCurrent');
+  if (sel){ if (![...sel.options].some(o =&gt; o.value === 'Inter')){ const o = document.createElement('option'); o.value = o.textContent = 'Inter'; sel.prepend(o); } sel.value = 'Inter'; }
+  if (cur){ cur.textContent = 'Inter'; cur.style.fontFamily = '"Inter", sans-serif'; }
+  try { renderFontOptions(); } catch (e) {}
+
+  /* ---------- 4. sizes in points, as in Word: 5 … 72, and 108, 120, 150 ---------- */
+  const size = $q('#fontSize');
+  if (size){
+    const SIZES = ['5', '5.5', '6.5', '7.5', '8', '9', '10', '10.5', '11', '12', '14', '16', '18', '20', '22', '24', '26', '28', '36', '48', '72', '108', '120', '150'];
+    const v = size.value; size.innerHTML = SIZES.map(x =&gt; `&lt;option value="${x}"&gt;${x}&lt;/option&gt;`).join(''); size.value = SIZES.includes(v) ? v : '12';
+    size.title = 'Font size (points)';
+  }
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
