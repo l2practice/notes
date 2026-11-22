@@ -1,6 +1,6 @@
 <!-- Note House patch v31: fonts that really work, like the Notes app — web fonts that load, the fonts installed on this device
      (only those that are there), "Scan fonts" (remembered), and your own font files. Sizes in points like Word, up to 150.
-     Paste before </body>, after patches v20–v30 (needs the updated v20, v23 and v30). -->
+     Paste before </body>, after patches v20–v30 (needs the updated v20, v23 and v30). The default font shown is the notebook's font, Patrick Hand (v34). -->
 <style>
 .font-section-title .nh-font-btns{display:inline-flex;gap:6px;margin-left:8px}
 .font-section-title .nh-font-btns button{border:1px solid #d6dedb;background:#fff;border-radius:8px;padding:2px 8px;font:inherit;font-size:11px;font-weight:600;cursor:pointer;color:#2b3634}
@@ -54,10 +54,10 @@
     add.onclick = e => { e.stopPropagation(); input.click(); }; input.onchange = async () => { for (const f of input.files) await addFontFile(f); input.value = ''; };
     scan.after(add, input);
   }
-  /* ---------- 3. the page's own font is Inter: show that instead of a font this device does not have ---------- */
-  const sel = $q('#fontFamily'), cur = $q('#fontPickerCurrent');
-  if (sel){ if (![...sel.options].some(o => o.value === 'Inter')){ const o = document.createElement('option'); o.value = o.textContent = 'Inter'; sel.prepend(o); } sel.value = 'Inter'; }
-  if (cur){ cur.textContent = 'Inter'; cur.style.fontFamily = '"Inter", sans-serif'; }
+  /* ---------- 3. the notebook's own font (Patrick Hand, set in v34): show that instead of a font this device does not have ---------- */
+  const DEF = 'Patrick Hand', sel = $q('#fontFamily'), cur = $q('#fontPickerCurrent');
+  if (sel){ if (![...sel.options].some(o => o.value === DEF)){ const o = document.createElement('option'); o.value = o.textContent = DEF; sel.prepend(o); } sel.value = DEF; }
+  if (cur){ cur.textContent = DEF; cur.style.fontFamily = '"' + DEF + '", sans-serif'; }
   try { renderFontOptions(); } catch (e) {}
 
   /* ---------- 4. sizes in points, as in Word: 5 … 72, and 108, 120, 150 ---------- */

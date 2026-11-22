@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-noloading-v46" />
+    <meta name="app-build" content="2026-11-22-dragmove-v47" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -3725,7 +3725,7 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
 &lt;/script&gt;
 &lt;!-- Note House patch v31: fonts that really work, like the Notes app — web fonts that load, the fonts installed on this device
      (only those that are there), "Scan fonts" (remembered), and your own font files. Sizes in points like Word, up to 150.
-     Paste before &lt;/body&gt;, after patches v20–v30 (needs the updated v20, v23 and v30). --&gt;
+     Paste before &lt;/body&gt;, after patches v20–v30 (needs the updated v20, v23 and v30). The default font shown is the notebook's font, Patrick Hand (v34). --&gt;
 &lt;style&gt;
 .font-section-title .nh-font-btns{display:inline-flex;gap:6px;margin-left:8px}
 .font-section-title .nh-font-btns button{border:1px solid #d6dedb;background:#fff;border-radius:8px;padding:2px 8px;font:inherit;font-size:11px;font-weight:600;cursor:pointer;color:#2b3634}
@@ -3779,10 +3779,10 @@ body.nhp #tagPane,body.nhp #nhSide{width:100vw!important}
     add.onclick = e =&gt; { e.stopPropagation(); input.click(); }; input.onchange = async () =&gt; { for (const f of input.files) await addFontFile(f); input.value = ''; };
     scan.after(add, input);
   }
-  /* ---------- 3. the page's own font is Inter: show that instead of a font this device does not have ---------- */
-  const sel = $q('#fontFamily'), cur = $q('#fontPickerCurrent');
-  if (sel){ if (![...sel.options].some(o =&gt; o.value === 'Inter')){ const o = document.createElement('option'); o.value = o.textContent = 'Inter'; sel.prepend(o); } sel.value = 'Inter'; }
-  if (cur){ cur.textContent = 'Inter'; cur.style.fontFamily = '"Inter", sans-serif'; }
+  /* ---------- 3. the notebook's own font (Patrick Hand, set in v34): show that instead of a font this device does not have ---------- */
+  const DEF = 'Patrick Hand', sel = $q('#fontFamily'), cur = $q('#fontPickerCurrent');
+  if (sel){ if (![...sel.options].some(o =&gt; o.value === DEF)){ const o = document.createElement('option'); o.value = o.textContent = DEF; sel.prepend(o); } sel.value = DEF; }
+  if (cur){ cur.textContent = DEF; cur.style.fontFamily = '"' + DEF + '", sans-serif'; }
   try { renderFontOptions(); } catch (e) {}
 
   /* ---------- 4. sizes in points, as in Word: 5 … 72, and 108, 120, 150 ---------- */
@@ -4071,6 +4071,492 @@ body.nhi.nhi-full .rail,body.nhi.nhi-full #notebookPane,body.nhi.nhi-full #pageP
   }
   (mq.addEventListener ? mq.addEventListener('change', apply) : mq.addListener(apply));
   apply();
+})();
+&lt;/script&gt;
+&lt;!-- Notebooks patch v33: drag sections and pages where they belong, and moves that stay put after a sync.
+     - Drag a section onto another section (above / below it), onto a section group, or onto a notebook name.
+     - Drag a page within the list (above / below another page, or onto it to make a subpage), or onto a section
+       in the sections pane to move it there (with its subpages).
+     - Mouse: just drag. iPad / Apple Pencil: hold the row a moment, then drag. Undo right after each move.
+     - "Move Section To…" and the new "Move Page To…" open a list of places instead of asking for a name.
+     - Sync: a section's notebook and group now travel to the other devices, and a moved page no longer comes back
+       in its old section (the newest move wins).
+     - A section group always shows as one block, even when its sections are not next to each other in the data.
+     Paste before &lt;/body&gt;, after patches v20–v32. --&gt;
+&lt;style&gt;
+.nh-drag-ghost{position:fixed;z-index:120;pointer-events:none;padding:7px 12px;border-radius:9px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 0 1px rgba(0,0,0,.06);font:600 13px Inter,system-ui,sans-serif;color:#24302d;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transform:translate(14px,-50%) rotate(-1.5deg)}
+.nh-drag-line{position:fixed;z-index:119;height:3px;border-radius:3px;background:#D4664F;pointer-events:none;box-shadow:0 0 0 2px #fff}
+.nh-drag-line::before{content:"";position:absolute;left:-5px;top:-3px;width:9px;height:9px;border-radius:50%;background:#D4664F}
+.nh-drop-into{outline:2px solid #D4664F!important;outline-offset:-2px;background:#fbeee9!important;border-radius:8px}
+.nh-dragging{opacity:.45}
+body.nh-drag-on,body.nh-drag-on *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
+#nhMoveSnack{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:96;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 16px;border-radius:12px;background:#28242b;color:#fff;font:13px Inter,system-ui,sans-serif;box-shadow:0 8px 26px rgba(0,0,0,.25);transition:.2s}
+#nhMoveSnack.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#nhMoveSnack button{border:0;background:none;color:#f2a58f;font:inherit;font-weight:700;cursor:pointer;padding:4px 6px}
+#nhMoveDlg{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(24,22,18,.38)}
+#nhMoveDlg.show{display:flex}
+#nhMoveDlg .box{width:min(400px,100%);max-height:min(560px,calc(100dvh - 32px));display:flex;flex-direction:column;background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.25);font:14px Inter,system-ui,sans-serif;color:#24302d}
+#nhMoveDlg h3{margin:0;padding:18px 20px 4px;font-size:17px}
+#nhMoveDlg p{margin:0;padding:0 20px 10px;color:#6c7673;font-size:12.5px}
+#nhMoveDlg .list{overflow:auto;padding:0 10px 6px;flex:1}
+#nhMoveDlg .bk{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7d8a87;padding:12px 10px 5px}
+#nhMoveDlg .opt{display:flex;align-items:center;gap:9px;width:100%;min-height:40px;padding:0 10px;border:0;background:none;border-radius:10px;font:inherit;text-align:left;color:inherit;cursor:pointer}
+#nhMoveDlg .opt:hover,#nhMoveDlg .opt:active{background:#f3f1ed}
+#nhMoveDlg .opt.g{font-weight:600}
+#nhMoveDlg .opt.in{padding-left:30px}
+#nhMoveDlg .opt[disabled]{opacity:.4;cursor:default;background:none}
+#nhMoveDlg .opt i{width:6px;height:20px;border-radius:2px 5px 5px 2px;flex:none}
+#nhMoveDlg .opt small{margin-left:auto;color:#8a9592;font-size:11.5px}
+#nhMoveDlg .acts{display:flex;justify-content:flex-end;padding:10px 16px 14px;border-top:1px solid #eee}
+#nhMoveDlg .acts button{height:38px;padding:0 16px;border-radius:10px;border:1px solid #d6dedb;background:#fff;font:inherit;font-weight:600;cursor:pointer}
+&lt;/style&gt;
+&lt;div id="nhMoveSnack" role="status"&gt;&lt;span&gt;&lt;/span&gt;&lt;button type="button"&gt;Undo&lt;/button&gt;&lt;/div&gt;
+&lt;div id="nhMoveDlg" role="dialog" aria-modal="true"&gt;&lt;div class="box"&gt;&lt;h3&gt;&lt;/h3&gt;&lt;p&gt;&lt;/p&gt;&lt;div class="list"&gt;&lt;/div&gt;&lt;div class="acts"&gt;&lt;button type="button" data-x&gt;Cancel&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  if (typeof data === 'undefined' || typeof render !== 'function') return;
+  const $q = s =&gt; document.querySelector(s);
+  const secList = $q('#sectionList'), pgList = $q('#pageList');
+  if (!secList || !pgList) return;
+  const BOOK = s =&gt; s.notebook || 'My notebook';
+  const isLocked = s =&gt; !!(s &amp;&amp; s.passwordProtection &amp;&amp; s.locked);
+  const esc = t =&gt; String(t).replace(/[&amp;&lt;&gt;"]/g, c =&gt; ({ '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '"': '&amp;quot;' }[c]));
+
+  /* ================= a section group always shows as one block ================= */
+  if (typeof sortedSections === 'function'){
+    const prev = sortedSections;
+    sortedSections = function(){
+      const items = prev.apply(this, arguments), books = new Map(), groups = new Map();
+      data.sections.forEach(s =&gt; { const b = BOOK(s); if (!books.has(b)) books.set(b, books.size); const g = b + '\u0000' + (s.group || ''); if (!groups.has(g)) groups.set(g, s.group ? groups.size + 1 : 0); });   // sections without a group first, then the groups
+      const key = it =&gt; [books.get(BOOK(it.value)), groups.get(BOOK(it.value) + '\u0000' + (it.value.group || ''))];
+      return items.map((it, k) =&gt; ({ it, k })).sort((a, b) =&gt; { const x = key(a.it), y = key(b.it); return x[0] - y[0] || x[1] - y[1] || a.k - b.k; }).map(o =&gt; o.it);
+    };
+  }
+
+  /* ================= undo ================= */
+  const snack = $q('#nhMoveSnack'); let undoState = null, snackT = 0;
+  function snapshot(){
+    return { order: data.sections.slice(), secs: data.sections.map(s =&gt; ({ s, notebook: s.notebook, group: s.group, placedAt: s.placedAt, pages: (s.pages || []).slice(), parents: (s.pages || []).map(p =&gt; [p, p.parentId, p.movedAt]) })), si, pi };
+  }
+  function restore(st){
+    data.sections = st.order;
+    st.secs.forEach(x =&gt; { x.s.notebook = x.notebook; if (x.group) x.s.group = x.group; else delete x.s.group; if (x.placedAt) x.s.placedAt = x.placedAt; else delete x.s.placedAt; x.s.pages = x.pages; x.parents.forEach(([p, par, mv]) =&gt; { if (par) p.parentId = par; else delete p.parentId; if (mv) p.movedAt = mv; else delete p.movedAt; }); x.s.updatedAt = Date.now(); });
+    si = st.si; pi = st.pi; render(); queueSave();
+  }
+  function done(msg, st){
+    render(); queueSave();
+    undoState = st; snack.firstChild.textContent = msg; snack.classList.add('show');
+    clearTimeout(snackT); snackT = setTimeout(() =&gt; { snack.classList.remove('show'); undoState = null; }, 6000);
+  }
+  snack.querySelector('button').onclick = () =&gt; { if (undoState){ try { storeCurrent(false); } catch (e) {} restore(undoState); } undoState = null; snack.classList.remove('show'); };
+
+  /* ================= the moves ================= */
+  const curSection = () =&gt; data.sections[si];
+  function keepSelection(fn){   // the open section stays open, whatever moves around it
+    const s = curSection(), p = s &amp;&amp; s.pages &amp;&amp; s.pages[pi];
+    fn();
+    let i = data.sections.indexOf(s); if (i &lt; 0) i = 0; si = i;
+    const ps = data.sections[si].pages || [], j = p ? ps.indexOf(p) : -1;
+    pi = j &gt;= 0 ? j : Math.min(pi, Math.max(0, ps.length - 1));
+  }
+  function moveSection(sec, place){   // place: {notebook, group, before|after: section}
+    const st = snapshot(), now = Date.now();
+    keepSelection(() =&gt; {
+      data.sections.splice(data.sections.indexOf(sec), 1);
+      sec.notebook = place.notebook; if (place.group) sec.group = place.group; else delete sec.group;
+      sec.placedAt = now; sec.updatedAt = now;
+      let at;
+      if (place.before) at = data.sections.indexOf(place.before);
+      else if (place.after) at = data.sections.indexOf(place.after) + 1;
+      else {   // the end of that group (a notebook name: the top of the notebook)
+        at = -1;
+        if (place.group) data.sections.forEach((s, i) =&gt; { if (BOOK(s) === place.notebook &amp;&amp; (s.group || '') === place.group) at = i + 1; });
+        else { const f = data.sections.findIndex(s =&gt; BOOK(s) === place.notebook); at = f; }
+        if (at &lt; 0) at = data.sections.length;
+      }
+      data.sections.splice(at, 0, sec);
+    });
+    done('Moved “' + sec.name + '” to ' + (place.group ? place.group : place.notebook), st);
+  }
+  const subtree = (pages, p) =&gt; { const out = [p]; for (let k = 0; k &lt; out.length; k++) pages.forEach(q =&gt; { if (q.parentId === out[k].id &amp;&amp; !out.includes(q)) out.push(q); }); return out; };
+  function movePageToSection(from, p, to){
+    if (isLocked(to)){ toast('Unlock “' + to.name + '” first.'); return; }
+    if (from === to) return;
+    try { storeCurrent(false); } catch (e) {}
+    const st = snapshot(), now = Date.now(), moving = subtree(from.pages, p);
+    keepSelection(() =&gt; {
+      from.pages = from.pages.filter(q =&gt; !moving.includes(q));
+      if (!from.pages.length) from.pages.push({ id: crypto.randomUUID(), title: 'Untitled page', content: '&lt;p&gt;&lt;br&gt;&lt;/p&gt;', updatedAt: now });
+      delete p.parentId;
+      moving.forEach(q =&gt; { q.movedAt = now; q.updatedAt = Math.max(q.updatedAt || 0, now); });
+      to.pages = (to.pages || []).concat(moving);
+      from.updatedAt = to.updatedAt = now;
+    });
+    done('Moved “' + (p.title || 'Untitled page') + '”' + (moving.length &gt; 1 ? ' and ' + (moving.length - 1) + ' subpage' + (moving.length &gt; 2 ? 's' : '') : '') + ' to ' + to.name, st);
+  }
+  function movePageInList(sec, p, target, where){   // where: before | after | into
+    const pages = sec.pages, moving = subtree(pages, p);
+    if (moving.includes(target)){ toast('A page cannot go inside its own subpages.'); return; }
+    try { storeCurrent(false); } catch (e) {}
+    const st = snapshot(), now = Date.now();
+    keepSelection(() =&gt; {
+      if (where === 'into') p.parentId = target.id;
+      else if (target.parentId &amp;&amp; pages.some(q =&gt; q.id === target.parentId)) p.parentId = target.parentId; else delete p.parentId;
+      pages.splice(pages.indexOf(p), 1);
+      let at = pages.indexOf(target) + (where === 'before' ? 0 : 1);
+      if (where === 'after'){ const kids = subtree(pages, target); at = Math.max(...kids.map(k =&gt; pages.indexOf(k))) + 1; }   // after the target and its subpages
+      if (where === 'into') at = pages.length;
+      pages.splice(at, 0, p);
+      p.updatedAt = Math.max(p.updatedAt || 0, now); sec.updatedAt = now;
+    });
+    done(where === 'into' ? '“' + p.title + '” is now a subpage of “' + target.title + '”' : 'Page moved', st);
+  }
+
+  /* ================= dragging (mouse, finger, Apple Pencil) ================= */
+  let drag = null, eatClick = 0;
+  const line = document.createElement('div'); line.className = 'nh-drag-line'; line.hidden = true; document.body.appendChild(line);
+  const ghost = document.createElement('div'); ghost.className = 'nh-drag-ghost'; ghost.hidden = true; document.body.appendChild(ghost);
+  let into = null;
+  function clearMarks(){ line.hidden = true; if (into){ into.classList.remove('nh-drop-into'); into = null; } }
+  function markInto(el){ line.hidden = true; if (into !== el){ if (into) into.classList.remove('nh-drop-into'); into = el; el.classList.add('nh-drop-into'); } }
+  function markLine(el, after, indent){ if (into){ into.classList.remove('nh-drop-into'); into = null; } const r = el.getBoundingClientRect(); line.hidden = false; line.style.left = (r.left + (indent || 8)) + 'px'; line.style.width = Math.max(40, r.width - (indent || 8) - 8) + 'px'; line.style.top = (after ? r.bottom : r.top) - 1.5 + 'px'; }
+
+  function target(x, y){
+    const el = document.elementFromPoint(x, y); if (!el) return null;
+    const row = el.closest('#sectionList [data-side-type], #pageList [data-side-type="page"]'); if (!row) return null;
+    const r = row.getBoundingClientRect(), f = (y - r.top) / r.height, type = row.dataset.sideType;
+    if (drag.kind === 'section'){
+      if (type === 'section'){ const s = data.sections[+row.dataset.sideIndex]; if (!s || s === drag.sec) return null; return { row, type, s, after: f &gt; .5 }; }
+      if (type === 'group' || type === 'notebook') return { row, type };
+      return null;
+    }
+    // a page
+    if (type === 'page'){ const p = drag.sec.pages[+row.dataset.sideIndex]; if (!p || p === drag.p) return null; return { row, type, p, where: f &lt; .3 ? 'before' : f &gt; .7 ? 'after' : 'into' }; }
+    if (type === 'section'){ const s = data.sections[+row.dataset.sideIndex]; if (!s || s === drag.sec) return null; return { row, type, s }; }
+    return null;
+  }
+  function show(t){
+    if (!t){ clearMarks(); return; }
+    if (drag.kind === 'section'){
+      if (t.type === 'section') markLine(t.row, t.after, t.row.classList.contains('grouped') ? 22 : 8); else markInto(t.row);
+    } else {
+      if (t.type === 'section') markInto(t.row);
+      else if (t.where === 'into') markInto(t.row); else markLine(t.row, t.where === 'after', 8 + 14 * (+t.row.dataset.depth || 0));
+    }
+  }
+  function drop(t){
+    if (!t) return;
+    if (drag.kind === 'section'){
+      const sec = drag.sec;
+      if (t.type === 'section') moveSection(sec, { notebook: BOOK(t.s), group: t.s.group || '', before: t.after ? null : t.s, after: t.after ? t.s : null });
+      else if (t.type === 'group') moveSection(sec, { notebook: t.row.dataset.sideBook || 'My notebook', group: t.row.dataset.sideName || '' });
+      else moveSection(sec, { notebook: t.row.dataset.sideName || 'My notebook', group: '' });
+    } else {
+      if (t.type === 'section') movePageToSection(drag.sec, drag.p, t.s);
+      else movePageInList(drag.sec, drag.p, t.p, t.where);
+    }
+  }
+  function autoscroll(y){
+    const box = (drag.over &amp;&amp; drag.over.closest('.pane-scroll, #sectionList, #pageList')) || null; if (!box) return;
+    const r = box.getBoundingClientRect(), edge = 36;
+    if (y &lt; r.top + edge) box.scrollTop -= Math.ceil((r.top + edge - y) / 4); else if (y &gt; r.bottom - edge) box.scrollTop += Math.ceil((y - (r.bottom - edge)) / 4);
+  }
+  function begin(){
+    drag.on = true; document.body.classList.add('nh-drag-on'); drag.row.classList.add('nh-dragging');
+    ghost.textContent = drag.kind === 'section' ? drag.sec.name : (drag.p.title || 'Untitled page'); ghost.hidden = false;
+    try { clearTimeout(sidebarTouchTimer); } catch (e) {}
+    try { closeMenus(); } catch (e) {}
+    if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+  }
+  function finish(ok){
+    if (!drag) return;
+    clearTimeout(drag.hold); clearTimeout(drag.menu); drag.row.classList.remove('nh-dragging');
+    if (drag.on){
+      const t = ok ? target(drag.x, drag.y) : null;
+      clearMarks(); ghost.hidden = true; drag.row.classList.remove('nh-dragging'); document.body.classList.remove('nh-drag-on');
+      eatClick = Date.now();
+      if (t) try { drop(t); } catch (e) { console.warn(e); }
+    }
+    drag = null;
+  }
+  function start(e){
+    eatClick = 0;   // a new press: the click after it is a real one
+    if (e.button &gt; 0) return;
+    const row = e.target.closest('#sectionList [data-side-type="section"], #pageList [data-side-type="page"]'); if (!row) return;
+    if (document.body.classList.contains('nhp')) return;   // phones use Move… from the menu
+    let d;
+    if (row.dataset.sideType === 'section'){ const s = data.sections[+row.dataset.sideIndex]; if (!s) return; d = { kind: 'section', sec: s }; }
+    else { const s = curSection(), p = s &amp;&amp; s.pages &amp;&amp; s.pages[+row.dataset.sideIndex]; if (!p || isLocked(s)) return; d = { kind: 'page', sec: s, p }; }
+    drag = Object.assign(d, { row, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, touch: e.pointerType !== 'mouse', on: false, armed: e.pointerType === 'mouse' });
+    // finger and Pencil: hold, then move to drag (a quick swipe still scrolls; holding still opens the menu as before)
+    if (drag.touch){ drag.hold = setTimeout(() =&gt; { if (drag &amp;&amp; !drag.on){ drag.armed = true; drag.row.classList.add('nh-dragging'); drag.menu = setTimeout(() =&gt; { if (drag &amp;&amp; !drag.on){ drag.row.classList.remove('nh-dragging'); drag = null; } }, 300); } }, 330); }
+  }
+  function place(x, y){ ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; drag.over = document.elementFromPoint(x, y); show(target(x, y)); }
+  document.addEventListener('pointerdown', start, true);
+  document.addEventListener('pointermove', e =&gt; {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.x = e.clientX; drag.y = e.clientY;
+    const far = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) &gt; 6;
+    if (!drag.on){
+      if (drag.touch &amp;&amp; !drag.armed){ if (far){ clearTimeout(drag.hold); drag = null; } return; }   // moved before the hold: it is a scroll
+      if (!far) return;
+      clearTimeout(drag.menu); begin();
+    }
+    e.preventDefault(); place(e.clientX, e.clientY); autoscroll(e.clientY);
+  }, true);
+  document.addEventListener('pointerup', e =&gt; { if (drag &amp;&amp; e.pointerId === drag.id) finish(true); }, true);
+  document.addEventListener('pointercancel', e =&gt; { if (drag &amp;&amp; e.pointerId === drag.id) finish(false); }, true);
+  document.addEventListener('keydown', e =&gt; { if (e.key === 'Escape' &amp;&amp; drag &amp;&amp; drag.on) finish(false); }, true);
+  // while a held row is being dragged, the finger must not scroll the list
+  document.addEventListener('touchmove', e =&gt; { if (drag &amp;&amp; drag.armed) e.preventDefault(); }, { passive: false, capture: true });
+  // the click that ends a drag does not open the row; the browser's own drag (which only nested pages) is replaced by this
+  document.addEventListener('click', e =&gt; { if (Date.now() - eatClick &lt; 400){ eatClick = 0; e.stopPropagation(); e.preventDefault(); } }, true);
+  document.addEventListener('dragstart', e =&gt; { if (e.target.closest &amp;&amp; e.target.closest('#pageList [data-side-type="page"]')) e.preventDefault(); }, true);
+  document.addEventListener('contextmenu', e =&gt; { if (drag &amp;&amp; drag.on) e.preventDefault(); }, true);
+
+  /* ================= Move Section To… / Move Page To… ================= */
+  const dlg = $q('#nhMoveDlg'), list = dlg.querySelector('.list');
+  let pick = null;
+  function openPicker(title, sub, html, onPick){ dlg.querySelector('h3').textContent = title; dlg.querySelector('p').textContent = sub; list.innerHTML = html; pick = onPick; dlg.classList.add('show'); }
+  const closePicker = () =&gt; { dlg.classList.remove('show'); pick = null; };
+  dlg.querySelector('[data-x]').onclick = closePicker;
+  dlg.addEventListener('pointerdown', e =&gt; { if (e.target === dlg) closePicker(); });
+  dlg.addEventListener('keydown', e =&gt; { if (e.key === 'Escape') closePicker(); });
+  list.addEventListener('click', e =&gt; { const b = e.target.closest('[data-k]'); if (!b || b.disabled || !pick) return; const f = pick; closePicker(); f(b.dataset); });
+  function places(){   // notebook -&gt; [groups] in the order they show
+    const out = new Map();
+    sortedSections().forEach(({ value: s }) =&gt; { const b = BOOK(s); if (!out.has(b)) out.set(b, new Map()); const g = s.group || ''; if (!out.get(b).has(g)) out.get(b).set(g, []); out.get(b).get(g).push(s); });
+    return out;
+  }
+  function pickSectionPlace(sec){
+    let h = '';
+    for (const [b, groups] of places()){
+      h += '&lt;div class="bk"&gt;' + esc(b) + '&lt;/div&gt;';
+      const here = BOOK(sec) === b;
+      h += `&lt;button class="opt g" data-k="1" data-b="${esc(b)}" data-g="" ${here &amp;&amp; !sec.group ? 'disabled' : ''}&gt;Sections (no group)${here &amp;&amp; !sec.group ? '&lt;small&gt;here now&lt;/small&gt;' : ''}&lt;/button&gt;`;
+      for (const g of groups.keys()) if (g){ const now = here &amp;&amp; sec.group === g; h += `&lt;button class="opt g in" data-k="1" data-b="${esc(b)}" data-g="${esc(g)}" ${now ? 'disabled' : ''}&gt;▸ ${esc(g)}${now ? '&lt;small&gt;here now&lt;/small&gt;' : ''}&lt;/button&gt;`; }
+    }
+    openPicker('Move “' + sec.name + '” to…', 'Pick a notebook or a section group.', h, d =&gt; moveSection(sec, { notebook: d.b, group: d.g }));
+  }
+  function pickPageSection(from, p){
+    let h = '';
+    for (const [b, groups] of places()){
+      h += '&lt;div class="bk"&gt;' + esc(b) + '&lt;/div&gt;';
+      for (const [g, secs] of groups){
+        if (g) h += `&lt;div class="opt g" style="cursor:default"&gt;▸ ${esc(g)}&lt;/div&gt;`;
+        secs.forEach(s =&gt; { const i = data.sections.indexOf(s), dis = s === from || isLocked(s); h += `&lt;button class="opt${g ? ' in' : ''}" data-k="1" data-i="${i}" ${dis ? 'disabled' : ''}&gt;&lt;i style="background:${esc(s.color || '#6b9690')}"&gt;&lt;/i&gt;${esc(s.name)}${s === from ? '&lt;small&gt;here now&lt;/small&gt;' : isLocked(s) ? '&lt;small&gt;locked&lt;/small&gt;' : ''}&lt;/button&gt;`; });
+      }
+    }
+    openPicker('Move “' + (p.title || 'Untitled page') + '” to…', 'Its subpages go with it.', h, d =&gt; movePageToSection(from, p, data.sections[+d.i]));
+  }
+  if (typeof runMenuAction === 'function'){
+    const prev = runMenuAction;
+    runMenuAction = function(action){
+      const m = $q('#menuContext');
+      if (action === 'sidebar-move-section'){ const s = data.sections[+((m &amp;&amp; m.dataset.sideIndex) || si)]; try { closeMenus(); } catch (e) {} if (s){ pickSectionPlace(s); return; } }
+      if (action === 'nh-move-page'){ const s = curSection(), p = s &amp;&amp; s.pages[+((m &amp;&amp; m.dataset.sideIndex) || pi)]; try { closeMenus(); } catch (e) {} if (p){ if (isLocked(s)) toast('Unlock this section first.'); else pickPageSection(s, p); } return; }
+      return prev.apply(this, arguments);
+    };
+  }
+  // "Move Page To…" in the page menu
+  if (typeof showSidebarMenu === 'function'){
+    const prev = showSidebarMenu;
+    showSidebarMenu = function(ev, type){
+      const out = prev.apply(this, arguments);
+      if (type === 'page'){
+        const menu = $q('#menuContext'), first = menu &amp;&amp; menu.querySelector('.menu-group');
+        if (first &amp;&amp; !menu.querySelector('[data-menu-action="nh-move-page"]')){
+          const ref = first.querySelector('[data-menu-action]'); const b = ref ? ref.cloneNode(true) : document.createElement('button');
+          b.dataset.menuAction = 'nh-move-page'; delete b.dataset.menuSub; const l = b.querySelector('.menu-label'); if (l) l.textContent = 'Move Page To…'; else b.textContent = 'Move Page To…';
+          const sc = b.querySelector('.menu-shortcut'); if (sc) sc.textContent = '';
+          first.appendChild(b);
+        }
+      }
+      return out;
+    };
+  }
+
+  /* ================= sync: placement travels, a moved page does not come back ================= */
+  if (typeof mergeNotebookData === 'function'){
+    const prev = mergeNotebookData;
+    mergeNotebookData = function(remote){
+      const later = [];
+      if (remote &amp;&amp; Array.isArray(remote.sections)){
+        const here = new Map(); data.sections.forEach(s =&gt; (s.pages || []).forEach(p =&gt; here.set(p.id, { s, p })));
+        remote.sections.forEach(rs =&gt; {
+          if (!Array.isArray(rs.pages)) return;
+          rs.pages = rs.pages.filter((rp, idx) =&gt; {
+            const l = here.get(rp.id); if (!l || l.s.id === rs.id) return true;
+            const newer = (rp.updatedAt || 0) &gt; (l.p.updatedAt || 0);
+            if ((rp.movedAt || 0) &gt; (l.p.movedAt || 0)){   // moved on the other device last: it goes where they put it
+              const keep = { parentId: rp.parentId, movedAt: rp.movedAt };
+              if (newer) Object.assign(l.p, rp);
+              if (keep.parentId) l.p.parentId = keep.parentId; else delete l.p.parentId; l.p.movedAt = keep.movedAt;
+              later.push({ p: l.p, from: l.s, toId: rs.id, idx });
+            } else if (newer){   // stays here; only the newer text comes over
+              const keep = { parentId: l.p.parentId, movedAt: l.p.movedAt };
+              Object.assign(l.p, rp); if (keep.parentId) l.p.parentId = keep.parentId; else delete l.p.parentId; if (keep.movedAt) l.p.movedAt = keep.movedAt; else delete l.p.movedAt;
+            }
+            return false;   // never a second copy in the old section
+          });
+        });
+        // the section's notebook and group follow the latest move
+        const byId = new Map(data.sections.map(s =&gt; [s.id, s]));
+        remote.sections.forEach(rs =&gt; { const ls = byId.get(rs.id); if (ls &amp;&amp; (rs.placedAt || 0) &gt; (ls.placedAt || 0)){ ls.notebook = rs.notebook; if (rs.group) ls.group = rs.group; else delete ls.group; ls.placedAt = rs.placedAt; } });
+      }
+      const out = prev.apply(this, arguments);
+      if (later.length){
+        const cur = data.sections[si], curP = cur &amp;&amp; cur.pages &amp;&amp; cur.pages[pi];
+        later.forEach(({ p, from, toId, idx }) =&gt; {
+          const to = data.sections.find(s =&gt; s.id === toId); if (!to || to === from) return;
+          from.pages = (from.pages || []).filter(q =&gt; q !== p);
+          if (!from.pages.length) from.pages.push({ id: crypto.randomUUID(), title: 'Untitled page', content: '&lt;p&gt;&lt;br&gt;&lt;/p&gt;', updatedAt: Date.now() });
+          to.pages = to.pages || []; to.pages.splice(Math.min(idx, to.pages.length), 0, p);
+        });
+        si = Math.max(0, data.sections.indexOf(cur)); const j = curP ? data.sections[si].pages.indexOf(curP) : -1; pi = j &gt;= 0 ? j : 0;
+      }
+      return out;
+    };
+  }
+})();
+&lt;/script&gt;
+&lt;!-- Notebooks patch v34: page titles you can format, and Patrick Hand as the notebook's font.
+     - Select words in a page title and use the toolbar as in the page: font, size, bold, italic, underline,
+       strikethrough, text colour, highlight. With only the caret in the title, font and size apply to the whole title.
+       The formatting is kept (page.titleHtml next to the plain page.title, which lists, search and exports still use).
+     - The toolbar's font and size boxes show the title's font and size while you are in it.
+     - Enter in the title goes down to the page; pasting into the title pastes plain text on one line.
+     - Text without a font of its own (new text, pasted text, titles) is in Patrick Hand.
+     Paste before &lt;/body&gt;, after patches v20–v33 (needs the updated v31). --&gt;
+&lt;style&gt;
+#editorContent,#pageTitle{font-family:"Patrick Hand","Be Vietnam Pro",system-ui,sans-serif}
+#pageTitle{font-weight:400!important;letter-spacing:0!important;font-size:34px;line-height:1.2}
+#pageTitle b,#pageTitle strong{font-weight:700}
+&lt;/style&gt;
+&lt;script&gt;
+(function(){
+  if (typeof editor === 'undefined' || typeof titleEl === 'undefined') return;
+  const $q = s =&gt; document.querySelector(s);
+  const inTitle = n =&gt; !!n &amp;&amp; titleEl.contains(n.nodeType === 1 ? n : n.parentNode);
+  let surface = 'editor', tRange = null;
+  function titleRange(){   // the live selection when it is in the title (selectionchange arrives late), else the remembered one
+    const s = getSelection();
+    if (s.rangeCount &amp;&amp; inTitle(s.getRangeAt(0).commonAncestorContainer)){ surface = 'title'; tRange = s.getRangeAt(0).cloneRange(); }
+    return (surface === 'title' &amp;&amp; tRange &amp;&amp; titleEl.contains(tRange.startContainer)) ? tRange : null;
+  }
+
+  /* ---------- 1. the toolbar works on the title too ---------- */
+  document.addEventListener('selectionchange', () =&gt; {
+    const s = getSelection(); if (!s.rangeCount) return;
+    const r = s.getRangeAt(0);
+    if (inTitle(r.commonAncestorContainer)){ surface = 'title'; tRange = r.cloneRange(); boxes(r); }
+    else if (editor.contains(r.commonAncestorContainer)) surface = 'editor';
+  });
+  const prevRem = rememberEditSelection, prevRes = restoreEditSelection;
+  rememberEditSelection = function(){
+    const s = getSelection();
+    if (s.rangeCount &amp;&amp; inTitle(s.getRangeAt(0).commonAncestorContainer)){ tRange = s.getRangeAt(0).cloneRange(); surface = 'title'; return; }
+    return prevRem.apply(this, arguments);
+  };
+  restoreEditSelection = function(){
+    const s = getSelection();
+    if (s.rangeCount &amp;&amp; inTitle(s.getRangeAt(0).commonAncestorContainer)){ tRange = s.getRangeAt(0).cloneRange(); surface = 'title'; return titleEl; }
+    const t = titleRange();
+    if (t){ titleEl.focus({ preventScroll: true }); s.removeAllRanges(); s.addRange(t); return titleEl; }
+    return prevRes.apply(this, arguments);
+  };
+  // a title is one line: lists, headings, alignment and the like stay in the page
+  const BLOCK = new Set(['insertUnorderedList', 'insertOrderedList', 'formatBlock', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'indent', 'outdent', 'insertHTML', 'insertParagraph']);
+  if (typeof execAtSelection === 'function'){
+    const prev = execAtSelection;
+    execAtSelection = function(command){
+      if (titleRange() &amp;&amp; BLOCK.has(command)){ if (typeof toast === 'function') toast('A page title is one line: lists, headings and alignment work in the page.'); return; }
+      return prev.apply(this, arguments);
+    };
+  }
+  // font and size: the selected words, or the whole title when only the caret is there
+  function applyTitle(prop, value){
+    const s = getSelection(); let r = titleRange(); if (!r) return;
+    titleEl.focus({ preventScroll: true });
+    if (r.collapsed){ r = document.createRange(); r.selectNodeContents(titleEl); }
+    s.removeAllRanges(); s.addRange(r);
+    document.execCommand('styleWithCSS', false, true);
+    if (prop === 'fontFamily') document.execCommand('fontName', false, value.replace(/"/g, ''));
+    else {
+      document.execCommand('fontSize', false, '7');
+      titleEl.querySelectorAll('font[size="7"]').forEach(f =&gt; { const sp = document.createElement('span'); sp.style.fontSize = value; while (f.firstChild) sp.append(f.firstChild); f.replaceWith(sp); });
+      titleEl.querySelectorAll('span[style*="xxx-large"]').forEach(sp =&gt; { sp.style.fontSize = value; });
+    }
+    const cur = s.rangeCount ? s.getRangeAt(0) : r;
+    titleEl.querySelectorAll('[style]').forEach(el =&gt; { if (el.style[prop] &amp;&amp; el.style[prop] !== value &amp;&amp; cur.intersectsNode(el)) el.style[prop] = value; });   // words that had their own font or size
+    titleEl.querySelectorAll('font[face]').forEach(f =&gt; { const sp = document.createElement('span'); sp.style.fontFamily = '"' + f.getAttribute('face') + '"'; while (f.firstChild) sp.append(f.firstChild); f.replaceWith(sp); });
+    if (s.rangeCount) tRange = s.getRangeAt(0).cloneRange();
+    try { storeCurrent(false); } catch (e) {}
+  }
+  [['#fontFamily', 'fontFamily', v =&gt; '"' + v.replace(/"/g, '') + '"'], ['#fontSize', 'fontSize', v =&gt; /^\d+(\.\d+)?$/.test(v) ? v + 'pt' : v]].forEach(([sel, prop, val]) =&gt; {
+    const el = $q(sel); if (!el) return;
+    const prev = el.onchange;
+    el.onchange = function(e){ if (titleRange()){ applyTitle(prop, val(el.value)); return; } return prev ? prev.call(this, e) : undefined; };
+  });
+  // the font and size boxes show the title's own
+  function boxes(r){
+    let n = r.startContainer; if (n.nodeType === 1) n = n.childNodes[r.startOffset] || n;
+    while (n &amp;&amp; n.nodeType === 1 &amp;&amp; n.firstChild) n = n.firstChild;
+    const el = n &amp;&amp; (n.nodeType === 1 ? n : n.parentElement); if (!el || !titleEl.contains(el)) return;
+    const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), pt = String(Math.round(parseFloat(cs.fontSize) * 0.75 * 2) / 2);
+    const fs = $q('#fontFamily'), sz = $q('#fontSize'), cur = $q('#fontPickerCurrent');
+    const ensure = (sel, v) =&gt; { if (sel &amp;&amp; ![...sel.options].some(o =&gt; o.value === v)){ const o = document.createElement('option'); o.value = o.textContent = v; sel.appendChild(o); } };
+    if (fs &amp;&amp; fam){ ensure(fs, fam); fs.value = fam; if (cur){ cur.textContent = fam; cur.style.fontFamily = '"' + fam + '", sans-serif'; } }
+    if (sz &amp;&amp; +pt &gt; 0){ ensure(sz, pt); sz.value = pt; }
+  }
+
+  /* ---------- 2. the formatting is saved with the page ---------- */
+  const OK_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'SPAN', 'SUB', 'SUP']);
+  const OK_CSS = ['font-family', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-decoration-line', 'color', 'background-color'];
+  function titleHTML(){
+    const box = titleEl.cloneNode(true);
+    box.querySelectorAll('font').forEach(f =&gt; { const sp = document.createElement('span'); if (f.face) sp.style.fontFamily = '"' + f.face + '"'; if (f.color) sp.style.color = f.color; while (f.firstChild) sp.append(f.firstChild); f.replaceWith(sp); });
+    box.querySelectorAll('br').forEach(b =&gt; b.replaceWith(' '));
+    [...box.querySelectorAll('*')].reverse().forEach(el =&gt; {
+      if (!OK_TAGS.has(el.tagName)){ el.replaceWith(...el.childNodes); return; }
+      [...el.attributes].forEach(a =&gt; { if (a.name !== 'style') el.removeAttribute(a.name); });
+      if (el.hasAttribute('style')){ const keep = OK_CSS.map(p =&gt; [p, el.style.getPropertyValue(p)]).filter(x =&gt; x[1]); el.removeAttribute('style'); keep.forEach(([p, v]) =&gt; el.style.setProperty(p, v)); }
+      if (el.tagName === 'SPAN' &amp;&amp; !el.getAttribute('style')) el.replaceWith(...el.childNodes);
+      else if (!el.textContent) el.remove();
+    });
+    return box.querySelector('*') ? box.innerHTML.trim() : '';
+  }
+  const prevStore = storeCurrent;
+  storeCurrent = function(){
+    const p = data.sections[si] &amp;&amp; data.sections[si].pages &amp;&amp; data.sections[si].pages[pi];
+    if (p){ try { const h = titleHTML(); if (h) p.titleHtml = h; else delete p.titleHtml; } catch (e) {} }   // before the save that storeCurrent queues
+    return prevStore.apply(this, arguments);
+  };
+  const prevRender = render;
+  render = function(){
+    const out = prevRender.apply(this, arguments);
+    surface = 'editor'; tRange = null;
+    const p = data.sections[si] &amp;&amp; data.sections[si].pages &amp;&amp; data.sections[si].pages[pi];
+    if (p &amp;&amp; p.titleHtml){
+      const t = document.createElement('div'); t.innerHTML = p.titleHtml;
+      if (t.textContent.trim() === (p.title || '').trim()) titleEl.innerHTML = p.titleHtml;
+      else delete p.titleHtml;   // renamed somewhere else (the sidebar, another device): the plain new name wins
+    }
+    return out;
+  };
+  try { render(); } catch (e) {}
+
+  /* ---------- 3. Enter and paste in the title ---------- */
+  titleEl.addEventListener('keydown', e =&gt; {
+    if (e.key !== 'Enter' || e.isComposing || e.defaultPrevented) return;
+    e.preventDefault();
+    const first = editor.querySelector('p,li,h1,h2,h3,div') || editor; editor.focus();
+    const r = document.createRange(); r.setStart(first, 0); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+  titleEl.addEventListener('paste', e =&gt; {
+    const t = e.clipboardData &amp;&amp; e.clipboardData.getData('text/plain'); if (t == null) return;
+    e.preventDefault(); document.execCommand('insertText', false, t.replace(/\s+/g, ' ').trim());
+  });
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;

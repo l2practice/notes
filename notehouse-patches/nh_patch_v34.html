@@ -1,0 +1,347 @@
+<!-- Notebooks patch v33: drag sections and pages where they belong, and moves that stay put after a sync.
+     - Drag a section onto another section (above / below it), onto a section group, or onto a notebook name.
+     - Drag a page within the list (above / below another page, or onto it to make a subpage), or onto a section
+       in the sections pane to move it there (with its subpages).
+     - Mouse: just drag. iPad / Apple Pencil: hold the row a moment, then drag. Undo right after each move.
+     - "Move Section To…" and the new "Move Page To…" open a list of places instead of asking for a name.
+     - Sync: a section's notebook and group now travel to the other devices, and a moved page no longer comes back
+       in its old section (the newest move wins).
+     - A section group always shows as one block, even when its sections are not next to each other in the data.
+     Paste before </body>, after patches v20–v32. -->
+<style>
+.nh-drag-ghost{position:fixed;z-index:120;pointer-events:none;padding:7px 12px;border-radius:9px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.2),0 0 0 1px rgba(0,0,0,.06);font:600 13px Inter,system-ui,sans-serif;color:#24302d;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transform:translate(14px,-50%) rotate(-1.5deg)}
+.nh-drag-line{position:fixed;z-index:119;height:3px;border-radius:3px;background:#D4664F;pointer-events:none;box-shadow:0 0 0 2px #fff}
+.nh-drag-line::before{content:"";position:absolute;left:-5px;top:-3px;width:9px;height:9px;border-radius:50%;background:#D4664F}
+.nh-drop-into{outline:2px solid #D4664F!important;outline-offset:-2px;background:#fbeee9!important;border-radius:8px}
+.nh-dragging{opacity:.45}
+body.nh-drag-on,body.nh-drag-on *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
+#nhMoveSnack{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:96;display:flex;align-items:center;gap:14px;padding:10px 12px 10px 16px;border-radius:12px;background:#28242b;color:#fff;font:13px Inter,system-ui,sans-serif;box-shadow:0 8px 26px rgba(0,0,0,.25);transition:.2s}
+#nhMoveSnack.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#nhMoveSnack button{border:0;background:none;color:#f2a58f;font:inherit;font-weight:700;cursor:pointer;padding:4px 6px}
+#nhMoveDlg{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(24,22,18,.38)}
+#nhMoveDlg.show{display:flex}
+#nhMoveDlg .box{width:min(400px,100%);max-height:min(560px,calc(100dvh - 32px));display:flex;flex-direction:column;background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.25);font:14px Inter,system-ui,sans-serif;color:#24302d}
+#nhMoveDlg h3{margin:0;padding:18px 20px 4px;font-size:17px}
+#nhMoveDlg p{margin:0;padding:0 20px 10px;color:#6c7673;font-size:12.5px}
+#nhMoveDlg .list{overflow:auto;padding:0 10px 6px;flex:1}
+#nhMoveDlg .bk{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7d8a87;padding:12px 10px 5px}
+#nhMoveDlg .opt{display:flex;align-items:center;gap:9px;width:100%;min-height:40px;padding:0 10px;border:0;background:none;border-radius:10px;font:inherit;text-align:left;color:inherit;cursor:pointer}
+#nhMoveDlg .opt:hover,#nhMoveDlg .opt:active{background:#f3f1ed}
+#nhMoveDlg .opt.g{font-weight:600}
+#nhMoveDlg .opt.in{padding-left:30px}
+#nhMoveDlg .opt[disabled]{opacity:.4;cursor:default;background:none}
+#nhMoveDlg .opt i{width:6px;height:20px;border-radius:2px 5px 5px 2px;flex:none}
+#nhMoveDlg .opt small{margin-left:auto;color:#8a9592;font-size:11.5px}
+#nhMoveDlg .acts{display:flex;justify-content:flex-end;padding:10px 16px 14px;border-top:1px solid #eee}
+#nhMoveDlg .acts button{height:38px;padding:0 16px;border-radius:10px;border:1px solid #d6dedb;background:#fff;font:inherit;font-weight:600;cursor:pointer}
+</style>
+<div id="nhMoveSnack" role="status"><span></span><button type="button">Undo</button></div>
+<div id="nhMoveDlg" role="dialog" aria-modal="true"><div class="box"><h3></h3><p></p><div class="list"></div><div class="acts"><button type="button" data-x>Cancel</button></div></div></div>
+<script>
+(function(){
+  if (typeof data === 'undefined' || typeof render !== 'function') return;
+  const $q = s => document.querySelector(s);
+  const secList = $q('#sectionList'), pgList = $q('#pageList');
+  if (!secList || !pgList) return;
+  const BOOK = s => s.notebook || 'My notebook';
+  const isLocked = s => !!(s && s.passwordProtection && s.locked);
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* ================= a section group always shows as one block ================= */
+  if (typeof sortedSections === 'function'){
+    const prev = sortedSections;
+    sortedSections = function(){
+      const items = prev.apply(this, arguments), books = new Map(), groups = new Map();
+      data.sections.forEach(s => { const b = BOOK(s); if (!books.has(b)) books.set(b, books.size); const g = b + '\u0000' + (s.group || ''); if (!groups.has(g)) groups.set(g, s.group ? groups.size + 1 : 0); });   // sections without a group first, then the groups
+      const key = it => [books.get(BOOK(it.value)), groups.get(BOOK(it.value) + '\u0000' + (it.value.group || ''))];
+      return items.map((it, k) => ({ it, k })).sort((a, b) => { const x = key(a.it), y = key(b.it); return x[0] - y[0] || x[1] - y[1] || a.k - b.k; }).map(o => o.it);
+    };
+  }
+
+  /* ================= undo ================= */
+  const snack = $q('#nhMoveSnack'); let undoState = null, snackT = 0;
+  function snapshot(){
+    return { order: data.sections.slice(), secs: data.sections.map(s => ({ s, notebook: s.notebook, group: s.group, placedAt: s.placedAt, pages: (s.pages || []).slice(), parents: (s.pages || []).map(p => [p, p.parentId, p.movedAt]) })), si, pi };
+  }
+  function restore(st){
+    data.sections = st.order;
+    st.secs.forEach(x => { x.s.notebook = x.notebook; if (x.group) x.s.group = x.group; else delete x.s.group; if (x.placedAt) x.s.placedAt = x.placedAt; else delete x.s.placedAt; x.s.pages = x.pages; x.parents.forEach(([p, par, mv]) => { if (par) p.parentId = par; else delete p.parentId; if (mv) p.movedAt = mv; else delete p.movedAt; }); x.s.updatedAt = Date.now(); });
+    si = st.si; pi = st.pi; render(); queueSave();
+  }
+  function done(msg, st){
+    render(); queueSave();
+    undoState = st; snack.firstChild.textContent = msg; snack.classList.add('show');
+    clearTimeout(snackT); snackT = setTimeout(() => { snack.classList.remove('show'); undoState = null; }, 6000);
+  }
+  snack.querySelector('button').onclick = () => { if (undoState){ try { storeCurrent(false); } catch (e) {} restore(undoState); } undoState = null; snack.classList.remove('show'); };
+
+  /* ================= the moves ================= */
+  const curSection = () => data.sections[si];
+  function keepSelection(fn){   // the open section stays open, whatever moves around it
+    const s = curSection(), p = s && s.pages && s.pages[pi];
+    fn();
+    let i = data.sections.indexOf(s); if (i < 0) i = 0; si = i;
+    const ps = data.sections[si].pages || [], j = p ? ps.indexOf(p) : -1;
+    pi = j >= 0 ? j : Math.min(pi, Math.max(0, ps.length - 1));
+  }
+  function moveSection(sec, place){   // place: {notebook, group, before|after: section}
+    const st = snapshot(), now = Date.now();
+    keepSelection(() => {
+      data.sections.splice(data.sections.indexOf(sec), 1);
+      sec.notebook = place.notebook; if (place.group) sec.group = place.group; else delete sec.group;
+      sec.placedAt = now; sec.updatedAt = now;
+      let at;
+      if (place.before) at = data.sections.indexOf(place.before);
+      else if (place.after) at = data.sections.indexOf(place.after) + 1;
+      else {   // the end of that group (a notebook name: the top of the notebook)
+        at = -1;
+        if (place.group) data.sections.forEach((s, i) => { if (BOOK(s) === place.notebook && (s.group || '') === place.group) at = i + 1; });
+        else { const f = data.sections.findIndex(s => BOOK(s) === place.notebook); at = f; }
+        if (at < 0) at = data.sections.length;
+      }
+      data.sections.splice(at, 0, sec);
+    });
+    done('Moved “' + sec.name + '” to ' + (place.group ? place.group : place.notebook), st);
+  }
+  const subtree = (pages, p) => { const out = [p]; for (let k = 0; k < out.length; k++) pages.forEach(q => { if (q.parentId === out[k].id && !out.includes(q)) out.push(q); }); return out; };
+  function movePageToSection(from, p, to){
+    if (isLocked(to)){ toast('Unlock “' + to.name + '” first.'); return; }
+    if (from === to) return;
+    try { storeCurrent(false); } catch (e) {}
+    const st = snapshot(), now = Date.now(), moving = subtree(from.pages, p);
+    keepSelection(() => {
+      from.pages = from.pages.filter(q => !moving.includes(q));
+      if (!from.pages.length) from.pages.push({ id: crypto.randomUUID(), title: 'Untitled page', content: '<p><br></p>', updatedAt: now });
+      delete p.parentId;
+      moving.forEach(q => { q.movedAt = now; q.updatedAt = Math.max(q.updatedAt || 0, now); });
+      to.pages = (to.pages || []).concat(moving);
+      from.updatedAt = to.updatedAt = now;
+    });
+    done('Moved “' + (p.title || 'Untitled page') + '”' + (moving.length > 1 ? ' and ' + (moving.length - 1) + ' subpage' + (moving.length > 2 ? 's' : '') : '') + ' to ' + to.name, st);
+  }
+  function movePageInList(sec, p, target, where){   // where: before | after | into
+    const pages = sec.pages, moving = subtree(pages, p);
+    if (moving.includes(target)){ toast('A page cannot go inside its own subpages.'); return; }
+    try { storeCurrent(false); } catch (e) {}
+    const st = snapshot(), now = Date.now();
+    keepSelection(() => {
+      if (where === 'into') p.parentId = target.id;
+      else if (target.parentId && pages.some(q => q.id === target.parentId)) p.parentId = target.parentId; else delete p.parentId;
+      pages.splice(pages.indexOf(p), 1);
+      let at = pages.indexOf(target) + (where === 'before' ? 0 : 1);
+      if (where === 'after'){ const kids = subtree(pages, target); at = Math.max(...kids.map(k => pages.indexOf(k))) + 1; }   // after the target and its subpages
+      if (where === 'into') at = pages.length;
+      pages.splice(at, 0, p);
+      p.updatedAt = Math.max(p.updatedAt || 0, now); sec.updatedAt = now;
+    });
+    done(where === 'into' ? '“' + p.title + '” is now a subpage of “' + target.title + '”' : 'Page moved', st);
+  }
+
+  /* ================= dragging (mouse, finger, Apple Pencil) ================= */
+  let drag = null, eatClick = 0;
+  const line = document.createElement('div'); line.className = 'nh-drag-line'; line.hidden = true; document.body.appendChild(line);
+  const ghost = document.createElement('div'); ghost.className = 'nh-drag-ghost'; ghost.hidden = true; document.body.appendChild(ghost);
+  let into = null;
+  function clearMarks(){ line.hidden = true; if (into){ into.classList.remove('nh-drop-into'); into = null; } }
+  function markInto(el){ line.hidden = true; if (into !== el){ if (into) into.classList.remove('nh-drop-into'); into = el; el.classList.add('nh-drop-into'); } }
+  function markLine(el, after, indent){ if (into){ into.classList.remove('nh-drop-into'); into = null; } const r = el.getBoundingClientRect(); line.hidden = false; line.style.left = (r.left + (indent || 8)) + 'px'; line.style.width = Math.max(40, r.width - (indent || 8) - 8) + 'px'; line.style.top = (after ? r.bottom : r.top) - 1.5 + 'px'; }
+
+  function target(x, y){
+    const el = document.elementFromPoint(x, y); if (!el) return null;
+    const row = el.closest('#sectionList [data-side-type], #pageList [data-side-type="page"]'); if (!row) return null;
+    const r = row.getBoundingClientRect(), f = (y - r.top) / r.height, type = row.dataset.sideType;
+    if (drag.kind === 'section'){
+      if (type === 'section'){ const s = data.sections[+row.dataset.sideIndex]; if (!s || s === drag.sec) return null; return { row, type, s, after: f > .5 }; }
+      if (type === 'group' || type === 'notebook') return { row, type };
+      return null;
+    }
+    // a page
+    if (type === 'page'){ const p = drag.sec.pages[+row.dataset.sideIndex]; if (!p || p === drag.p) return null; return { row, type, p, where: f < .3 ? 'before' : f > .7 ? 'after' : 'into' }; }
+    if (type === 'section'){ const s = data.sections[+row.dataset.sideIndex]; if (!s || s === drag.sec) return null; return { row, type, s }; }
+    return null;
+  }
+  function show(t){
+    if (!t){ clearMarks(); return; }
+    if (drag.kind === 'section'){
+      if (t.type === 'section') markLine(t.row, t.after, t.row.classList.contains('grouped') ? 22 : 8); else markInto(t.row);
+    } else {
+      if (t.type === 'section') markInto(t.row);
+      else if (t.where === 'into') markInto(t.row); else markLine(t.row, t.where === 'after', 8 + 14 * (+t.row.dataset.depth || 0));
+    }
+  }
+  function drop(t){
+    if (!t) return;
+    if (drag.kind === 'section'){
+      const sec = drag.sec;
+      if (t.type === 'section') moveSection(sec, { notebook: BOOK(t.s), group: t.s.group || '', before: t.after ? null : t.s, after: t.after ? t.s : null });
+      else if (t.type === 'group') moveSection(sec, { notebook: t.row.dataset.sideBook || 'My notebook', group: t.row.dataset.sideName || '' });
+      else moveSection(sec, { notebook: t.row.dataset.sideName || 'My notebook', group: '' });
+    } else {
+      if (t.type === 'section') movePageToSection(drag.sec, drag.p, t.s);
+      else movePageInList(drag.sec, drag.p, t.p, t.where);
+    }
+  }
+  function autoscroll(y){
+    const box = (drag.over && drag.over.closest('.pane-scroll, #sectionList, #pageList')) || null; if (!box) return;
+    const r = box.getBoundingClientRect(), edge = 36;
+    if (y < r.top + edge) box.scrollTop -= Math.ceil((r.top + edge - y) / 4); else if (y > r.bottom - edge) box.scrollTop += Math.ceil((y - (r.bottom - edge)) / 4);
+  }
+  function begin(){
+    drag.on = true; document.body.classList.add('nh-drag-on'); drag.row.classList.add('nh-dragging');
+    ghost.textContent = drag.kind === 'section' ? drag.sec.name : (drag.p.title || 'Untitled page'); ghost.hidden = false;
+    try { clearTimeout(sidebarTouchTimer); } catch (e) {}
+    try { closeMenus(); } catch (e) {}
+    if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+  }
+  function finish(ok){
+    if (!drag) return;
+    clearTimeout(drag.hold); clearTimeout(drag.menu); drag.row.classList.remove('nh-dragging');
+    if (drag.on){
+      const t = ok ? target(drag.x, drag.y) : null;
+      clearMarks(); ghost.hidden = true; drag.row.classList.remove('nh-dragging'); document.body.classList.remove('nh-drag-on');
+      eatClick = Date.now();
+      if (t) try { drop(t); } catch (e) { console.warn(e); }
+    }
+    drag = null;
+  }
+  function start(e){
+    eatClick = 0;   // a new press: the click after it is a real one
+    if (e.button > 0) return;
+    const row = e.target.closest('#sectionList [data-side-type="section"], #pageList [data-side-type="page"]'); if (!row) return;
+    if (document.body.classList.contains('nhp')) return;   // phones use Move… from the menu
+    let d;
+    if (row.dataset.sideType === 'section'){ const s = data.sections[+row.dataset.sideIndex]; if (!s) return; d = { kind: 'section', sec: s }; }
+    else { const s = curSection(), p = s && s.pages && s.pages[+row.dataset.sideIndex]; if (!p || isLocked(s)) return; d = { kind: 'page', sec: s, p }; }
+    drag = Object.assign(d, { row, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, id: e.pointerId, touch: e.pointerType !== 'mouse', on: false, armed: e.pointerType === 'mouse' });
+    // finger and Pencil: hold, then move to drag (a quick swipe still scrolls; holding still opens the menu as before)
+    if (drag.touch){ drag.hold = setTimeout(() => { if (drag && !drag.on){ drag.armed = true; drag.row.classList.add('nh-dragging'); drag.menu = setTimeout(() => { if (drag && !drag.on){ drag.row.classList.remove('nh-dragging'); drag = null; } }, 300); } }, 330); }
+  }
+  function place(x, y){ ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; drag.over = document.elementFromPoint(x, y); show(target(x, y)); }
+  document.addEventListener('pointerdown', start, true);
+  document.addEventListener('pointermove', e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.x = e.clientX; drag.y = e.clientY;
+    const far = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 6;
+    if (!drag.on){
+      if (drag.touch && !drag.armed){ if (far){ clearTimeout(drag.hold); drag = null; } return; }   // moved before the hold: it is a scroll
+      if (!far) return;
+      clearTimeout(drag.menu); begin();
+    }
+    e.preventDefault(); place(e.clientX, e.clientY); autoscroll(e.clientY);
+  }, true);
+  document.addEventListener('pointerup', e => { if (drag && e.pointerId === drag.id) finish(true); }, true);
+  document.addEventListener('pointercancel', e => { if (drag && e.pointerId === drag.id) finish(false); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && drag && drag.on) finish(false); }, true);
+  // while a held row is being dragged, the finger must not scroll the list
+  document.addEventListener('touchmove', e => { if (drag && drag.armed) e.preventDefault(); }, { passive: false, capture: true });
+  // the click that ends a drag does not open the row; the browser's own drag (which only nested pages) is replaced by this
+  document.addEventListener('click', e => { if (Date.now() - eatClick < 400){ eatClick = 0; e.stopPropagation(); e.preventDefault(); } }, true);
+  document.addEventListener('dragstart', e => { if (e.target.closest && e.target.closest('#pageList [data-side-type="page"]')) e.preventDefault(); }, true);
+  document.addEventListener('contextmenu', e => { if (drag && drag.on) e.preventDefault(); }, true);
+
+  /* ================= Move Section To… / Move Page To… ================= */
+  const dlg = $q('#nhMoveDlg'), list = dlg.querySelector('.list');
+  let pick = null;
+  function openPicker(title, sub, html, onPick){ dlg.querySelector('h3').textContent = title; dlg.querySelector('p').textContent = sub; list.innerHTML = html; pick = onPick; dlg.classList.add('show'); }
+  const closePicker = () => { dlg.classList.remove('show'); pick = null; };
+  dlg.querySelector('[data-x]').onclick = closePicker;
+  dlg.addEventListener('pointerdown', e => { if (e.target === dlg) closePicker(); });
+  dlg.addEventListener('keydown', e => { if (e.key === 'Escape') closePicker(); });
+  list.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b || b.disabled || !pick) return; const f = pick; closePicker(); f(b.dataset); });
+  function places(){   // notebook -> [groups] in the order they show
+    const out = new Map();
+    sortedSections().forEach(({ value: s }) => { const b = BOOK(s); if (!out.has(b)) out.set(b, new Map()); const g = s.group || ''; if (!out.get(b).has(g)) out.get(b).set(g, []); out.get(b).get(g).push(s); });
+    return out;
+  }
+  function pickSectionPlace(sec){
+    let h = '';
+    for (const [b, groups] of places()){
+      h += '<div class="bk">' + esc(b) + '</div>';
+      const here = BOOK(sec) === b;
+      h += `<button class="opt g" data-k="1" data-b="${esc(b)}" data-g="" ${here && !sec.group ? 'disabled' : ''}>Sections (no group)${here && !sec.group ? '<small>here now</small>' : ''}</button>`;
+      for (const g of groups.keys()) if (g){ const now = here && sec.group === g; h += `<button class="opt g in" data-k="1" data-b="${esc(b)}" data-g="${esc(g)}" ${now ? 'disabled' : ''}>▸ ${esc(g)}${now ? '<small>here now</small>' : ''}</button>`; }
+    }
+    openPicker('Move “' + sec.name + '” to…', 'Pick a notebook or a section group.', h, d => moveSection(sec, { notebook: d.b, group: d.g }));
+  }
+  function pickPageSection(from, p){
+    let h = '';
+    for (const [b, groups] of places()){
+      h += '<div class="bk">' + esc(b) + '</div>';
+      for (const [g, secs] of groups){
+        if (g) h += `<div class="opt g" style="cursor:default">▸ ${esc(g)}</div>`;
+        secs.forEach(s => { const i = data.sections.indexOf(s), dis = s === from || isLocked(s); h += `<button class="opt${g ? ' in' : ''}" data-k="1" data-i="${i}" ${dis ? 'disabled' : ''}><i style="background:${esc(s.color || '#6b9690')}"></i>${esc(s.name)}${s === from ? '<small>here now</small>' : isLocked(s) ? '<small>locked</small>' : ''}</button>`; });
+      }
+    }
+    openPicker('Move “' + (p.title || 'Untitled page') + '” to…', 'Its subpages go with it.', h, d => movePageToSection(from, p, data.sections[+d.i]));
+  }
+  if (typeof runMenuAction === 'function'){
+    const prev = runMenuAction;
+    runMenuAction = function(action){
+      const m = $q('#menuContext');
+      if (action === 'sidebar-move-section'){ const s = data.sections[+((m && m.dataset.sideIndex) || si)]; try { closeMenus(); } catch (e) {} if (s){ pickSectionPlace(s); return; } }
+      if (action === 'nh-move-page'){ const s = curSection(), p = s && s.pages[+((m && m.dataset.sideIndex) || pi)]; try { closeMenus(); } catch (e) {} if (p){ if (isLocked(s)) toast('Unlock this section first.'); else pickPageSection(s, p); } return; }
+      return prev.apply(this, arguments);
+    };
+  }
+  // "Move Page To…" in the page menu
+  if (typeof showSidebarMenu === 'function'){
+    const prev = showSidebarMenu;
+    showSidebarMenu = function(ev, type){
+      const out = prev.apply(this, arguments);
+      if (type === 'page'){
+        const menu = $q('#menuContext'), first = menu && menu.querySelector('.menu-group');
+        if (first && !menu.querySelector('[data-menu-action="nh-move-page"]')){
+          const ref = first.querySelector('[data-menu-action]'); const b = ref ? ref.cloneNode(true) : document.createElement('button');
+          b.dataset.menuAction = 'nh-move-page'; delete b.dataset.menuSub; const l = b.querySelector('.menu-label'); if (l) l.textContent = 'Move Page To…'; else b.textContent = 'Move Page To…';
+          const sc = b.querySelector('.menu-shortcut'); if (sc) sc.textContent = '';
+          first.appendChild(b);
+        }
+      }
+      return out;
+    };
+  }
+
+  /* ================= sync: placement travels, a moved page does not come back ================= */
+  if (typeof mergeNotebookData === 'function'){
+    const prev = mergeNotebookData;
+    mergeNotebookData = function(remote){
+      const later = [];
+      if (remote && Array.isArray(remote.sections)){
+        const here = new Map(); data.sections.forEach(s => (s.pages || []).forEach(p => here.set(p.id, { s, p })));
+        remote.sections.forEach(rs => {
+          if (!Array.isArray(rs.pages)) return;
+          rs.pages = rs.pages.filter((rp, idx) => {
+            const l = here.get(rp.id); if (!l || l.s.id === rs.id) return true;
+            const newer = (rp.updatedAt || 0) > (l.p.updatedAt || 0);
+            if ((rp.movedAt || 0) > (l.p.movedAt || 0)){   // moved on the other device last: it goes where they put it
+              const keep = { parentId: rp.parentId, movedAt: rp.movedAt };
+              if (newer) Object.assign(l.p, rp);
+              if (keep.parentId) l.p.parentId = keep.parentId; else delete l.p.parentId; l.p.movedAt = keep.movedAt;
+              later.push({ p: l.p, from: l.s, toId: rs.id, idx });
+            } else if (newer){   // stays here; only the newer text comes over
+              const keep = { parentId: l.p.parentId, movedAt: l.p.movedAt };
+              Object.assign(l.p, rp); if (keep.parentId) l.p.parentId = keep.parentId; else delete l.p.parentId; if (keep.movedAt) l.p.movedAt = keep.movedAt; else delete l.p.movedAt;
+            }
+            return false;   // never a second copy in the old section
+          });
+        });
+        // the section's notebook and group follow the latest move
+        const byId = new Map(data.sections.map(s => [s.id, s]));
+        remote.sections.forEach(rs => { const ls = byId.get(rs.id); if (ls && (rs.placedAt || 0) > (ls.placedAt || 0)){ ls.notebook = rs.notebook; if (rs.group) ls.group = rs.group; else delete ls.group; ls.placedAt = rs.placedAt; } });
+      }
+      const out = prev.apply(this, arguments);
+      if (later.length){
+        const cur = data.sections[si], curP = cur && cur.pages && cur.pages[pi];
+        later.forEach(({ p, from, toId, idx }) => {
+          const to = data.sections.find(s => s.id === toId); if (!to || to === from) return;
+          from.pages = (from.pages || []).filter(q => q !== p);
+          if (!from.pages.length) from.pages.push({ id: crypto.randomUUID(), title: 'Untitled page', content: '<p><br></p>', updatedAt: Date.now() });
+          to.pages = to.pages || []; to.pages.splice(Math.min(idx, to.pages.length), 0, p);
+        });
+        si = Math.max(0, data.sections.indexOf(cur)); const j = curP ? data.sections[si].pages.indexOf(curP) : -1; pi = j >= 0 ? j : 0;
+      }
+      return out;
+    };
+  }
+})();
+</script>

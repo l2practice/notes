@@ -1,0 +1,139 @@
+<!-- Notebooks patch v34: page titles you can format, and Patrick Hand as the notebook's font.
+     - Select words in a page title and use the toolbar as in the page: font, size, bold, italic, underline,
+       strikethrough, text colour, highlight. With only the caret in the title, font and size apply to the whole title.
+       The formatting is kept (page.titleHtml next to the plain page.title, which lists, search and exports still use).
+     - The toolbar's font and size boxes show the title's font and size while you are in it.
+     - Enter in the title goes down to the page; pasting into the title pastes plain text on one line.
+     - Text without a font of its own (new text, pasted text, titles) is in Patrick Hand.
+     Paste before </body>, after patches v20–v33 (needs the updated v31). -->
+<style>
+#editorContent,#pageTitle{font-family:"Patrick Hand","Be Vietnam Pro",system-ui,sans-serif}
+#pageTitle{font-weight:400!important;letter-spacing:0!important;font-size:34px;line-height:1.2}
+#pageTitle b,#pageTitle strong{font-weight:700}
+</style>
+<script>
+(function(){
+  if (typeof editor === 'undefined' || typeof titleEl === 'undefined') return;
+  const $q = s => document.querySelector(s);
+  const inTitle = n => !!n && titleEl.contains(n.nodeType === 1 ? n : n.parentNode);
+  let surface = 'editor', tRange = null;
+  function titleRange(){   // the live selection when it is in the title (selectionchange arrives late), else the remembered one
+    const s = getSelection();
+    if (s.rangeCount && inTitle(s.getRangeAt(0).commonAncestorContainer)){ surface = 'title'; tRange = s.getRangeAt(0).cloneRange(); }
+    return (surface === 'title' && tRange && titleEl.contains(tRange.startContainer)) ? tRange : null;
+  }
+
+  /* ---------- 1. the toolbar works on the title too ---------- */
+  document.addEventListener('selectionchange', () => {
+    const s = getSelection(); if (!s.rangeCount) return;
+    const r = s.getRangeAt(0);
+    if (inTitle(r.commonAncestorContainer)){ surface = 'title'; tRange = r.cloneRange(); boxes(r); }
+    else if (editor.contains(r.commonAncestorContainer)) surface = 'editor';
+  });
+  const prevRem = rememberEditSelection, prevRes = restoreEditSelection;
+  rememberEditSelection = function(){
+    const s = getSelection();
+    if (s.rangeCount && inTitle(s.getRangeAt(0).commonAncestorContainer)){ tRange = s.getRangeAt(0).cloneRange(); surface = 'title'; return; }
+    return prevRem.apply(this, arguments);
+  };
+  restoreEditSelection = function(){
+    const s = getSelection();
+    if (s.rangeCount && inTitle(s.getRangeAt(0).commonAncestorContainer)){ tRange = s.getRangeAt(0).cloneRange(); surface = 'title'; return titleEl; }
+    const t = titleRange();
+    if (t){ titleEl.focus({ preventScroll: true }); s.removeAllRanges(); s.addRange(t); return titleEl; }
+    return prevRes.apply(this, arguments);
+  };
+  // a title is one line: lists, headings, alignment and the like stay in the page
+  const BLOCK = new Set(['insertUnorderedList', 'insertOrderedList', 'formatBlock', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'indent', 'outdent', 'insertHTML', 'insertParagraph']);
+  if (typeof execAtSelection === 'function'){
+    const prev = execAtSelection;
+    execAtSelection = function(command){
+      if (titleRange() && BLOCK.has(command)){ if (typeof toast === 'function') toast('A page title is one line: lists, headings and alignment work in the page.'); return; }
+      return prev.apply(this, arguments);
+    };
+  }
+  // font and size: the selected words, or the whole title when only the caret is there
+  function applyTitle(prop, value){
+    const s = getSelection(); let r = titleRange(); if (!r) return;
+    titleEl.focus({ preventScroll: true });
+    if (r.collapsed){ r = document.createRange(); r.selectNodeContents(titleEl); }
+    s.removeAllRanges(); s.addRange(r);
+    document.execCommand('styleWithCSS', false, true);
+    if (prop === 'fontFamily') document.execCommand('fontName', false, value.replace(/"/g, ''));
+    else {
+      document.execCommand('fontSize', false, '7');
+      titleEl.querySelectorAll('font[size="7"]').forEach(f => { const sp = document.createElement('span'); sp.style.fontSize = value; while (f.firstChild) sp.append(f.firstChild); f.replaceWith(sp); });
+      titleEl.querySelectorAll('span[style*="xxx-large"]').forEach(sp => { sp.style.fontSize = value; });
+    }
+    const cur = s.rangeCount ? s.getRangeAt(0) : r;
+    titleEl.querySelectorAll('[style]').forEach(el => { if (el.style[prop] && el.style[prop] !== value && cur.intersectsNode(el)) el.style[prop] = value; });   // words that had their own font or size
+    titleEl.querySelectorAll('font[face]').forEach(f => { const sp = document.createElement('span'); sp.style.fontFamily = '"' + f.getAttribute('face') + '"'; while (f.firstChild) sp.append(f.firstChild); f.replaceWith(sp); });
+    if (s.rangeCount) tRange = s.getRangeAt(0).cloneRange();
+    try { storeCurrent(false); } catch (e) {}
+  }
+  [['#fontFamily', 'fontFamily', v => '"' + v.replace(/"/g, '') + '"'], ['#fontSize', 'fontSize', v => /^\d+(\.\d+)?$/.test(v) ? v + 'pt' : v]].forEach(([sel, prop, val]) => {
+    const el = $q(sel); if (!el) return;
+    const prev = el.onchange;
+    el.onchange = function(e){ if (titleRange()){ applyTitle(prop, val(el.value)); return; } return prev ? prev.call(this, e) : undefined; };
+  });
+  // the font and size boxes show the title's own
+  function boxes(r){
+    let n = r.startContainer; if (n.nodeType === 1) n = n.childNodes[r.startOffset] || n;
+    while (n && n.nodeType === 1 && n.firstChild) n = n.firstChild;
+    const el = n && (n.nodeType === 1 ? n : n.parentElement); if (!el || !titleEl.contains(el)) return;
+    const cs = getComputedStyle(el), fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim(), pt = String(Math.round(parseFloat(cs.fontSize) * 0.75 * 2) / 2);
+    const fs = $q('#fontFamily'), sz = $q('#fontSize'), cur = $q('#fontPickerCurrent');
+    const ensure = (sel, v) => { if (sel && ![...sel.options].some(o => o.value === v)){ const o = document.createElement('option'); o.value = o.textContent = v; sel.appendChild(o); } };
+    if (fs && fam){ ensure(fs, fam); fs.value = fam; if (cur){ cur.textContent = fam; cur.style.fontFamily = '"' + fam + '", sans-serif'; } }
+    if (sz && +pt > 0){ ensure(sz, pt); sz.value = pt; }
+  }
+
+  /* ---------- 2. the formatting is saved with the page ---------- */
+  const OK_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'SPAN', 'SUB', 'SUP']);
+  const OK_CSS = ['font-family', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-decoration-line', 'color', 'background-color'];
+  function titleHTML(){
+    const box = titleEl.cloneNode(true);
+    box.querySelectorAll('font').forEach(f => { const sp = document.createElement('span'); if (f.face) sp.style.fontFamily = '"' + f.face + '"'; if (f.color) sp.style.color = f.color; while (f.firstChild) sp.append(f.firstChild); f.replaceWith(sp); });
+    box.querySelectorAll('br').forEach(b => b.replaceWith(' '));
+    [...box.querySelectorAll('*')].reverse().forEach(el => {
+      if (!OK_TAGS.has(el.tagName)){ el.replaceWith(...el.childNodes); return; }
+      [...el.attributes].forEach(a => { if (a.name !== 'style') el.removeAttribute(a.name); });
+      if (el.hasAttribute('style')){ const keep = OK_CSS.map(p => [p, el.style.getPropertyValue(p)]).filter(x => x[1]); el.removeAttribute('style'); keep.forEach(([p, v]) => el.style.setProperty(p, v)); }
+      if (el.tagName === 'SPAN' && !el.getAttribute('style')) el.replaceWith(...el.childNodes);
+      else if (!el.textContent) el.remove();
+    });
+    return box.querySelector('*') ? box.innerHTML.trim() : '';
+  }
+  const prevStore = storeCurrent;
+  storeCurrent = function(){
+    const p = data.sections[si] && data.sections[si].pages && data.sections[si].pages[pi];
+    if (p){ try { const h = titleHTML(); if (h) p.titleHtml = h; else delete p.titleHtml; } catch (e) {} }   // before the save that storeCurrent queues
+    return prevStore.apply(this, arguments);
+  };
+  const prevRender = render;
+  render = function(){
+    const out = prevRender.apply(this, arguments);
+    surface = 'editor'; tRange = null;
+    const p = data.sections[si] && data.sections[si].pages && data.sections[si].pages[pi];
+    if (p && p.titleHtml){
+      const t = document.createElement('div'); t.innerHTML = p.titleHtml;
+      if (t.textContent.trim() === (p.title || '').trim()) titleEl.innerHTML = p.titleHtml;
+      else delete p.titleHtml;   // renamed somewhere else (the sidebar, another device): the plain new name wins
+    }
+    return out;
+  };
+  try { render(); } catch (e) {}
+
+  /* ---------- 3. Enter and paste in the title ---------- */
+  titleEl.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.isComposing || e.defaultPrevented) return;
+    e.preventDefault();
+    const first = editor.querySelector('p,li,h1,h2,h3,div') || editor; editor.focus();
+    const r = document.createRange(); r.setStart(first, 0); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+  titleEl.addEventListener('paste', e => {
+    const t = e.clipboardData && e.clipboardData.getData('text/plain'); if (t == null) return;
+    e.preventDefault(); document.execCommand('insertText', false, t.replace(/\s+/g, ' ').trim());
+  });
+})();
+</script>
