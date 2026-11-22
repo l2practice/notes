@@ -1,0 +1,19 @@
+<!-- Note House patch v32: the OneNote-like part is now called "Notebooks" (part of Note Hub), with its own logo.
+     Paste before </body>, after patches v20–v31. Only names and the logo change; saved data and the Drive folder stay the same. -->
+<style>.brand-mark.nb-logo{background:none!important;box-shadow:none!important;padding:0!important;width:30px;height:30px;display:inline-grid;place-items:center}.brand-mark.nb-logo img{width:30px;height:30px;display:block}</style>
+<script>
+(function(){
+  document.title = 'Notebooks — Note Hub';
+  const brand = document.querySelector('header.top .brand');
+  if (brand){
+    const mark = brand.querySelector('.brand-mark');
+    if (mark){ mark.classList.add('nb-logo'); mark.innerHTML = '<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJOb3RlYm9va3MiPgo8ZGVmcz4KICA8bGluZWFyR3JhZGllbnQgaWQ9InBhcGVyIiB4Mj0iMC45IiB5Mj0iMSI+CiAgICA8c3RvcCBzdG9wLWNvbG9yPSIjRkZGMTlBIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRjlERDcyIi8+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8bGluZWFyR3JhZGllbnQgaWQ9ImZvbGQiIHgyPSIxIiB5Mj0iMSI+CiAgICA8c3RvcCBzdG9wLWNvbG9yPSIjRkZFRThEIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRERCNDRBIi8+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8bGluZWFyR3JhZGllbnQgaWQ9ImNyZWFtIiB4Mj0iMSIgeTI9IjEiPgogICAgPHN0b3Agc3RvcC1jb2xvcj0iI0ZGRkVGMCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0VCRDhBQSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPHJlY3QgeD0iMTAxIiB5PSI1MCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjI5IiByeD0iNSIgZmlsbD0idXJsKCNmb2xkKSIvPgo8cmVjdCB4PSIyMiIgeT0iMTgiIHdpZHRoPSI4NCIgaGVpZ2h0PSI5NCIgcng9IjE0IiBmaWxsPSJ1cmwoI3BhcGVyKSIgc3Ryb2tlPSIjRTdDNzVDIi8+CjxnIGZpbGw9IiNDNzlCMzgiPjxjaXJjbGUgY3g9IjMwIiBjeT0iNDYiIHI9IjgiLz48Y2lyY2xlIGN4PSIzMCIgY3k9IjgwIiByPSI4Ii8+PC9nPgo8ZyBmaWxsPSIjRkZGOUU2Ij48cmVjdCB4PSIxMSIgeT0iNDIiIHdpZHRoPSIyMSIgaGVpZ2h0PSI4IiByeD0iNCIvPjxyZWN0IHg9IjExIiB5PSI3NiIgd2lkdGg9IjIxIiBoZWlnaHQ9IjgiIHJ4PSI0Ii8+PC9nPgo8cGF0aCBkPSJNNTAgNDJoMzVNNTAgNTZoMjkiIHN0cm9rZT0iIzlBNzAyQSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+" alt="">'; }
+    [...brand.childNodes].forEach(n => { if (n.nodeType === 3 && /Note ?house/i.test(n.data)) n.data = n.data.replace(/Note ?house/i, 'Notebooks'); });
+  }
+  const nav = document.querySelector('nav.menu-bar'); if (nav) nav.setAttribute('aria-label', 'Notebooks menus');
+  // menu labels and messages that name the app
+  try { Object.values(menuDefinitions).forEach(groups => groups.forEach(g => g.forEach(it => { if (it.label === 'About Notehouse') it.label = 'About Notebooks'; }))); } catch (e) {}
+  if (typeof toast === 'function'){ const t = toast; toast = function(msg){ return t.call(this, typeof msg === 'string' ? msg.replace(/Note ?house/g, 'Notebooks') : msg); }; }
+  const a = window.alert; window.alert = function(msg){ return a.call(window, typeof msg === 'string' ? msg.replace(/Note ?house/g, 'Notebooks') : msg); };
+})();
+</script>
