@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-note-hub-icons-v42" />
+    <meta name="app-build" content="2026-11-22-mindmaps-v43" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -1126,6 +1126,10 @@
       </div>
     </div>
     <!-- Notehouse styles and selectors are isolated inside a shadow root. -->
+    <div id="mindmapView" class="hidden" aria-label="Mind maps">
+      <div class="mm-bar"><button type="button" id="mmBack" title="Back to Note Hub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Note Hub</span></button><b><svg class="mm-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="5" r="2"/><circle cx="19.5" cy="5" r="2"/><circle cx="4.5" cy="19" r="2"/><circle cx="19.5" cy="19" r="2"/><path d="m6 6.5 3.7 3.4M18 6.5l-3.7 3.4M6 17.5l3.7-3.4M18 17.5l-3.7-3.4"/></svg>Mind maps</b><button type="button" id="mmNewTab" title="Open Mind maps in a new tab"><span>New tab</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button></div>
+      <div id="mindmapHost"></div>
+    </div>
     <div id="notehouseView" class="hidden" aria-label="Notehouse">
       <div id="notehouseHost"></div>
       <template id="notehouseTemplate"></template><textarea id="notehouseSrcdoc" hidden>&lt;!doctype html&gt;
@@ -3897,6 +3901,10 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="13" height="18" rx="2.5"/><path d="M3.5 7.5h4.5M3.5 12h4.5M3.5 16.5h4.5"/><path d="M10.5 8h5M10.5 11.5h3.5"/><path d="M19 13.5h1.5v4H19"/></svg>
             Notebooks
           </button>
+          <button class="side-nav-item" id="navMindmapBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="5" r="2"/><circle cx="19.5" cy="5" r="2"/><circle cx="4.5" cy="19" r="2"/><circle cx="19.5" cy="19" r="2"/><path d="m6 6.5 3.7 3.4M18 6.5l-3.7 3.4M6 17.5l3.7-3.4M18 17.5l-3.7-3.4"/></svg>
+            Mind maps
+          </button>
           <button class="side-nav-item" id="navNewsBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
             News
@@ -4009,6 +4017,7 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
         <button data-nav="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></svg><span>Home</span></button>
         <button data-nav="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3H6.5A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21H11"/><path d="M13 3v4a1.5 1.5 0 0 0 1.5 1.5H19"/><path d="M13 3l6 5.5V11"/><path d="M8 12h4M8 16h2.5"/><path d="m14 21 .9-3.3 4.6-4.6a1.6 1.6 0 0 1 2.3 2.3l-4.6 4.6Z"/></svg><span>Annotation</span></button>
         <button data-nav="notehouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="13" height="18" rx="2.5"/><path d="M3.5 7.5h4.5M3.5 12h4.5M3.5 16.5h4.5"/><path d="M10.5 8h5M10.5 11.5h3.5"/><path d="M19 13.5h1.5v4H19"/></svg><span>Notebooks</span></button>
+        <button data-nav="mindmap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="4.5" cy="5" r="2"/><circle cx="19.5" cy="5" r="2"/><circle cx="4.5" cy="19" r="2"/><circle cx="19.5" cy="19" r="2"/><path d="m6 6.5 3.7 3.4M18 6.5l-3.7 3.4M6 17.5l3.7-3.4M18 17.5l-3.7-3.4"/></svg><span>Mind maps</span></button>
         <button data-nav="add" class="nav-add" aria-label="Add a document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
         <button data-nav="bin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.2a1 1 0 0 1-1 .8H7.8a1 1 0 0 1-1-.8L6 7"/></svg><span>Bin</span></button>
         <button data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span>Settings</span></button>
@@ -10285,6 +10294,59 @@ body.thumb-resizing{cursor:col-resize;user-select:none;-webkit-user-select:none}
     const prev = insertPdfPage;
     insertPdfPage = async function(pos){ const before = pageSizes.length, open = typeof thumbSideVisible !== 'undefined' && thumbSideVisible; await prev.apply(this, arguments); if (open && document.getElementById('thumbSide').classList.contains('hidden')) document.getElementById('thumbToggleBtn').click(); if (pageSizes.length > before || (currentReader && currentReader.pages > before)){ const np = pos + 1; snack('Page ' + np + ' added', () => deletePageNow(np)); } };
   }
+})();
+</script>
+<style>
+  /* Mind maps: the separate Mind map app (l2practice.github.io/mindmap), opened inside Note Hub */
+  #mindmapView:not(.hidden){position:fixed;inset:0;z-index:150;background:#fff;display:flex;flex-direction:column}
+  #mindmapView .mm-bar{height:42px;flex:none;display:flex;align-items:center;gap:10px;padding:0 10px;background:var(--surface,#fffaf0);border-bottom:1px solid var(--line,#ece3d2)}
+  #mindmapView .mm-bar b{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--ink,#15171c)}
+  #mindmapView .mm-bar .mm-ico{width:18px;height:18px;color:#D4664F}
+  #mindmapView .mm-bar button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border:1px solid var(--line,#e4dccb);border-radius:999px;background:#fff;font:inherit;font-size:13px;font-weight:600;color:var(--ink,#15171c);cursor:pointer}
+  #mindmapView .mm-bar button svg{width:16px;height:16px}
+  #mindmapView .mm-bar button:hover{background:#fbf0d9}
+  #mindmapHost{flex:1;min-height:0;position:relative}
+  #mindmapHost iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+  @media (max-width:560px){#mindmapView .mm-bar button span{display:none}}
+  /* seven items on the phone bar: one line each */
+  @media (max-width:560px){#mobileBottomNav button span{white-space:nowrap;font-size:10.5px;letter-spacing:-.1px}#mobileBottomNav{gap:0}#mobileBottomNav button{min-width:0;padding-left:2px;padding-right:2px}}
+</style>
+<script>
+(function(){
+  const MM_URL = location.protocol === 'https:' ? location.origin + '/mindmap/' : 'https://l2practice.github.io/mindmap/';
+  let mounted = false, before = 'home';
+  function mount(){
+    if (mounted) return; mounted = true;
+    const f = document.createElement('iframe'); f.title = 'Mind maps'; f.src = MM_URL;
+    f.allow = 'clipboard-read; clipboard-write; fullscreen';
+    document.getElementById('mindmapHost').appendChild(f);
+  }
+  function openHere(){ if (libView !== 'mindmap') before = libView || 'home'; mount(); libView = 'mindmap'; renderLibrary(); }
+  function openNew(){ window.open(MM_URL, '_blank', 'noopener'); }
+  // the same question as Notebooks: here, or in a new tab
+  function mindmapChoice(anchor){
+    const r = anchor.getBoundingClientRect(), mobile = window.matchMedia('(max-width:760px)').matches;
+    const left = Math.max(8, Math.min(mobile ? r.left - 80 : r.right + 8, window.innerWidth - 225));
+    const style = mobile ? 'bottom:' + (window.innerHeight - r.top + 10) + 'px;left:' + left + 'px;transform-origin:bottom center' : 'top:' + Math.max(8, r.top) + 'px;left:' + left + 'px;transform-origin:top left';
+    $('#menuRoot').innerHTML = '<div class="menu" style="' + style + '"><button data-mm-choice="new">Open Mind maps in a new tab</button><button data-mm-choice="here">Open Mind maps here</button></div>';
+    document.addEventListener('pointerdown', menuOutside, true);
+    $('.menu').addEventListener('click', e => { const b = e.target.closest('[data-mm-choice]'); if (!b) return; closeMenu(); if (b.dataset.mmChoice === 'new') openNew(); else openHere(); });
+  }
+  window.mindmapChoice = mindmapChoice;
+  const side = document.getElementById('navMindmapBtn'); if (side) side.addEventListener('click', () => mindmapChoice(side));
+  const bar = document.getElementById('mobileBottomNav');
+  if (bar) bar.addEventListener('click', e => { const b = e.target.closest('[data-nav="mindmap"]'); if (!b) return; e.stopImmediatePropagation(); mindmapChoice(b); }, true);
+  document.getElementById('mmBack').addEventListener('click', () => { libView = before === 'mindmap' ? 'home' : before; renderLibrary(); });
+  document.getElementById('mmNewTab').addEventListener('click', openNew);
+  // show the view and light its menu item
+  const prev = renderLibrary;
+  renderLibrary = function(){
+    const out = prev.apply(this, arguments);
+    document.getElementById('mindmapView').classList.toggle('hidden', libView !== 'mindmap');
+    if (side) side.classList.toggle('active', libView === 'mindmap');
+    return out;
+  };
+  if (new URLSearchParams(location.search).get('tab') === 'mindmap') openHere();
 })();
 </script>
 </body>
