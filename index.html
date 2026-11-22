@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <script>try { var _ok = sessionStorage.getItem('nt-unlocked') === '1', _t = +localStorage.getItem('nt-unlocked-at') || 0; if (!_ok && !(_t && Date.now() - _t < 4 * 3600 * 1000 && Date.now() >= _t)) document.documentElement.classList.add('locked'); } catch (e) { document.documentElement.classList.add('locked'); }</script>
+    <script>try { var _ok = sessionStorage.getItem('nt-unlocked') === '1', _t = +localStorage.getItem('nt-unlocked-at') || 0; if (!_ok && !(_t && Date.now() - _t < 4 * 3600 * 1000 && Date.now() >= _t)) document.documentElement.classList.add('locked'); else document.documentElement.classList.add('booting'); } catch (e) { document.documentElement.classList.add('locked'); }</script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="icon.svg" />
@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-ipad-toolbar-v44" />
+    <meta name="app-build" content="2026-11-22-loading-v45" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -1041,6 +1041,22 @@
       /* password gate */
       .lock{position:fixed;inset:0;z-index:2000;display:none;flex-direction:column;overflow:hidden;color:#fff;background:#0b0908;font-family:var(--font-ui);}
       html.locked .lock{display:flex;}
+      /* loading screen: the sign-in screen with a progress bar while the library opens and syncs (the app builds itself behind it) */
+      html.booting .lock{display:flex;transition:opacity .38s ease;}
+      html.booting .lk-bar,html.booting .lk-err,html.booting .lk-explore{display:none !important;}
+      .lk-load{display:none;width:100%;max-width:560px;background:rgba(250,251,252,.95);color:#15202b;border-radius:22px;padding:16px 22px 18px;box-shadow:0 20px 60px rgba(0,0,0,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);animation:lk-rise .4s ease-out;}
+      html.booting .lk-load{display:block;}
+      @keyframes lk-rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+      .lk-load-top{display:flex;align-items:baseline;gap:12px;margin-bottom:11px;}
+      .lk-load-top span{flex:1;min-width:0;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .lk-load-top b{font-size:13px;font-weight:700;color:#6b7785;font-variant-numeric:tabular-nums;}
+      .lk-load-bar{height:6px;border-radius:99px;background:#e2e7ed;overflow:hidden;position:relative;}
+      .lk-load-bar i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#0f2a43,#3d7cb3);transition:width .35s ease;position:relative;overflow:hidden;}
+      .lk-load-bar i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-100%);animation:lk-shine 1.3s ease-in-out infinite;}
+      @keyframes lk-shine{to{transform:translateX(100%);}}
+      .lk-load small{display:block;margin-top:9px;font-size:12px;color:#6b7785;min-height:15px;}
+      .lock.boot-out{opacity:0;pointer-events:none;}
+      @media (prefers-reduced-motion:reduce){.lk-load,.lk-load-bar i::after{animation:none;}}
       html.locked body > :not(.lock):not(script){display:none !important;}
       .lk-bg{position:absolute;inset:0;background:#0b0908 url(lock-bg.jpg) center/cover no-repeat;transform:scale(1.04);animation:lk-drift 26s ease-in-out infinite alternate;}
       .lk-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,5,.72) 0%,rgba(6,5,5,.28) 34%,rgba(6,5,5,.30) 58%,rgba(6,5,5,.86) 100%),radial-gradient(70% 60% at 50% 42%,rgba(0,0,0,.0),rgba(0,0,0,.35));}
@@ -1123,6 +1139,7 @@
           <button class="lk-go" type="submit" id="lockGo">Log in<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
         </form>
         <div class="lk-err" id="lockErr" role="alert"></div>
+        <div class="lk-load" id="lkLoad" role="status" aria-live="polite"><div class="lk-load-top"><span id="lkLoadTxt">Opening your library…</span><b id="lkLoadPct">0%</b></div><div class="lk-load-bar"><i id="lkLoadFill"></i></div><small id="lkLoadSub"></small></div>
       </div>
     </div>
     <!-- Notehouse styles and selectors are isolated inside a shadow root. -->
@@ -4567,7 +4584,8 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
       const unlock = () => {
         try { sessionStorage.setItem('nt-unlocked', '1'); } catch (er) {}
         try { localStorage.setItem('nt-unlocked-at', String(Date.now())); } catch (er) {}
-        input.value = ''; document.documentElement.classList.remove('locked');
+        input.value = ''; document.documentElement.classList.add('booting'); document.documentElement.classList.remove('locked');
+        if (window.ntBootStart) window.ntBootStart();
         const f = window.__afterUnlock; window.__afterUnlock = null; if (f) f();
       };
       // the Google Drive session ended: after the password, Unlock turns into "Reconnect with Google" (the same as signing in)
@@ -8353,6 +8371,69 @@ const previousRunMenuAction=runMenuAction;runMenuAction=function(action){if(acti
       if (typeof driveLinked !== 'undefined' && driveLinked && driveTokenValid()) queueDriveSync();
     }
     whenUnlocked(initApp);
+
+    /* ================= Loading screen =================
+       Only a cover: the app opens behind it exactly as before. The bar follows the real steps — the library opens on
+       this device, then the first Google Drive sync — and the cover lifts when they are done. It never waits more than
+       12 s (the sync then goes on in the background as usual), and a tap after 2 s lifts it at once. */
+    (function(){
+      const html = document.documentElement, lock = document.getElementById('lockScreen');
+      const fill = document.getElementById('lkLoadFill'), txt = document.getElementById('lkLoadTxt'), pctEl = document.getElementById('lkLoadPct'), sub = document.getElementById('lkLoadSub');
+      if (!lock || !fill) return;
+      let on = false, pct = 0, t0 = 0, readyAt = 0, sawSync = false, kicked = false, timer = 0, finished = false;
+      const v = (f, d) => { try { return f(); } catch (e) { return d; } };
+      function set(p, label, note){
+        pct = Math.max(pct, Math.min(100, p)); fill.style.width = pct + '%'; pctEl.textContent = Math.round(pct) + '%';
+        if (label) txt.textContent = label; if (note !== undefined) sub.textContent = note;
+      }
+      function finish(label){
+        if (!on || finished) return; finished = true; clearInterval(timer);
+        set(100, label || 'Ready');
+        setTimeout(() => {
+          lock.classList.add('boot-out');
+          setTimeout(() => { html.classList.remove('booting'); lock.classList.remove('boot-out'); on = false; }, 400);
+        }, Math.max(250, 800 - (performance.now() - t0)));   // long enough to read, never a flash
+      }
+      function tick(){
+        const now = performance.now(), ready = v(() => appReady, false);
+        const linked = v(() => driveLinked, false);
+        const canSync = linked && (v(() => driveTokenValid(), false) || !!v(() => workerCfg(), null));
+        if (!ready){ set(Math.min(38, pct + 1.5), 'Opening your library…'); }
+        else {
+          if (!readyAt){ readyAt = now; set(45, canSync ? 'Library ready · checking Google Drive…' : 'Library ready'); }
+          if (canSync && !kicked && !v(() => driveProgOn, false) && v(() => driveTokenValid(), false) && !v(() => driveSyncing, false)){
+            kicked = true; try { clearTimeout(driveSyncTimer); } catch (e) {} try { driveSyncNow(false); } catch (e) {}   // no need to wait for the usual 2.5 s delay
+          }
+          const syncing = v(() => driveProgOn, false);   // read after the kick above, which may have just started it
+          if (syncing) sawSync = true;
+          else if (sawSync) return finish('Up to date');
+          else if (!canSync || now - readyAt > 4000) return finish(canSync ? 'Ready' : 'Ready on this device');
+          if (!sawSync) set(Math.min(52, pct + .4));
+        }
+        if (now - t0 > 2000) sub.textContent = 'Tap anywhere to continue — syncing goes on in the background';
+        if (now - t0 > 12000) finish('Ready — still syncing in the background');
+      }
+      // the bar follows Google Drive's own progress (download, then upload)
+      if (typeof syncProgress === 'function'){
+        const prev = syncProgress;
+        syncProgress = function(phase, done, total, label){
+          const out = prev.apply(this, arguments);
+          if (on && !finished && v(() => driveProgOn, false)){ sawSync = true; const p = Math.min(100, (phase === 0 ? 0 : 50) + 50 * (total ? done / total : 1)); set(50 + p * .48, label ? 'Syncing · ' + label : null); }
+          return out;
+        };
+      }
+      if (typeof syncProgressEnd === 'function'){
+        const prev = syncProgressEnd;
+        syncProgressEnd = function(ok){ const out = prev.apply(this, arguments); if (on) finish(ok ? 'Up to date' : 'Ready — sync will try again'); return out; };
+      }
+      lock.addEventListener('click', () => { if (on && performance.now() - t0 > 2000) finish(); });
+      window.ntBootStart = function(){
+        if (on) return; on = true; finished = false; pct = 0; readyAt = 0; sawSync = false; kicked = false; t0 = performance.now();
+        html.classList.add('booting'); set(6, 'Opening your library…', '');
+        clearInterval(timer); timer = setInterval(tick, 120); tick();
+      };
+      if (html.classList.contains('booting') && !html.classList.contains('locked')) window.ntBootStart();
+    })();
     </script>
     <script>
 'use strict';
