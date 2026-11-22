@@ -1,0 +1,132 @@
+<!-- Note House patch v28: several OneNote note containers copied together keep their own places.
+     OneNote puts them in one invisible layout table (one container per cell, real tables nested inside cells).
+     Note House used to treat that as a real table, pull the nested tables out and stack everything on top of each other.
+     Now each filled cell becomes its own container, placed and sized as it was in OneNote.
+     Paste before </body>, after patches v20–v27. -->
+<style>
+/* containers pasted from OneNote keep OneNote's tight line spacing */
+#editorContent .note-block.from-onenote .note-block-body,#editorContent .note-block.from-onenote .note-block-body li{line-height:1.3}
+#editorContent .note-block.from-onenote .note-block-body :is(ul,ol){margin:0;padding-left:26px}
+#editorContent .note-block.from-onenote .note-block-body p{margin-top:0;margin-bottom:0}
+</style>
+<script>
+(function(){
+  if (typeof editor === 'undefined') return;
+  const inner = document.querySelector('.editor-inner'), main = editor.closest('main.editor') || document.querySelector('main.editor');
+  const Z = () => { const v = parseFloat(inner && inner.style.zoom); return v ? v / 100 : 1; };
+  const textOf = el => (el.textContent || '').replace(/ /g, ' ').trim();
+  const LAYOUT = ['position', 'top', 'left', 'right', 'bottom', 'float', 'height', 'min-height', 'max-height', 'margin-top', 'margin-bottom', 'margin-left', 'margin-right', 'margin'];
+  function clean(root){
+    root.querySelectorAll('script,style,meta,link,title,xml').forEach(n => n.remove());
+    root.querySelectorAll('[style]').forEach(el => {
+      const zero = p => /^0(\.0+)?(in|pt|px|cm|em)?$/.test((el.style.getPropertyValue(p) || '').trim());
+      LAYOUT.forEach(p => { if (/^margin/.test(p) && zero(p)) return; el.style.removeProperty(p); });   // OneNote's margin:0 keeps lines as close as in OneNote
+      if (!/^(TD|TH|TABLE|COL|IMG)$/.test(el.tagName)){ el.style.removeProperty('width'); el.style.removeProperty('min-width'); }
+      if (!el.getAttribute('style').trim()) el.removeAttribute('style');
+    });
+    root.querySelectorAll('table').forEach(t => { t.classList.add('notehouse-table'); });
+    return root;
+  }
+  // the direct cells of a table (not the cells of tables nested in it)
+  const ownCells = t => [...t.rows].flatMap(r => [...r.cells]);
+  /* A layout table: its own cells hold whole notes (paragraphs, lists, tables), several of them, and it has no visible grid */
+  function isLayout(t){
+    const cells = ownCells(t), filled = cells.filter(c => textOf(c) || c.querySelector('img,table'));
+    const blocky = filled.filter(c => c.querySelector('p,ul,ol,table,div,h1,h2,h3')).length;
+    if (t.hasAttribute('cols')) return blocky >= 1;                 // OneNote marks its layout tables with cols="…"
+    // otherwise: no visible grid, and mostly empty spacer cells around a few notes (a real table has text in most cells)
+    const st = (t.getAttribute('style') || '');
+    const noGrid = /border-width:\s*0/.test(st) || t.getAttribute('border') === '0';
+    return noGrid && blocky >= 2 && filled.length / cells.length <= 0.4;
+  }
+  function blockHTML(){
+    return '<div class="note-block-controls"><div class="note-block-grip" title="Drag to move this note">⠿</div><button type="button" class="note-block-delete" title="Delete note box" aria-label="Delete note box">×</button><span class="note-block-resize" role="separator" aria-label="Resize note container" title="Drag to resize"></span></div><div class="note-block-body" contenteditable="true" spellcheck="true"></div>';
+  }
+  /* lay the table out off-screen at page scale, read where each filled cell sits, and make one container per cell */
+  function unpack(table, x0, y0){
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;width:max-content';
+    probe.className = 'note-block from-onenote'; probe.innerHTML = '<div class="note-block-body"></div>';
+    const t = table.cloneNode(true); t.style.width = 'auto'; t.style.tableLayout = 'auto'; probe.firstChild.appendChild(t); editor.appendChild(probe);
+    const tr = t.getBoundingClientRect(), z = Z(), made = [];
+    const sample = document.createElement('div'); sample.className = 'note-block'; sample.style.visibility = 'hidden'; sample.innerHTML = blockHTML(); editor.appendChild(sample);
+    const sb = sample.querySelector('.note-block-body'), cs = getComputedStyle(sb), cb = getComputedStyle(sample);
+    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0) + (parseFloat(cb.paddingLeft) || 0) + (parseFloat(cb.paddingRight) || 0) + (parseFloat(cb.borderLeftWidth) || 0) * 2; sample.remove();
+    ownCells(t).forEach((c, i) => {
+      if (!(textOf(c) || c.querySelector('img,table'))) return;
+      const r = c.getBoundingClientRect();
+      const block = document.createElement('div'); block.className = 'note-block from-onenote'; block.contentEditable = 'false'; block.innerHTML = blockHTML();
+      const body = block.querySelector('.note-block-body'), src = ownCells(table)[i];
+      body.innerHTML = src.innerHTML; clean(body);
+      const last = body.lastElementChild; if (!last || last.tagName === 'TABLE'){ const p = document.createElement('p'); p.innerHTML = '<br>'; body.appendChild(p); }
+      block.style.left = Math.round(x0 + (r.left - tr.left) / z) + 'px';
+      block.style.top = Math.round(y0 + (r.top - tr.top) / z) + 'px';
+      block.style.width = Math.max(180, Math.round(r.width / z + padX)) + 'px';
+      made.push(block);
+    });
+    probe.remove();
+    made.forEach(b => editor.appendChild(b));
+    separate(made);
+    return made;
+  }
+  /* containers that still touch (text wraps a little differently than in OneNote): push the lower one down */
+  function separate(blocks){
+    const GAP = 14, box = b => ({ x: parseFloat(b.style.left) || 0, y: parseFloat(b.style.top) || 0, w: b.offsetWidth / Z(), h: b.offsetHeight / Z() });
+    const list = blocks.slice().sort((a, b) => box(a).y - box(b).y);
+    for (let i = 0; i < list.length; i++){
+      for (let k = 0; k < i; k++){
+        const a = box(list[k]), c = box(list[i]);
+        if (a.x < c.x + c.w && c.x < a.x + a.w && c.y < a.y + a.h + GAP && a.y <= c.y){ list[i].style.top = Math.round(a.y + a.h + GAP) + 'px'; k = -1; }
+      }
+    }
+  }
+  function caretOrigin(){
+    const er = editor.getBoundingClientRect(), z = Z(), s = getSelection();
+    let r = s.rangeCount ? s.getRangeAt(0).getBoundingClientRect() : null;
+    if (r && !r.width && !r.height){ const n = s.getRangeAt(0).startContainer, el = n.nodeType === 1 ? n : n.parentElement; r = el ? el.getBoundingClientRect() : null; }
+    if (!r || (!r.left && !r.top)){ const m = main.getBoundingClientRect(); r = { left: m.left + 40, top: m.top + 60 }; }
+    return [Math.max(0, (r.left - er.left) / z), Math.max(0, (r.top - er.top) / z)];
+  }
+
+  // runs before the app's own table paste
+  editor.addEventListener('paste', e => {
+    const html = e.clipboardData && e.clipboardData.getData('text/html'); if (!html || !/<table\b/i.test(html)) return;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const tops = [...doc.body.querySelectorAll('table')].filter(t => !t.parentElement.closest('table'));
+    const layouts = tops.filter(isLayout); if (!layouts.length) return;
+    const outside = doc.body.cloneNode(true); outside.querySelectorAll('table').forEach(t => { if (!t.parentElement || !t.parentElement.closest('table')) t.remove(); });
+    if (textOf(outside)) return;                          // mixed with ordinary text: leave it to the normal paste
+    e.preventDefault(); e.stopImmediatePropagation();
+    let [x, y] = caretOrigin(), count = 0;
+    tops.forEach(t => {
+      if (isLayout(t)){ const made = unpack(t, x, y); count += made.length; const bottom = Math.max(...made.map(b => b.offsetTop + b.offsetHeight), y); y = bottom + 24; }
+      else { const b = document.createElement('div'); b.className = 'note-block table-note-block'; b.contentEditable = 'false'; b.innerHTML = blockHTML(); const body = b.querySelector('.note-block-body'); body.appendChild(clean(t.cloneNode(true))); body.insertAdjacentHTML('beforeend', '<p><br></p>'); b.style.left = Math.round(x) + 'px'; b.style.top = Math.round(y) + 'px'; editor.appendChild(b); y += b.offsetHeight / Z() + 24; count++; }
+    });
+    try { expandCanvasToFit(); } catch (er) {} try { storeCurrent(false); } catch (er) {}
+    if (typeof toast === 'function') toast(count + ' note container' + (count === 1 ? '' : 's') + ' pasted where they were in OneNote');
+  }, true);
+
+  // pages pasted before this fix: a container that still holds a layout table is unpacked in place, once
+  function unpackSaved(){
+    let changed = false;
+    editor.querySelectorAll(':scope > .note-block').forEach(b => {
+      const body = b.querySelector('.note-block-body'); if (!body) return;
+      const kids = [...body.children].filter(k => !(k.tagName === 'P' && !textOf(k) && !k.querySelector('img,table')));
+      if (kids.length !== 1 || kids[0].tagName !== 'TABLE' || !isLayout(kids[0])) return;
+      const x = parseFloat(b.style.left) || 0, y = parseFloat(b.style.top) || 0;
+      // the old paste moved each nested table into its own container, 24px further down and right each time
+      const strays = [...editor.querySelectorAll(':scope > .note-block.table-note-block')].filter(o => o !== b && [1, 2, 3, 4, 5].some(k => Math.abs((parseFloat(o.style.left) || 0) - (x + 24 * k)) < 1.5 && Math.abs((parseFloat(o.style.top) || 0) - (y + 24 * k)) < 1.5));
+      const made = unpack(kids[0], x, y); b.remove(); changed = true;
+      if (strays.length && made.length){
+        const host = made.slice().sort((p, q) => q.offsetWidth - p.offsetWidth)[0], hb = host.querySelector('.note-block-body');
+        strays.forEach(o => { const t = o.querySelector('.note-block-body > table'); if (t){ hb.insertBefore(t, hb.lastElementChild && hb.lastElementChild.tagName === 'P' && !textOf(hb.lastElementChild) ? hb.lastElementChild : null); o.remove(); } });
+        if (!hb.lastElementChild || hb.lastElementChild.tagName === 'TABLE') hb.insertAdjacentHTML('beforeend', '<p><br></p>');
+        separate(made);
+      }
+    });
+    if (changed){ try { expandCanvasToFit(); } catch (e) {} try { storeCurrent(false); } catch (e) {} }
+  }
+  if (typeof render === 'function'){ const prev = render; render = function(){ const out = prev.apply(this, arguments); try { unpackSaved(); } catch (e) {} return out; }; }
+  try { unpackSaved(); } catch (e) {}
+})();
+</script>
