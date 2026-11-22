@@ -23,7 +23,8 @@
   }
   function applyEach(prop, value){
     const sel = getSelection(), r = sel.getRangeAt(0).cloneRange();
-    const blocks = [...editor.querySelectorAll(BLOCK)].filter(b => r.intersectsNode(b) && !b.querySelector(BLOCK));
+    let blocks = [...editor.querySelectorAll(BLOCK)].filter(b => r.intersectsNode(b) && !b.querySelector(BLOCK));
+    if (!blocks.length){ const h = hostOf(r.commonAncestorContainer); if (h) blocks = [h]; }
     let first = null, last = null;
     for (const b of blocks){
       const sub = document.createRange(); sub.selectNodeContents(b);
@@ -51,7 +52,7 @@
     el.onchange = function(e){
       try { restoreEditSelection(); } catch (er) {}
       const s = getSelection(), r = s.rangeCount ? s.getRangeAt(0) : null;
-      if (r && !r.collapsed && (editor.contains(r.commonAncestorContainer) || r.commonAncestorContainer === editor) && spansHosts(r)){ applyEach(prop, valueOf(el.value)); return; }
+      if (r && !r.collapsed && (editor.contains(r.commonAncestorContainer) || r.commonAncestorContainer === editor) ){ applyEach(prop, valueOf(el.value)); return; }   // every selection, line by line: text with its own font or size (pasted, or set before) changes too
       return prev.call(this, e);
     };
   }
