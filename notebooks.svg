@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Notebooks">
+<defs>
+  <linearGradient id="paper" x2="0.9" y2="1">
+    <stop stop-color="#FFF19A"/><stop offset="1" stop-color="#F9DD72"/>
+  </linearGradient>
+  <linearGradient id="fold" x2="1" y2="1">
+    <stop stop-color="#FFEE8D"/><stop offset="1" stop-color="#DDB44A"/>
+  </linearGradient>
+  <linearGradient id="cream" x2="1" y2="1">
+    <stop stop-color="#FFFEF0"/><stop offset="1" stop-color="#EBD8AA"/>
+  </linearGradient>
+</defs>
+<rect x="101" y="50" width="16" height="29" rx="5" fill="url(#fold)"/>
+<rect x="22" y="18" width="84" height="94" rx="14" fill="url(#paper)" stroke="#E7C75C"/>
+<g fill="#C79B38"><circle cx="30" cy="46" r="8"/><circle cx="30" cy="80" r="8"/></g>
+<g fill="#FFF9E6"><rect x="11" y="42" width="21" height="8" rx="4"/><rect x="11" y="76" width="21" height="8" rx="4"/></g>
+<path d="M50 42h35M50 56h29" stroke="#9A702A" stroke-width="5" stroke-linecap="round"/>
+</svg>
