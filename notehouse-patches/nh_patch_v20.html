@@ -13,12 +13,15 @@
     let live = get();
     function setZoom(z, cx, cy, save){
       z = Math.max(MIN, Math.min(MAX, Math.round(z)));
-      const r = scroller.getBoundingClientRect(), ox = cx - r.left, oy = cy - r.top, old = live / 100;
-      const px = (scroller.scrollLeft + ox) / old, py = (scroller.scrollTop + oy) / old;   // the point under the fingers
+      // the spot of the page under the pointer or fingers, measured on the page itself (the title bar and margins above it do not scale)
+      const area = (typeof editor !== 'undefined' && editor) || inner, old = live / 100, a = area.getBoundingClientRect();
+      const lx = (cx - a.left) / old, ly = (cy - a.top) / old;
       live = z; inner.style.zoom = z + '%';
-      scroller.scrollLeft = px * z / 100 - ox; scroller.scrollTop = py * z / 100 - oy;   // stays under the fingers
+      if (save){ try { if (typeof expandCanvasToFit === 'function') expandCanvasToFit(); } catch (e) {} }   // let the page settle first, then line it up
+      const b = area.getBoundingClientRect();
+      scroller.scrollLeft += b.left + lx * z / 100 - cx; scroller.scrollTop += b.top + ly * z / 100 - cy;   // that spot stays under the pointer
       const ro = $q('#zoomReadout'); if (ro) ro.textContent = z + '%';
-      if (save){ try { localStorage.setItem('notehouse_page_zoom', String(z)); } catch (e) {} try { if (typeof expandCanvasToFit === 'function') expandCanvasToFit(); } catch (e) {} }
+      if (save){ try { localStorage.setItem('notehouse_page_zoom', String(z)); } catch (e) {} }
     }
     let pinch = null;
     const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
@@ -35,9 +38,9 @@
     scroller.addEventListener('touchend', end, { passive: true }); scroller.addEventListener('touchcancel', end, { passive: true });
     ['gesturestart', 'gesturechange'].forEach(ev => scroller.addEventListener(ev, e => e.preventDefault(), { passive: false }));   // iPad Safari page zoom
     scroller.addEventListener('wheel', e => {                // trackpad pinch on a Mac arrives as Ctrl + wheel
-      if (!e.ctrlKey) return; e.preventDefault(); live = get();
-      setZoom(live * Math.exp(-e.deltaY / 120), e.clientX, e.clientY, true);
-    }, { passive: false });
+      if (!e.ctrlKey) return; e.preventDefault(); e.stopPropagation(); live = get();   // the app's own Ctrl+wheel zoom (10% steps, centred) must not run as well
+      setZoom(live * Math.exp(-Math.max(-60, Math.min(60, e.deltaY)) / 300), e.clientX, e.clientY, true);   // gentle steps: a trackpad pinch sends many small ones
+    }, { passive: false, capture: true });
     // the − / + buttons and View › Zoom share the same range
     if (typeof setPageZoom === 'function') setPageZoom = function(delta){ const r = scroller.getBoundingClientRect(); live = get(); setZoom(live + delta, r.left + r.width / 2, r.top + r.height / 3, true); };
   })();

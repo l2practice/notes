@@ -1,0 +1,22 @@
+<!-- Note House patch v29: note containers get OneNote's handle bar — a grey bar on top while you point at or type in
+     a container, "····" in the middle to move it (the whole bar drags), "◂▸" at the right end to make it wider, × at the left to delete.
+     Paste before </body>, after patches v20–v28. -->
+<style>
+#editorContent .note-block:hover,#editorContent .note-block:focus-within{outline:1px solid #d6d6d6;box-shadow:none}
+#editorContent .note-block-controls{top:-16px!important;left:-1px!important;right:-1px!important;height:16px!important;background:#e9e9e9;border:1px solid #d6d6d6;border-bottom:0;border-radius:3px 3px 0 0;display:block!important}
+#editorContent .note-block:focus-within .note-block-controls{opacity:1;pointer-events:auto}
+@media (hover:none){#editorContent .note-block:focus-within .note-block-controls{height:22px!important;top:-22px!important}}
+/* the whole bar moves the container; the dots sit in the middle */
+#editorContent .note-block-grip{position:absolute!important;inset:0 24px 0 22px;min-width:0!important;height:auto!important;padding:0!important;border-radius:0!important;font-size:0!important;color:transparent!important;cursor:move!important;background:none!important}
+#editorContent .note-block-grip::before{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -15.5px;border-radius:50%;background:#7a7a7a;box-shadow:9px 0 #7a7a7a,18px 0 #7a7a7a,27px 0 #7a7a7a}
+#editorContent .note-block-grip:hover::before{background:#444;box-shadow:9px 0 #444,18px 0 #444,27px 0 #444}
+#editorContent .note-block-grip:hover{background-color:transparent!important}
+#editorContent .note-block-controls:hover{background:#e1e1e1}
+/* ◂▸ at the right end widens it */
+#editorContent .note-block-resize{position:absolute!important;right:0;top:0;bottom:0;width:22px!important;height:auto!important;margin:0!important;cursor:ew-resize!important}
+#editorContent .note-block-resize::after{content:"\25C2\25B8"!important;border:0!important;width:auto!important;height:auto!important;top:50%!important;right:3px!important;transform:translateY(-52%);font-size:12px;line-height:1;letter-spacing:-1px;color:#6f6f6f;opacity:1!important}
+#editorContent .note-block-resize:hover::after{color:#333}
+/* × at the left end deletes it */
+#editorContent .note-block-delete{position:absolute!important;left:2px;top:50%;transform:translateY(-50%);width:16px!important;height:13px!important;font-size:13px!important;color:#8a8a8a!important;border-radius:3px}
+#editorContent .note-block-delete:hover{color:#bb433c!important;background:#f6dede!important}
+</style>
