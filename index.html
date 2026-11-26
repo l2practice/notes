@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-26-board-ui-v48" />
+    <meta name="app-build" content="2026-11-26-todo-v49" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -4811,6 +4811,323 @@ body.nhp .nhp-sheet{border-radius:var(--aw-r-lg) var(--aw-r-lg) 0 0!important;fo
     [[pick(b =&gt; b.id === 'railNotebooks'), 'sections', 'Sections'], [pick(b =&gt; b.id === 'railPages'), 'pages', 'Pages'], [pick(b =&gt; b.id === 'searchBtn'), 'search', 'Search'],
      [pick(b =&gt; /recent/i.test(b.title || '')), 'recent', 'Recent'], [pick(b =&gt; /help/i.test(b.title || '')), 'help', 'Help']].forEach(([b, k, t]) =&gt; { if (b) nbxRailItem(b, ICON[k], t); });
   }
+})();
+&lt;/script&gt;
+&lt;!-- ===== Notebooks To-do v36 =====
+     To-do lists next to the notes: the To-do item on the rail (phone: ⋮ › To-do lists) shows the lists as cards
+     (name, 3/7, a thin progress bar). "+ To-do list" makes a list with a first round checkbox ready to type in.
+     Enter adds the next item (or splits the line), Enter on an empty item ends the list, Backspace at the start of
+     an item joins it to the one above (an empty one is removed), the round checkbox ticks and unticks.
+     Data: data.todo = { version: 1, lists: [{ id, title, items: [{ id, text, done }], createdAt, updatedAt }], tombs }
+     — part of the notebook data, so it is saved and synced with Google Drive like the pages (merged list by list,
+     the newest edit wins, deleted lists stay deleted).
+     Also the shared frame for v37 (Reminder): window.nbxView.
+     Paste before &lt;/body&gt;, after patches v20–v35 (needs v35). To remove: delete this block and v37. --&gt;
+&lt;style&gt;
+/* ---------- the view next to the rail ---------- */
+#nbxView{display:none;font-family:var(--aw-font);color:var(--aw-ink)}
+body.nbx-on #nbxView{display:block;flex:1;min-width:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:4px 6px calc(32px + var(--nbx-kb,0px));scroll-padding-bottom:calc(90px + var(--nbx-kb,0px))}
+body.nbx-on #notebookPane,body.nbx-on #pagePane,body.nbx-on main.editor,body.nbx-on .chat,body.nbx-on .search-pane,body.nbx-on .ribbon,body.nbx-on .note-statusbar{display:none!important}
+body.nbx-on #nhiBar .tabs{visibility:hidden}
+body.nbx-on .rail button.active:not(.nbx-cur){background:transparent!important;color:var(--aw-ink-2)!important;box-shadow:none!important}
+body.nhp.nbx-on #nbxView{position:fixed;inset:0;z-index:70;background:var(--aw-bg);padding:calc(10px + env(safe-area-inset-top)) 14px calc(40px + env(safe-area-inset-bottom) + var(--nbx-kb,0px))}
+.nbx-wrap{max-width:1180px;margin:0 auto}
+.nbx-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 20px}
+.nbx-head h1{margin:0;font-size:1.65rem;font-weight:800;letter-spacing:-.02em;line-height:1.2;min-width:0;flex:1}
+.nbx-head .meta{display:block;font-size:.82rem;font-weight:500;color:var(--aw-ink-3);letter-spacing:0;margin-top:2px}
+.nbx-pill{height:44px;min-width:44px;padding:0 16px;border:0;border-radius:var(--aw-r-pill);background:var(--aw-surface);color:var(--aw-ink);font:600 14px var(--aw-font);box-shadow:var(--aw-shadow-sm);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:none}
+.nbx-pill:hover{box-shadow:var(--aw-shadow)}
+.nbx-pill svg,.nbx-btn svg,.nbx-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nbx-btn{height:44px;padding:0 20px;border:0;border-radius:var(--aw-r-pill);background:var(--aw-primary-dk);color:#fff;font:700 14px var(--aw-font);cursor:pointer;display:inline-flex;align-items:center;gap:8px;flex:none}
+.nbx-btn:hover{background:#2b2f5c}
+.nbx-btn.alt{background:var(--aw-primary)}.nbx-btn.alt:hover{background:var(--aw-primary-hv)}
+.nbx-btn.ghost{background:var(--aw-primary-lt);color:var(--aw-primary-dk)}
+.nbx-btn.danger{background:#fdecea;color:var(--aw-danger)}.nbx-btn.danger:hover{background:#fbdcd8}
+.nbx-icon{width:44px;height:44px;border:0;border-radius:var(--aw-r-pill);background:transparent;color:var(--aw-ink-2);cursor:pointer;display:inline-grid;place-items:center;flex:none}
+.nbx-icon:hover{background:var(--aw-surface-2);color:var(--aw-ink)}
+.aw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.aw-board-card{background:var(--aw-surface);border:none;border-radius:20px;padding:20px;cursor:pointer;transition:transform .14s,box-shadow .16s;box-shadow:var(--aw-shadow);text-align:left;font:inherit;color:inherit;width:100%;display:block}
+.aw-board-card:hover{transform:translateY(-3px);box-shadow:var(--aw-shadow-lg)}
+.aw-board-card h3{margin:0 0 8px;font-size:1.05rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aw-board-card .meta{font-size:.8rem;color:var(--aw-ink-3)}
+@media (max-width:560px){.aw-grid{grid-template-columns:1fr;gap:12px}.nbx-head h1{font-size:1.45rem;order:3;flex-basis:100%}.nbx-head{gap:10px 8px}.nbx-head .nbx-btn{margin-left:auto}}
+.nbx-td-text:focus-visible,.nbx-td-title:focus-visible{box-shadow:none!important}
+.nbx-td-row:focus-within{background:var(--aw-surface-2)}
+
+/* ---------- to-do cards ---------- */
+.nbx-td-card .peek{margin:12px 0 14px;display:grid;gap:7px}
+.nbx-td-card .peek div{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--aw-ink-2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.nbx-td-card .peek i{width:14px;height:14px;border-radius:50%;border:1.8px solid var(--aw-primary);flex:none}
+.nbx-td-card .peek .d i{background:var(--aw-primary);box-shadow:inset 0 0 0 2px #fff}
+.nbx-td-card .peek .d span{text-decoration:line-through;opacity:.55}
+.nbx-prog{display:flex;align-items:center;gap:10px}
+.nbx-prog .bar{flex:1;height:5px;border-radius:5px;background:var(--aw-border-2);overflow:hidden}
+.nbx-prog .bar i{display:block;height:100%;border-radius:inherit;background:var(--aw-primary);transition:width .25s}
+.nbx-prog.all .bar i{background:var(--aw-writing)}
+.nbx-prog b{font-size:.8rem;font-weight:700;color:var(--aw-ink-2);font-variant-numeric:tabular-nums}
+.nbx-new-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:150px;border:2px dashed var(--aw-border);background:transparent;box-shadow:none;color:var(--aw-primary);font-weight:700}
+.nbx-new-card:hover{background:var(--aw-surface);border-color:var(--aw-primary)}
+.nbx-new-card svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.nbx-empty{text-align:center;padding:48px 20px;color:var(--aw-ink-3)}
+.nbx-empty b{display:block;font-size:1.1rem;color:var(--aw-ink);margin-bottom:6px}
+
+/* ---------- one list ---------- */
+.nbx-td-sheet{background:var(--aw-surface);border-radius:var(--aw-r-lg);box-shadow:var(--aw-shadow);padding:22px 22px 14px;max-width:760px}
+.nbx-td-title{width:100%;border:0;outline:0;background:transparent;font:800 1.45rem var(--aw-font);color:var(--aw-ink);padding:4px 0;letter-spacing:-.01em}
+.nbx-td-title::placeholder{color:#b4b8d6}
+.nbx-td-sheet .nbx-prog{margin:6px 0 16px}
+.nbx-td-row{display:flex;align-items:flex-start;gap:12px;padding:4px 4px 4px 2px;border-radius:12px;position:relative}
+.nbx-td-row:hover{background:var(--aw-surface-2)}
+.nbx-check{width:44px;height:44px;margin:-6px -6px -6px -6px;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;flex:none;border-radius:50%}
+.nbx-check::before{content:"";width:22px;height:22px;border-radius:50%;border:2px solid var(--aw-primary);box-sizing:border-box;transition:background .12s,border-color .12s}
+.nbx-check[aria-checked="true"]::before{background:var(--aw-primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 12.5 4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/15px no-repeat}
+.nbx-td-text{flex:1;min-width:0;min-height:32px;padding:5px 0;font-size:1.02rem;line-height:1.45;outline:0;word-break:break-word;white-space:pre-wrap;color:var(--aw-ink)}
+.nbx-td-text:empty::before{content:attr(data-ph);color:#b4b8d6}
+.nbx-td-row.done .nbx-td-text{text-decoration:line-through;opacity:.5}
+.nbx-td-del{width:36px;height:36px;border:0;background:transparent;border-radius:50%;color:var(--aw-ink-3);cursor:pointer;display:grid;place-items:center;opacity:0;flex:none}
+.nbx-td-row:hover .nbx-td-del,.nbx-td-row:focus-within .nbx-td-del{opacity:1}
+@media (hover:none){.nbx-td-del{opacity:.55}}
+.nbx-td-del:hover{background:#fdecea;color:var(--aw-danger)}
+.nbx-td-del svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.nbx-td-add{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;margin-top:4px;padding:0 4px;border:0;background:transparent;color:var(--aw-primary);font:600 .98rem var(--aw-font);cursor:pointer;border-radius:12px;text-align:left}
+.nbx-td-add:hover{background:var(--aw-surface-2)}
+.nbx-td-add span{width:22px;height:22px;margin:0 5px 0 5px;border-radius:50%;border:2px dashed var(--aw-border);display:grid;place-items:center;font-size:16px;line-height:1}
+@media (max-width:560px){.nbx-td-sheet{padding:16px 12px 10px;border-radius:var(--aw-r)}}
+&lt;/style&gt;
+&lt;script&gt;
+(function(){
+  if (typeof data === 'undefined' || typeof queueSave !== 'function') return;
+  const $q = s =&gt; document.querySelector(s), body = document.body;
+  const esc = t =&gt; String(t == null ? '' : t).replace(/[&amp;&lt;&gt;"]/g, c =&gt; ({ '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '"': '&amp;quot;' }[c]));
+  const uid = () =&gt; (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const svg = p =&gt; '&lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;' + p + '&lt;/svg&gt;';
+
+  /* ================= the shared view next to the rail (To-do, Reminder) ================= */
+  const ws = $q('.workspace'), rail = $q('.rail');
+  const view = document.createElement('section'); view.id = 'nbxView'; view.setAttribute('aria-live', 'polite');
+  if (ws) ws.insertBefore(view, rail ? rail.nextSibling : ws.firstChild); else document.body.appendChild(view);
+  const views = {}; let current = null;
+  const isPhone = () =&gt; body.classList.contains('nhp');
+  window.nbxView = {
+    el: view,
+    register(name, def){ views[name] = def; if (rail &amp;&amp; def.icon){
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.nbx = name; b.title = def.label;
+      if (window.nbxRailItem) nbxRailItem(b, def.icon, def.label); else b.textContent = def.label;
+      const spacer = [...rail.children].find(c =&gt; c.tagName === 'DIV' &amp;&amp; c.style.flex); rail.insertBefore(b, spacer || null);
+      b.addEventListener('click', () =&gt; (current === name ? (views[name].home ? views[name].home() : null) : nbxView.open(name)));
+      def.railBtn = b;
+    } },
+    open(name, arg){
+      if (!views[name]) return;
+      try { storeCurrent(false); } catch (e) {}
+      // phones hide the workspace, so there the view sits on top of everything instead
+      if (isPhone()){ if (view.parentNode !== body) body.appendChild(view); } else if (ws &amp;&amp; view.parentNode !== ws) ws.insertBefore(view, rail ? rail.nextSibling : ws.firstChild);
+      const was = current; current = name; body.classList.add('nbx-on');
+      Object.values(views).forEach(v =&gt; v.railBtn &amp;&amp; v.railBtn.classList.toggle('nbx-cur', v === views[name]));
+      if (isPhone() &amp;&amp; !was) try { history.pushState(Object.assign({}, history.state, { nbx: name }), ''); } catch (e) {}
+      view.scrollTop = 0; views[name].show(view, arg);
+      dispatchEvent(new Event('resize'));
+    },
+    close(){
+      if (!current) return; const v = views[current]; current = null;
+      if (v &amp;&amp; v.hide) try { v.hide(); } catch (e) {}
+      body.classList.remove('nbx-on'); view.innerHTML = '';
+      Object.values(views).forEach(x =&gt; x.railBtn &amp;&amp; x.railBtn.classList.remove('nbx-cur'));
+      dispatchEvent(new Event('resize'));
+    },
+    get current(){ return current; },
+    back(){ if (isPhone() &amp;&amp; history.state &amp;&amp; history.state.nbx) history.back(); else nbxView.close(); },
+    save(){ clearTimeout(nbxView._t); nbxView._t = setTimeout(() =&gt; { try { queueSave(); } catch (e) {} }, 450); },
+    badge(name, n){ const v = views[name]; if (!v || !v.railBtn) return; let b = v.railBtn.querySelector('.nbx-badge'); if (!n){ if (b) b.remove(); return; } if (!b){ b = document.createElement('span'); b.className = 'nbx-badge'; v.railBtn.appendChild(b); } b.textContent = n &gt; 99 ? '99+' : n; },
+    backBtn(label){ return '&lt;button type="button" class="nbx-pill" data-nbx-back aria-label="Back to the notes"&gt;' + svg('&lt;path d="M15 6l-6 6 6 6"/&gt;') + esc(label || 'Notes') + '&lt;/button&gt;'; }
+  };
+  view.addEventListener('click', e =&gt; { if (e.target.closest('[data-nbx-back]')) nbxView.back(); });
+  // the other rail items (and the iPad search) go back to the notes first
+  if (rail) rail.addEventListener('click', e =&gt; { const b = e.target.closest('button'); if (b &amp;&amp; !b.dataset.nbx &amp;&amp; current) nbxView.close(); }, true);
+  const sb = $q('#searchBtn'); if (sb) sb.addEventListener('click', () =&gt; { if (current) nbxView.close(); }, true);
+  addEventListener('popstate', e =&gt; { if (current &amp;&amp; !(e.state &amp;&amp; e.state.nbx)) nbxView.close(); else if (current &amp;&amp; e.state &amp;&amp; e.state.nbx &amp;&amp; views[current].onState) views[current].onState(e.state); });
+  addEventListener('keydown', e =&gt; { if (e.key === 'Escape' &amp;&amp; current &amp;&amp; !e.target.closest('input,textarea,[contenteditable="true"],select') &amp;&amp; !document.querySelector('.nbx-modal.show')) nbxView.back(); });
+  // the keyboard on a phone or iPad must not cover the line being typed (the page above tells its height)
+  addEventListener('message', e =&gt; { if (e.data &amp;&amp; e.data.type === 'notehouse:keyboard'){ view.style.setProperty('--nbx-kb', (+e.data.inset || 0) + 'px'); const a = document.activeElement; if (a &amp;&amp; view.contains(a)) setTimeout(() =&gt; a.scrollIntoView({ block: 'nearest' }), 60); } });
+  view.addEventListener('focusin', e =&gt; { setTimeout(() =&gt; { try { e.target.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (er) {} }, 320); });
+  // phone: the ⋮ sheet gets To-do lists and Reminder
+  const sheet = $q('#nhpSheet');
+  if (sheet){
+    new MutationObserver(() =&gt; {
+      if (!sheet.classList.contains('show') || sheet.querySelector('[data-nbx-open]') || !sheet.querySelector('[data-s="recent"],[data-s="search"],[data-s="settings"]')) return;
+      Object.entries(views).forEach(([k, v]) =&gt; { const b = document.createElement('button'); b.dataset.nbxOpen = k; b.innerHTML = '&lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;' + v.icon + '&lt;/svg&gt;&lt;span&gt;' + esc(v.label) + '&lt;/span&gt;'; sheet.appendChild(b); });
+    }).observe(sheet, { attributes: true, attributeFilter: ['class'], childList: true });
+    sheet.addEventListener('click', e =&gt; { const b = e.target.closest('[data-nbx-open]'); if (!b) return; $q('#nhpSheet').classList.remove('show'); const sc = $q('#nhpScrim'); if (sc) sc.classList.remove('show'); nbxView.open(b.dataset.nbxOpen); });
+  }
+
+  /* ================= sync: merge collections by id (newest edit wins, deletions stay deleted) ================= */
+  window.nbxMerge = function(local, remote, listKey){
+    if (!remote || typeof remote !== 'object') return local;
+    if (!local || typeof local !== 'object') return JSON.parse(JSON.stringify(remote));
+    const tombs = local.tombs = local.tombs || {}; for (const id in (remote.tombs || {})) tombs[id] = Math.max(tombs[id] || 0, remote.tombs[id]);
+    const keys = Array.isArray(listKey) ? listKey : [listKey];
+    keys.forEach(k =&gt; {
+      const L = local[k] = Array.isArray(local[k]) ? local[k] : [], byId = new Map(L.map(x =&gt; [x.id, x]));
+      (Array.isArray(remote[k]) ? remote[k] : []).forEach(r =&gt; {
+        if (!r || !r.id || (tombs[r.id] || 0) &gt;= (r.updatedAt || 0)) return;
+        const l = byId.get(r.id);
+        if (!l){ const c = JSON.parse(JSON.stringify(r)); L.push(c); byId.set(r.id, c); }
+        else if ((r.updatedAt || 0) &gt; (l.updatedAt || 0)){ Object.keys(l).forEach(p =&gt; delete l[p]); Object.assign(l, JSON.parse(JSON.stringify(r))); }
+      });
+      local[k] = L.filter(x =&gt; !((tombs[x.id] || 0) &gt;= (x.updatedAt || 0)));
+    });
+    const now = Date.now(); for (const id in tombs) if (now - tombs[id] &gt; 400 * 864e5) delete tombs[id];
+    return local;
+  };
+  if (typeof mergeNotebookData === 'function'){
+    const prev = mergeNotebookData;
+    mergeNotebookData = function(remote){
+      const out = prev.apply(this, arguments);
+      try { if (remote &amp;&amp; remote.todo) data.todo = nbxMerge(data.todo, remote.todo, 'lists'); } catch (e) { console.warn('to-do merge', e); }
+      try { if (current === 'todo' &amp;&amp; views.todo &amp;&amp; views.todo.refresh) views.todo.refresh(); } catch (e) {}
+      return out;
+    };
+  }
+
+  /* ================= To-do lists ================= */
+  function store(){
+    let t = data.todo;
+    if (!t || typeof t !== 'object' || !Array.isArray(t.lists)) t = data.todo = { version: 1, lists: [], tombs: {} };
+    if (!t.version) t.version = 1; if (!t.tombs) t.tombs = {};
+    return t;
+  }
+  const lists = () =&gt; (data.todo &amp;&amp; Array.isArray(data.todo.lists)) ? data.todo.lists : [];
+  const touch = l =&gt; { l.updatedAt = Date.now(); nbxView.save(); };
+  const fmtDate = t =&gt; { try { return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: new Date(t).getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }); } catch (e) { return ''; } };
+  let openId = null, root = null;
+
+  function prog(l){ const n = l.items.length, d = l.items.filter(i =&gt; i.done).length; return { n, d, pct: n ? Math.round(d / n * 100) : 0 }; }
+  function progHTML(l){ const p = prog(l); return `&lt;div class="nbx-prog${p.n &amp;&amp; p.d === p.n ? ' all' : ''}"&gt;&lt;div class="bar"&gt;&lt;i style="width:${p.pct}%"&gt;&lt;/i&gt;&lt;/div&gt;&lt;b&gt;${p.d}/${p.n}&lt;/b&gt;&lt;/div&gt;`; }
+
+  function showLists(){
+    openId = null;
+    const L = lists().slice().sort((a, b) =&gt; (b.updatedAt || 0) - (a.updatedAt || 0));
+    root.innerHTML = '&lt;div class="nbx-wrap"&gt;&lt;div class="nbx-head"&gt;' + nbxView.backBtn() +
+      `&lt;h1&gt;To-do lists&lt;span class="meta"&gt;${L.length ? L.length + (L.length === 1 ? ' list' : ' lists') + ' · ' + L.reduce((a, l) =&gt; a + l.items.filter(i =&gt; !i.done &amp;&amp; i.text.trim()).length, 0) + ' open items' : 'Tick things off as you go'}&lt;/span&gt;&lt;/h1&gt;` +
+      '&lt;button type="button" class="nbx-btn" data-td-new&gt;' + svg('&lt;path d="M12 5v14M5 12h14"/&gt;') + 'To-do list&lt;/button&gt;&lt;/div&gt;' +
+      '&lt;div class="aw-grid"&gt;' + L.map(l =&gt; {
+        const peek = l.items.filter(i =&gt; i.text.trim()).slice(0, 3).map(i =&gt; `&lt;div class="${i.done ? 'd' : ''}"&gt;&lt;i&gt;&lt;/i&gt;&lt;span&gt;${esc(i.text)}&lt;/span&gt;&lt;/div&gt;`).join('');
+        return `&lt;button type="button" class="aw-board-card nbx-td-card" data-td-open="${esc(l.id)}" aria-label="Open ${esc(l.title || 'Untitled list')}"&gt;&lt;h3&gt;${esc(l.title || 'Untitled list')}&lt;/h3&gt;&lt;div class="meta"&gt;Edited ${fmtDate(l.updatedAt || l.createdAt)}&lt;/div&gt;&lt;div class="peek"&gt;${peek || '&lt;div style="color:var(--aw-ink-3)"&gt;No items yet&lt;/div&gt;'}&lt;/div&gt;${progHTML(l)}&lt;/button&gt;`;
+      }).join('') + '&lt;button type="button" class="aw-board-card nbx-new-card" data-td-new&gt;' + svg('&lt;circle cx="12" cy="12" r="9"/&gt;&lt;path d="M12 8v8M8 12h8"/&gt;') + 'New to-do list&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;';
+  }
+  function newList(){
+    const t = store(), now = Date.now();
+    const l = { id: uid(), title: '', items: [{ id: uid(), text: '', done: false }], createdAt: now, updatedAt: now };
+    t.lists.push(l); nbxView.save(); openList(l.id, 0);
+  }
+  function rowHTML(it){
+    return `&lt;div class="nbx-td-row${it.done ? ' done' : ''}" data-id="${esc(it.id)}"&gt;&lt;button type="button" class="nbx-check" role="checkbox" aria-checked="${it.done ? 'true' : 'false'}" aria-label="Done"&gt;&lt;/button&gt;` +
+      `&lt;div class="nbx-td-text" contenteditable="true" role="textbox" aria-label="To-do item" data-ph="To-do" spellcheck="true"&gt;${esc(it.text)}&lt;/div&gt;` +
+      `&lt;button type="button" class="nbx-td-del" aria-label="Delete item"&gt;${svg('&lt;path d="M6 6l12 12M18 6 6 18"/&gt;')}&lt;/button&gt;&lt;/div&gt;`;
+  }
+  const cur = () =&gt; lists().find(l =&gt; l.id === openId);
+  function openList(id, focusIdx){
+    const l = lists().find(x =&gt; x.id === id); if (!l){ showLists(); return; }
+    openId = id;
+    root.innerHTML = '&lt;div class="nbx-wrap"&gt;&lt;div class="nbx-head"&gt;' + '&lt;button type="button" class="nbx-pill" data-td-all&gt;' + svg('&lt;path d="M15 6l-6 6 6 6"/&gt;') + 'All lists&lt;/button&gt;&lt;span style="flex:1"&gt;&lt;/span&gt;' +
+      '&lt;button type="button" class="nbx-btn danger" data-td-del-list&gt;' + svg('&lt;path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/&gt;') + 'Delete list&lt;/button&gt;&lt;/div&gt;' +
+      `&lt;div class="nbx-td-sheet"&gt;&lt;input class="nbx-td-title" data-td-title placeholder="Untitled list" aria-label="List name" value="${esc(l.title)}"&gt;` +
+      `&lt;div data-td-prog&gt;${progHTML(l)}&lt;/div&gt;&lt;div class="nbx-td-rows" role="list"&gt;${l.items.map(rowHTML).join('')}&lt;/div&gt;` +
+      '&lt;button type="button" class="nbx-td-add" data-td-add&gt;&lt;span&gt;+&lt;/span&gt;Add item&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;';
+    if (focusIdx != null) focusItem(focusIdx, 'end');
+  }
+  function refreshProg(){ const l = cur(); const box = root &amp;&amp; root.querySelector('[data-td-prog]'); if (l &amp;&amp; box) box.innerHTML = progHTML(l); }
+  const rowsBox = () =&gt; root.querySelector('.nbx-td-rows');
+  const rowEls = () =&gt; [...rowsBox().children];
+  function focusItem(i, where){
+    const r = rowEls()[i]; if (!r) return; const t = r.querySelector('.nbx-td-text'); t.focus({ preventScroll: true });
+    const s = getSelection(), rg = document.createRange(); rg.selectNodeContents(t); if (where === 'start') rg.collapse(true); else if (typeof where === 'number'){ const n = t.firstChild; if (n){ rg.setStart(n, Math.min(where, n.length)); rg.collapse(true); } else rg.collapse(true); } else rg.collapse(false);
+    s.removeAllRanges(); s.addRange(rg);
+    setTimeout(() =&gt; { try { r.scrollIntoView({ block: 'nearest' }); } catch (e) {} }, 30);
+  }
+  function caretOffset(el){ const s = getSelection(); if (!s.rangeCount) return 0; const r = s.getRangeAt(0), pre = document.createRange(); pre.selectNodeContents(el); pre.setEnd(r.startContainer, r.startOffset); return pre.toString().length; }
+  const textOf = el =&gt; el.innerText.replace(/\n$/, '');
+  function insertItem(at, text, focus){
+    const l = cur(); const it = { id: uid(), text: text || '', done: false }; l.items.splice(at, 0, it); touch(l);
+    const tmp = document.createElement('div'); tmp.innerHTML = rowHTML(it); const ref = rowEls()[at] || null; rowsBox().insertBefore(tmp.firstChild, ref);
+    refreshProg(); if (focus !== false) focusItem(at, 'start'); return it;
+  }
+  function removeItem(i, focusTo){
+    const l = cur(); l.items.splice(i, 1); rowEls()[i].remove(); touch(l); refreshProg();
+    if (focusTo != null) focusItem(focusTo, 'end');
+  }
+
+  function bind(el){
+    el.addEventListener('click', e =&gt; {
+      if (e.target.closest('[data-td-new]')) return newList();
+      const o = e.target.closest('[data-td-open]'); if (o) return openList(o.dataset.tdOpen);
+      if (e.target.closest('[data-td-all]')){ if (isPhone() &amp;&amp; history.state &amp;&amp; history.state.tdList) history.back(); else showLists(); return; }
+      if (e.target.closest('[data-td-del-list]')){
+        const l = cur(); if (!l) return;
+        if (!confirm('Delete the list “' + (l.title || 'Untitled list') + '”?')) return;
+        const t = store(); t.tombs[l.id] = Date.now(); t.lists = t.lists.filter(x =&gt; x !== l); nbxView.save(); showLists(); return;
+      }
+      if (e.target.closest('[data-td-add]')){ const l = cur(); const last = l.items[l.items.length - 1]; if (last &amp;&amp; !last.text.trim()) focusItem(l.items.length - 1, 'end'); else insertItem(l.items.length, ''); return; }
+      const row = e.target.closest('.nbx-td-row'); if (!row) return;
+      const i = rowEls().indexOf(row), l = cur(), it = l.items[i];
+      if (e.target.closest('.nbx-check')){ it.done = !it.done; row.classList.toggle('done', it.done); e.target.closest('.nbx-check').setAttribute('aria-checked', String(it.done)); touch(l); refreshProg(); return; }
+      if (e.target.closest('.nbx-td-del')){ removeItem(i, null); if (!l.items.length) insertItem(0, ''); return; }
+    });
+    el.addEventListener('input', e =&gt; {
+      if (e.target.matches('[data-td-title]')){ const l = cur(); l.title = e.target.value; touch(l); return; }
+      const t = e.target.closest('.nbx-td-text'); if (!t) return;
+      const i = rowEls().indexOf(t.closest('.nbx-td-row')); const l = cur(); l.items[i].text = textOf(t); touch(l);
+    });
+    el.addEventListener('keydown', e =&gt; {
+      if (e.target.matches('[data-td-title]') &amp;&amp; e.key === 'Enter'){ e.preventDefault(); const l = cur(); if (l.items.length) focusItem(0, 'end'); else insertItem(0, ''); return; }
+      const t = e.target.closest('.nbx-td-text'); if (!t || e.isComposing || e.keyCode === 229) return;
+      const row = t.closest('.nbx-td-row'), i = rowEls().indexOf(row), l = cur();
+      if (e.key === 'Enter' &amp;&amp; !e.shiftKey){
+        e.preventDefault();
+        const text = textOf(t);
+        if (!text.trim()){   // Enter on an empty item: the list ends here
+          if (l.items.length &gt; 1){ removeItem(i, null); }
+          t.blur(); return;
+        }
+        const at = caretOffset(t), before = text.slice(0, at), after = text.slice(at);
+        if (after){ t.textContent = before; l.items[i].text = before; }
+        insertItem(i + 1, after);
+        return;
+      }
+      if (e.key === 'Backspace' &amp;&amp; caretOffset(t) === 0 &amp;&amp; !getSelection().toString()){
+        const text = textOf(t);
+        if (i === 0){ if (!text &amp;&amp; l.items.length &gt; 1){ e.preventDefault(); removeItem(0, null); focusItem(0, 'start'); } return; }
+        e.preventDefault();
+        const prevEl = rowEls()[i - 1].querySelector('.nbx-td-text'), prevText = textOf(prevEl);
+        if (text){ prevEl.textContent = prevText + text; l.items[i - 1].text = prevText + text; }
+        removeItem(i, null); focusItem(i - 1, prevText.length);
+        return;
+      }
+      if (e.key === 'ArrowUp' &amp;&amp; i &gt; 0 &amp;&amp; caretOffset(t) === 0){ e.preventDefault(); focusItem(i - 1, 'end'); }
+      if (e.key === 'ArrowDown' &amp;&amp; i &lt; l.items.length - 1 &amp;&amp; caretOffset(t) === textOf(t).length){ e.preventDefault(); focusItem(i + 1, 'end'); }
+    });
+    // pasting several lines makes several items; formatting is dropped
+    el.addEventListener('paste', e =&gt; {
+      const t = e.target.closest &amp;&amp; e.target.closest('.nbx-td-text'); if (!t) return;
+      const txt = (e.clipboardData &amp;&amp; e.clipboardData.getData('text/plain')) || ''; e.preventDefault();
+      const lines = txt.replace(/\r/g, '').split('\n').map(s =&gt; s.replace(/^\s*(?:[-*•◦▪]|\[[ xX]?\]|\d+[.)])\s*/, '').trimEnd()).filter((s, k, a) =&gt; s || (k &gt; 0 &amp;&amp; k &lt; a.length - 1));
+      if (lines.length &lt;= 1){ document.execCommand('insertText', false, (lines[0] || '').trim()); return; }
+      document.execCommand('insertText', false, lines[0]);
+      let i = rowEls().indexOf(t.closest('.nbx-td-row')); lines.slice(1).forEach(s =&gt; { i++; insertItem(i, s, false); }); focusItem(i, 'end');
+    });
+  }
+
+  nbxView.register('todo', {
+    label: 'To-do', icon: '&lt;rect x="3.5" y="4" width="17" height="16" rx="3"/&gt;&lt;path d="m7.5 9.5 1.7 1.7 3-3.2M7.5 15h.01M14 9.8h3M11 15h6"/&gt;',
+    show(el, arg){ root = el; if (!el._tdBound){ bind(el); el._tdBound = true; } if (arg &amp;&amp; arg.list) openList(arg.list); else showLists(); },
+    home(){ if (openId) showLists(); },
+    hide(){ openId = null; },
+    refresh(){ if (!root) return; const a = document.activeElement; if (a &amp;&amp; root.contains(a) &amp;&amp; (a.isContentEditable || a.tagName === 'INPUT')) return; if (openId) openList(openId); else showLists(); }
+  });
+  // phone: Back from a list goes to the lists
+  const prevOpen = openList;
+  openList = function(id, f){ if (isPhone() &amp;&amp; !(history.state &amp;&amp; history.state.tdList)) try { history.pushState(Object.assign({}, history.state, { nbx: 'todo', tdList: id }), ''); } catch (e) {} return prevOpen(id, f); };
+  views.todo.onState = st =&gt; { if (!st.tdList &amp;&amp; openId) showLists(); };
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
