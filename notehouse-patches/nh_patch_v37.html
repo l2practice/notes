@@ -244,6 +244,7 @@ body.nhp.nbx-on #nbxView{position:fixed;inset:0;z-index:70;background:var(--aw-b
 
   function bind(el){
     el.addEventListener('click', e => {
+      if (nbxView.current !== 'todo') return;
       if (e.target.closest('[data-td-new]')) return newList();
       const o = e.target.closest('[data-td-open]'); if (o) return openList(o.dataset.tdOpen);
       if (e.target.closest('[data-td-all]')){ if (isPhone() && history.state && history.state.tdList) history.back(); else showLists(); return; }
@@ -259,11 +260,13 @@ body.nhp.nbx-on #nbxView{position:fixed;inset:0;z-index:70;background:var(--aw-b
       if (e.target.closest('.nbx-td-del')){ removeItem(i, null); if (!l.items.length) insertItem(0, ''); return; }
     });
     el.addEventListener('input', e => {
+      if (nbxView.current !== 'todo') return;
       if (e.target.matches('[data-td-title]')){ const l = cur(); l.title = e.target.value; touch(l); return; }
       const t = e.target.closest('.nbx-td-text'); if (!t) return;
       const i = rowEls().indexOf(t.closest('.nbx-td-row')); const l = cur(); l.items[i].text = textOf(t); touch(l);
     });
     el.addEventListener('keydown', e => {
+      if (nbxView.current !== 'todo') return;
       if (e.target.matches('[data-td-title]') && e.key === 'Enter'){ e.preventDefault(); const l = cur(); if (l.items.length) focusItem(0, 'end'); else insertItem(0, ''); return; }
       const t = e.target.closest('.nbx-td-text'); if (!t || e.isComposing || e.keyCode === 229) return;
       const row = t.closest('.nbx-td-row'), i = rowEls().indexOf(row), l = cur();
@@ -293,6 +296,7 @@ body.nhp.nbx-on #nbxView{position:fixed;inset:0;z-index:70;background:var(--aw-b
     });
     // pasting several lines makes several items; formatting is dropped
     el.addEventListener('paste', e => {
+      if (nbxView.current !== 'todo') return;
       const t = e.target.closest && e.target.closest('.nbx-td-text'); if (!t) return;
       const txt = (e.clipboardData && e.clipboardData.getData('text/plain')) || ''; e.preventDefault();
       const lines = txt.replace(/\r/g, '').split('\n').map(s => s.replace(/^\s*(?:[-*•◦▪]|\[[ xX]?\]|\d+[.)])\s*/, '').trimEnd()).filter((s, k, a) => s || (k > 0 && k < a.length - 1));
