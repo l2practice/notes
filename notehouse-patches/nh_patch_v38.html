@@ -1,0 +1,451 @@
+<!-- ===== Notebooks Reminder v37 =====
+     An Eisenhower matrix of tasks, in the light Interactive Board look (layout after the reference app, not its colours).
+     - Hello! 👋 · streak (days in a row with at least one task done) · My Matrix ▾ (several matrices) · Done · grid / list
+     - Important & Urgent · Important · Urgent · Someday: count, +, "Tap to add", round checkbox, due date (red when late)
+     - Tasks: title, note, quadrant, due date, reminder time, done. Tap to edit, drag to another quadrant, + floating button.
+     - Calendar (month; tap a day for its tasks) · Lock (Note Hub's lock screen) · Settings (matrix name, streak, notifications)
+     - Reminders: while Notebooks is open, a reminder time shows a banner and, where the browser allows it, a system
+       notification. There is no service worker, so nothing arrives while the app is closed. The rail shows how many
+       tasks are due today or late.
+     Data: data.reminder = { version: 1, matrices: [...], tasks: [...], doneDays: { 'YYYY-MM-DD': n }, streakResetAt, tombs }
+     — part of the notebook data (IndexedDB + Google Drive), merged by id on sync. Device-only settings stay in localStorage.
+     Paste before </body>, after patches v20–v36 (needs v35 and v36). To remove: delete this block. -->
+<style>
+#nbxView .rm{max-width:980px;margin:0 auto;padding-bottom:110px}
+.rm-top{display:flex;align-items:flex-start;gap:12px;margin:4px 0 18px}
+.rm-top .hello{flex:1;min-width:0}
+.rm-top h1{margin:0;font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+.rm-top p{margin:4px 0 0;color:var(--aw-ink-3);font-size:1.05rem;font-weight:500}
+.rm-streak{height:48px;padding:0 16px;border-radius:var(--aw-r-pill);background:var(--aw-surface);box-shadow:var(--aw-shadow-sm);display:inline-flex;align-items:center;gap:7px;font:800 1.15rem var(--aw-font);color:var(--aw-ink);flex:none}
+.rm-streak .f{font-size:1.25rem}
+.rm-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.rm-bar .sp{flex:1}
+.rm-chip{height:46px;padding:0 16px;border:0;border-radius:var(--aw-r-pill);background:var(--aw-surface);box-shadow:var(--aw-shadow-sm);color:var(--aw-ink);font:700 15px var(--aw-font);display:inline-flex;align-items:center;gap:9px;cursor:pointer;max-width:100%}
+.rm-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rm-chip svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.rm-chip .mx{width:20px;height:20px;display:grid;grid-template-columns:1fr 1fr;gap:2px;flex:none}
+.rm-chip .mx i{border-radius:3px}
+.rm-chip.done-on{background:#e3f5ec;color:var(--aw-writing);box-shadow:inset 0 0 0 1.5px var(--aw-writing)}
+.rm-chip .ok{width:22px;height:22px;border-radius:50%;background:var(--aw-writing);display:grid;place-items:center;color:#fff}
+.rm-chip .ok svg{width:13px;height:13px;stroke-width:3}
+.rm-seg{display:inline-flex;padding:4px;border-radius:var(--aw-r-pill);background:var(--aw-surface);box-shadow:var(--aw-shadow-sm)}
+.rm-seg button{width:48px;height:38px;border:0;border-radius:var(--aw-r-pill);background:transparent;color:var(--aw-ink-3);cursor:pointer;display:grid;place-items:center}
+.rm-seg button[aria-pressed="true"]{background:var(--aw-primary-dk);color:#fff}
+.rm-seg svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* quadrants */
+.rm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.rm-q{background:var(--aw-surface);border-radius:var(--aw-r-lg);box-shadow:var(--aw-shadow);padding:16px;min-height:240px;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s}
+.rm-q.drop{box-shadow:0 0 0 3px var(--qc),var(--aw-shadow-lg);transform:translateY(-2px)}
+.rm-qh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.rm-qi{width:38px;height:38px;border-radius:50%;background:var(--qt);color:var(--qc);display:grid;place-items:center;flex:none}
+.rm-qi svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rm-qh b{flex:1;min-width:0;font-size:1.02rem;font-weight:700;line-height:1.2}
+.rm-qh .n{color:var(--aw-ink-3);font-weight:700;font-variant-numeric:tabular-nums}
+.rm-plus{width:40px;height:40px;border:0;border-radius:50%;background:var(--aw-surface-2);color:var(--aw-ink);cursor:pointer;display:grid;place-items:center;flex:none}
+.rm-plus:hover{background:var(--qt);color:var(--qc)}
+.rm-plus svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.rm-tasks{display:grid;gap:8px;align-content:start;flex:1}
+.rm-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;border:0;background:none;color:#a3a8c8;font:600 15px var(--aw-font);cursor:pointer;border-radius:var(--aw-r)}
+.rm-empty:hover{color:var(--qc);background:var(--qt)}
+.rm-empty svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-dasharray:3 3;stroke-linecap:round}
+.rm-task{display:flex;align-items:flex-start;gap:10px;padding:10px 12px 10px 6px;border-radius:16px;background:var(--qt);cursor:pointer;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.rm-task:hover{filter:brightness(.985)}
+.rm-task.dragging{opacity:.4}
+.rm-task .nbx-check{margin:-7px -4px -7px -2px}
+.rm-task .nbx-check::before{border-color:var(--qc)}
+.rm-task .nbx-check[aria-checked="true"]::before{background-color:var(--qc)}
+.rm-task .tx{flex:1;min-width:0;padding-top:2px}
+.rm-task .t{font-size:.98rem;font-weight:500;line-height:1.35;word-break:break-word;color:var(--aw-ink)}
+.rm-task.done .t{text-decoration:line-through;opacity:.5}
+.rm-task .d{font-size:.8rem;font-weight:700;color:var(--aw-ink-3);margin-top:3px;display:flex;align-items:center;gap:5px}
+.rm-task .d.late{color:var(--aw-danger)}
+.rm-task .d.today{color:var(--aw-accent)}
+.rm-task .d svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.rm-task .nt{font-size:.8rem;color:var(--aw-ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* list view */
+.rm-list{display:grid;gap:16px}
+.rm-list .rm-q{min-height:0}
+/* floating + and the bottom bar */
+.rm-fab{position:fixed;right:calc(26px + env(safe-area-inset-right));bottom:calc(100px + env(safe-area-inset-bottom));z-index:72;width:64px;height:64px;border:0;border-radius:50%;background:var(--aw-primary-dk);color:#fff;box-shadow:0 14px 30px rgba(30,33,66,.35);cursor:pointer;display:grid;place-items:center}
+.rm-fab:hover{background:#2b2f5c}
+.rm-fab svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.rm-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));z-index:71;display:flex;gap:4px;padding:6px;border-radius:var(--aw-r-pill);background:var(--aw-surface);box-shadow:var(--aw-shadow-lg);width:min(520px,calc(100% - 28px))}
+body:not(.nhp) .rm-nav{left:calc(50% + 50px)}
+.rm-nav button{flex:1;min-height:56px;border:0;border-radius:var(--aw-r-pill);background:transparent;color:var(--aw-ink-2);font:600 12.5px var(--aw-font);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer}
+.rm-nav button[aria-current="page"]{background:var(--aw-primary-dk);color:#fff}
+.rm-nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+/* calendar */
+.rm-cal{background:var(--aw-surface);border-radius:var(--aw-r-lg);box-shadow:var(--aw-shadow);padding:16px}
+.rm-cal-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.rm-cal-h b{flex:1;font-size:1.15rem;font-weight:800}
+.rm-cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.rm-cal-g .wd{text-align:center;font-size:.75rem;font-weight:700;color:var(--aw-ink-3);padding:4px 0}
+.rm-day{min-height:58px;border:0;border-radius:14px;background:var(--aw-surface-2);color:var(--aw-ink);font:600 .92rem var(--aw-font);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:7px 2px 5px;gap:5px}
+.rm-day.out{background:transparent;color:#b4b8d6}
+.rm-day.today{box-shadow:inset 0 0 0 2px var(--aw-primary)}
+.rm-day[aria-pressed="true"]{background:var(--aw-primary-dk);color:#fff}
+.rm-day .dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:36px}
+.rm-day .dots i{width:6px;height:6px;border-radius:50%}
+.rm-cal-list{margin-top:16px}
+.rm-cal-list h3{margin:0 0 10px;font-size:1rem}
+/* settings */
+.rm-set{background:var(--aw-surface);border-radius:var(--aw-r-lg);box-shadow:var(--aw-shadow);padding:6px 18px;max-width:640px}
+.rm-set .row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--aw-border-2);flex-wrap:wrap}
+.rm-set .row:last-child{border-bottom:0}
+.rm-set .row .lb{flex:1;min-width:180px}
+.rm-set .row .lb b{display:block;font-size:.98rem}
+.rm-set .row .lb small{display:block;color:var(--aw-ink-3);font-size:.82rem;margin-top:2px;line-height:1.45}
+.rm-in{height:44px;border:1.5px solid var(--aw-border);border-radius:var(--aw-r-sm);padding:0 12px;font:500 15px var(--aw-font);color:var(--aw-ink);background:#fff;min-width:0;width:100%;box-sizing:border-box}
+.rm-in:focus{outline:0;border-color:var(--aw-primary);box-shadow:var(--aw-ring)}
+.rm-switch{width:54px;height:32px;border:0;border-radius:99px;background:var(--aw-border);position:relative;cursor:pointer;flex:none;transition:background .15s}
+.rm-switch::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:left .15s}
+.rm-switch[aria-checked="true"]{background:var(--aw-writing)}
+.rm-switch[aria-checked="true"]::after{left:26px}
+/* the task sheet and the matrix menu */
+.nbx-modal{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(30,33,66,.32);font-family:var(--aw-font);color:var(--aw-ink)}
+.nbx-modal.show{display:flex}
+.nbx-modal .box{width:min(480px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#fff;border-radius:var(--aw-r-lg);box-shadow:var(--aw-shadow-lg);padding:20px}
+.nbx-modal h3{margin:0 0 14px;font-size:1.2rem;font-weight:800}
+.nbx-modal label{display:block;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--aw-ink-3);margin:14px 0 6px}
+.nbx-modal textarea.rm-in{height:72px;padding:10px 12px;resize:vertical;line-height:1.45}
+.rm-qpick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rm-qpick button{min-height:46px;border:0;border-radius:14px;background:var(--qt);color:var(--aw-ink);font:600 14px var(--aw-font);display:flex;align-items:center;gap:8px;padding:0 12px;cursor:pointer;text-align:left}
+.rm-qpick button svg{width:17px;height:17px;fill:none;stroke:var(--qc);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.rm-qpick button[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--qc);font-weight:700}
+.rm-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rm-acts{display:flex;gap:8px;margin-top:20px;align-items:center}
+.rm-acts .sp{flex:1}
+.rm-hint{font-size:.8rem;color:var(--aw-ink-3);margin-top:6px;line-height:1.45}
+.rm-menu{position:fixed;z-index:96;min-width:240px;padding:6px;background:#fff;border-radius:var(--aw-r);box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);font-family:var(--aw-font);display:none}
+.rm-menu.show{display:block}
+.rm-menu button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 12px;border:0;background:none;border-radius:12px;font:600 14.5px var(--aw-font);color:var(--aw-ink);cursor:pointer;text-align:left}
+.rm-menu button:hover{background:var(--aw-surface-2)}
+.rm-menu button .ck{width:18px;color:var(--aw-primary);font-weight:800}
+.rm-menu hr{border:0;border-top:1px solid var(--aw-border-2);margin:4px 6px}
+.rm-menu .danger{color:var(--aw-danger)}
+.rm-banner{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);z-index:99;display:flex;align-items:center;gap:12px;padding:12px 14px 12px 16px;border-radius:var(--aw-r);background:var(--aw-primary-dk);color:#fff;font:600 14px var(--aw-font);box-shadow:var(--aw-shadow-lg);max-width:calc(100vw - 24px)}
+.rm-banner button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:99px;height:34px;padding:0 14px;font:700 13px var(--aw-font);cursor:pointer}
+@media (max-width:560px){
+  .rm-top h1{font-size:1.65rem}.rm-grid{gap:10px}.rm-q{padding:12px;min-height:210px;border-radius:var(--aw-r)}
+  .rm-qh{gap:7px;flex-wrap:wrap;margin-bottom:10px}.rm-qh b{order:5;flex-basis:100%;margin-top:2px}.rm-qh .n{margin-left:auto}.rm-qh .rm-plus{margin-left:auto}.rm-qh .n+.rm-plus{margin-left:0}.rm-qi{width:32px;height:32px}.rm-qh b{font-size:.92rem}.rm-plus{width:36px;height:36px}
+  .rm-task{padding:8px 8px 8px 4px;gap:6px}.rm-task .t{font-size:.92rem}
+  .rm-bar{flex-wrap:nowrap;gap:6px}.rm-bar .sp{display:none}.rm-chip{height:44px;padding:0 12px;font-size:14px;gap:7px}.rm-chip[data-matrix]{flex:1 1 auto;min-width:0}.rm-seg{flex:none;padding:3px}.rm-seg button{width:38px;height:38px}
+  #nbxView .rm{padding-bottom:190px}.rm-task .tx{overflow:hidden}
+  .rm-fab{right:calc(16px + env(safe-area-inset-right));bottom:calc(92px + env(safe-area-inset-bottom));width:58px;height:58px}
+  .nbx-modal{align-items:flex-end;padding:0}.nbx-modal .box{border-radius:var(--aw-r-lg) var(--aw-r-lg) 0 0;width:100%;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+  .rm-day{min-height:48px}
+}
+</style>
+<div class="nbx-modal" id="rmSheet" role="dialog" aria-modal="true" aria-labelledby="rmSheetT"><form class="box" autocomplete="off"></form></div>
+<div class="rm-menu" id="rmMenu" role="menu"></div>
+<script>
+(function(){
+  if (typeof data === 'undefined' || !window.nbxView) return;
+  const $q = s => document.querySelector(s);
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  const svg = p => '<svg viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>';
+  const I = {
+    flame: '<path d="M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.3 2.2-5.1 3.6-7.3.4 1.6 1.2 2.6 2.3 3.1-.2-2.9.9-5.4 3.1-7.6.3 3 1.6 4.7 2.9 6.6.8 1.2 1.1 2.4 1.1 3.9 0 3.7-2.5 6.5-6.5 6.5z"/>',
+    cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.3h.01M12 17.3h.01"/>',
+    bolt: '<path d="M13.5 3 5 13.5h6.5L10.5 21 19 10.5h-6.5z"/>',
+    lines: '<path d="M5 8h14M5 12h14M5 16h14"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>', check: '<path d="m6 12.5 4 4 8-9"/>', chev: '<path d="m6 9 6 6 6-6"/>',
+    grid: '<rect x="4" y="4" width="7" height="7" rx="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.8"/>',
+    list: '<path d="M9 7h11M9 12h11M9 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3M12 14.5v2.5"/>',
+    bell: '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+    clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>', left: '<path d="m15 6-6 6 6 6"/>', right: '<path d="m9 6 6 6-6 6"/>'
+  };
+  const Q = {
+    1: { name: 'Important & Urgent', short: 'Do now', icon: I.flame, c: '#D2372F', t: '#FDECEA' },
+    2: { name: 'Important', short: 'Schedule', icon: I.cal, c: '#5661E0', t: '#E3E6FD' },
+    3: { name: 'Urgent', short: 'Quick / delegate', icon: I.bolt, c: '#B7791F', t: '#FDF3DC' },
+    4: { name: 'Someday', short: 'Later', icon: I.lines, c: '#585D80', t: '#F1F2F8' }
+  };
+  const qStyle = q => `--qc:${Q[q].c};--qt:${Q[q].t}`;
+
+  /* ---------- data ---------- */
+  function store(){
+    let r = data.reminder;
+    if (!r || typeof r !== 'object') r = data.reminder = {};
+    if (!r.version) r.version = 1;
+    if (!Array.isArray(r.matrices)) r.matrices = [];
+    if (!Array.isArray(r.tasks)) r.tasks = [];
+    if (!r.doneDays || typeof r.doneDays !== 'object') r.doneDays = {};
+    if (!r.tombs) r.tombs = {};
+    if (!r.matrices.length) r.matrices.push({ id: 'default', name: 'My Matrix', createdAt: Date.now(), updatedAt: 0 });   // the same id on every device
+    return r;
+  }
+  const peek = () => (data.reminder && Array.isArray(data.reminder.tasks)) ? data.reminder : null;
+  const pref = (k, d) => { try { const v = localStorage.getItem('nbx_rem_' + k); return v == null ? d : v; } catch (e) { return d; } };
+  const setPref = (k, v) => { try { localStorage.setItem('nbx_rem_' + k, String(v)); } catch (e) {} };
+  const save = () => { nbxView.save(); badge(); };
+  const pad = n => String(n).padStart(2, '0');
+  const dayKey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const today = () => dayKey(new Date());
+  const parseDay = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+  const curMatrix = () => { const r = store(); return r.matrices.find(m => m.id === pref('matrix', '')) || r.matrices[0]; };
+  const tasksOf = (mid) => store().tasks.filter(t => t.matrixId === mid);
+  function dueLabel(t){
+    if (!t.due) return '';
+    const d = parseDay(t.due), k = today(), late = !t.done && t.due < k, isToday = t.due === k;
+    let s = isToday ? 'Today' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' });
+    if (t.time) s += ' · ' + t.time;
+    return `<div class="d${late ? ' late' : isToday && !t.done ? ' today' : ''}">${t.time ? svg(I.bell) : ''}${esc(s)}</div>`;
+  }
+  const sortTasks = a => a.slice().sort((x, y) => (x.done - y.done) || ((x.due || '9999') + (x.time || '99')).localeCompare((y.due || '9999') + (y.time || '99')) || (x.createdAt || 0) - (y.createdAt || 0));
+
+  /* ---------- streak ---------- */
+  function streak(){
+    const r = peek(); if (!r) return 0;
+    const days = r.doneDays || {}, reset = r.streakResetAt ? dayKey(new Date(r.streakResetAt)) : '';
+    const d = new Date(); let n = 0;
+    if (!(days[dayKey(d)] > 0)) d.setDate(d.getDate() - 1);   // nothing done yet today: the streak still counts up to yesterday
+    while (days[dayKey(d)] > 0 && dayKey(d) >= reset){ n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  function setDone(t, on){
+    const r = store(), now = Date.now(); t.done = on; t.updatedAt = now;
+    if (on){ t.doneAt = now; const k = today(); r.doneDays[k] = (r.doneDays[k] || 0) + 1; }
+    else { if (t.doneAt && dayKey(new Date(t.doneAt)) === today()){ const k = today(); r.doneDays[k] = Math.max(0, (r.doneDays[k] || 0) - 1); } delete t.doneAt; }
+  }
+
+  /* ---------- views ---------- */
+  let root = null, tab = 'tasks', calMonth = null, calDay = today();
+  const layout = () => pref('layout', 'grid'), showDone = () => pref('done', '0') === '1';
+  function taskHTML(t){
+    return `<div class="rm-task${t.done ? ' done' : ''}" data-task="${esc(t.id)}" style="${qStyle(t.q)}" role="button" tabindex="0" aria-label="${esc(t.title)}, edit">` +
+      `<button type="button" class="nbx-check" role="checkbox" aria-checked="${t.done ? 'true' : 'false'}" aria-label="Done: ${esc(t.title)}"></button>` +
+      `<div class="tx"><div class="t">${esc(t.title)}</div>${t.note ? `<div class="nt">${esc(t.note)}</div>` : ''}${dueLabel(t)}</div></div>`;
+  }
+  function quadHTML(q, ts, list){
+    const shown = ts.filter(t => showDone() ? t.done : !t.done);
+    return `<section class="rm-q" data-q="${q}" style="${qStyle(q)}" aria-label="${Q[q].name}"><div class="rm-qh"><span class="rm-qi">${svg(Q[q].icon)}</span><b>${Q[q].name}</b>` +
+      `${shown.length ? `<span class="n">${shown.length}</span>` : ''}<button type="button" class="rm-plus" data-add="${q}" aria-label="Add to ${Q[q].name}">${svg(I.plus)}</button></div>` +
+      (shown.length ? `<div class="rm-tasks">${sortTasks(shown).map(taskHTML).join('')}</div>` :
+        (showDone() ? `<div class="rm-empty" style="cursor:default">Nothing done here yet</div>` : `<button type="button" class="rm-empty" data-add="${q}">${svg('<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-dasharray="none"/>')}Tap to add</button>`)) + '</section>';
+  }
+  function head(){
+    const m = curMatrix(), n = streak();
+    return `<div class="rm-top">${nbxView.backBtn()}<span class="sp" style="flex:1"></span><span class="rm-streak" title="${n} day${n === 1 ? '' : 's'} in a row with a task done" aria-label="Streak: ${n} days"><span class="f">🔥</span>${n}</span></div>` +
+      `<div class="rm-top" style="margin-top:-4px"><div class="hello"><h1>Hello! 👋</h1><p>What's on today?</p></div></div>` +
+      `<div class="rm-bar"><button type="button" class="rm-chip" data-matrix aria-haspopup="menu"><span class="mx"><i style="background:${Q[1].c}"></i><i style="background:${Q[2].c}"></i><i style="background:#E0A32E"></i><i style="background:#9aa0c3"></i></span><span>${esc(m.name)}</span>${svg(I.chev)}</button>` +
+      `<span class="sp"></span><button type="button" class="rm-chip${showDone() ? ' done-on' : ''}" data-done aria-pressed="${showDone()}"><span class="ok">${svg(I.check)}</span>Done</button>` +
+      `<span class="rm-seg" role="group" aria-label="Layout"><button type="button" data-layout="grid" aria-pressed="${layout() === 'grid'}" aria-label="Matrix">${svg(I.grid)}</button><button type="button" data-layout="list" aria-pressed="${layout() === 'list'}" aria-label="List">${svg(I.list)}</button></span></div>`;
+  }
+  function nav(){
+    const lockOk = (() => { try { return !!(parent !== window && parent.document.getElementById('pwLockBtn')); } catch (e) { return false; } })();
+    const items = [['tasks', 'Tasks', I.grid], ['calendar', 'Calendar', I.cal]].concat(lockOk ? [['lock', 'Lock', I.lock]] : []).concat([['settings', 'Settings', I.gear]]);
+    return '<nav class="rm-nav" aria-label="Reminder">' + items.map(([k, l, ic]) => `<button type="button" data-tab="${k}"${tab === k ? ' aria-current="page"' : ''}>${svg(ic)}${l}</button>`).join('') + '</nav>' +
+      (tab === 'settings' ? '' : `<button type="button" class="rm-fab" data-add="${tab === 'calendar' ? 'cal' : '1'}" aria-label="Add a task">${svg(I.plus)}</button>`);
+  }
+  function renderTasks(){
+    const m = curMatrix(), ts = tasksOf(m.id);
+    const body = layout() === 'list' ? '<div class="rm-list">' + [1, 2, 3, 4].map(q => quadHTML(q, ts.filter(t => +t.q === q), true)).join('') + '</div>'
+      : '<div class="rm-grid">' + [1, 2, 3, 4].map(q => quadHTML(q, ts.filter(t => +t.q === q))).join('') + '</div>';
+    return head() + body;
+  }
+  function renderCalendar(){
+    const r = store(), m = curMatrix(); if (!calMonth){ const d = new Date(); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); }
+    const first = new Date(calMonth), start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+    const byDay = {}; tasksOf(m.id).forEach(t => { if (t.due) (byDay[t.due] = byDay[t.due] || []).push(t); });
+    let cells = '';
+    for (let i = 0; i < 42; i++){ const d = new Date(start); d.setDate(start.getDate() + i); const k = dayKey(d), ts = byDay[k] || [];
+      if (i >= 35 && d.getMonth() !== first.getMonth()) break;
+      cells += `<button type="button" class="rm-day${d.getMonth() !== first.getMonth() ? ' out' : ''}${k === today() ? ' today' : ''}" data-day="${k}" aria-pressed="${k === calDay}" aria-label="${d.toDateString()}${ts.length ? ', ' + ts.length + ' tasks' : ''}">${d.getDate()}<span class="dots">${ts.slice(0, 6).map(t => `<i style="background:${t.done ? '#c7cbe6' : Q[t.q].c}"></i>`).join('')}</span></button>`; }
+    const sel = sortTasks(byDay[calDay] || []);
+    return `<div class="rm-top">${nbxView.backBtn()}</div><div class="rm-cal"><div class="rm-cal-h"><button type="button" class="nbx-icon" data-mon="-1" aria-label="Previous month">${svg(I.left)}</button><b>${first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</b>` +
+      `<button type="button" class="nbx-btn ghost" data-mon="0" style="height:38px;padding:0 14px">Today</button><button type="button" class="nbx-icon" data-mon="1" aria-label="Next month">${svg(I.right)}</button></div>` +
+      '<div class="rm-cal-g">' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(w => `<div class="wd">${w}</div>`).join('') + cells + '</div></div>' +
+      `<div class="rm-cal-list"><h3>${parseDay(calDay).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>` +
+      (sel.length ? '<div class="rm-tasks">' + sel.map(taskHTML).join('') + '</div>' : '<div class="nbx-empty" style="padding:22px">No tasks due this day. <button type="button" class="nbx-btn ghost" data-add="cal" style="margin:10px auto 0">+ Add for this day</button></div>') + '</div>';
+  }
+  function notifState(){
+    if (!('Notification' in window)) return ['unsupported', 'This browser cannot show notifications here (on iPhone and iPad they need Note Hub added to the Home Screen).'];
+    if (Notification.permission === 'denied') return ['denied', 'Blocked in the browser settings for this site.'];
+    if (Notification.permission === 'granted') return ['granted', 'Allowed on this device.'];
+    return ['default', 'The browser asks once, the first time you turn this on or set a reminder time.'];
+  }
+  function renderSettings(){
+    const m = curMatrix(), r = store(), [st, msg] = notifState(), on = pref('notify', '1') === '1' && st === 'granted';
+    return `<div class="rm-top">${nbxView.backBtn()}</div><div class="nbx-head" style="margin-top:0"><h1>Settings</h1></div><div class="rm-set">` +
+      `<div class="row"><div class="lb"><b>Matrix name</b><small>The matrix you are looking at.</small></div><input class="rm-in" data-set="name" value="${esc(m.name)}" maxlength="60" aria-label="Matrix name" style="max-width:280px"></div>` +
+      `<div class="row"><div class="lb"><b>Matrices</b><small>${r.matrices.length} in total. Switch, add or delete them from the My Matrix menu.</small></div><button type="button" class="nbx-btn ghost" data-set="new">+ New matrix</button></div>` +
+      `<div class="row"><div class="lb"><b>Streak</b><small>${streak()} day${streak() === 1 ? '' : 's'} in a row with at least one task done.</small></div><button type="button" class="nbx-btn danger" data-set="reset">Reset streak</button></div>` +
+      `<div class="row"><div class="lb"><b>Notifications</b><small>${esc(msg)} Reminders arrive while Notebooks is open; nothing arrives while the app is closed.</small></div><button type="button" class="rm-switch" role="switch" data-set="notify" aria-checked="${on}" aria-label="Notifications" ${st === 'unsupported' || st === 'denied' ? 'disabled style="opacity:.45"' : ''}></button></div></div>`;
+  }
+  function render(){
+    if (!root) return;
+    const y = root.scrollTop;
+    root.innerHTML = '<div class="rm">' + (tab === 'calendar' ? renderCalendar() : tab === 'settings' ? renderSettings() : renderTasks()) + '</div>' + nav();
+    root.scrollTop = y;
+  }
+
+  /* ---------- the task sheet ---------- */
+  const sheet = $q('#rmSheet'), form = sheet.querySelector('form'); let editing = null, pickQ = 1;
+  function openSheet(t, preset){
+    preset = preset || {}; editing = t || null; pickQ = t ? +t.q : (+preset.q || 1);
+    const due = t ? (t.due || '') : (preset.due || ''), time = t ? (t.time || '') : '';
+    form.innerHTML = `<h3 id="rmSheetT">${t ? 'Edit task' : 'New task'}</h3>` +
+      `<label for="rmTitle">Task</label><input class="rm-in" id="rmTitle" maxlength="200" placeholder="What needs doing?" value="${esc(t ? t.title : '')}" required>` +
+      `<label for="rmNote">Note <span style="text-transform:none;font-weight:500">(optional)</span></label><textarea class="rm-in" id="rmNote" maxlength="2000">${esc(t ? t.note || '' : '')}</textarea>` +
+      `<label>Quadrant</label><div class="rm-qpick">${[1, 2, 3, 4].map(q => `<button type="button" data-q="${q}" style="${qStyle(q)}" aria-pressed="${q === pickQ}">${svg(Q[q].icon)}${Q[q].name}</button>`).join('')}</div>` +
+      `<div class="rm-two"><div><label for="rmDue">Due date</label><input class="rm-in" type="date" id="rmDue" value="${esc(due)}"></div><div><label for="rmTime">Remind at</label><input class="rm-in" type="time" id="rmTime" value="${esc(time)}"></div></div>` +
+      `<div class="rm-hint" id="rmHint"></div>` +
+      `<div class="rm-acts">${t ? `<button type="button" class="nbx-btn danger" data-del>Delete</button>` : ''}<span class="sp"></span><button type="button" class="nbx-btn ghost" data-cancel>Cancel</button><button type="submit" class="nbx-btn">${t ? 'Save' : 'Add task'}</button></div>`;
+    hint(); sheet.classList.add('show'); setTimeout(() => { const i = $q('#rmTitle'); i.focus(); if (t) i.select(); }, 40);
+  }
+  function hint(){ const time = $q('#rmTime') && $q('#rmTime').value, due = $q('#rmDue') && $q('#rmDue').value, h = $q('#rmHint'); if (!h) return;
+    h.textContent = time ? ('Reminder ' + (due ? 'on ' + parseDay(due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'today') + ' at ' + time + (notifState()[0] === 'granted' ? '.' : ' — shown in the app while Notebooks is open.')) : ''; }
+  const closeSheet = () => { sheet.classList.remove('show'); editing = null; };
+  form.addEventListener('click', e => {
+    const qb = e.target.closest('[data-q]'); if (qb){ pickQ = +qb.dataset.q; form.querySelectorAll('[data-q]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.q === pickQ))); return; }
+    if (e.target.closest('[data-cancel]')) closeSheet();
+    if (e.target.closest('[data-del]') && editing){ if (!confirm('Delete “' + editing.title + '”?')) return; const r = store(); r.tombs[editing.id] = Date.now(); r.tasks = r.tasks.filter(x => x !== editing); closeSheet(); save(); render(); }
+  });
+  form.addEventListener('input', hint);
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); const title = $q('#rmTitle').value.trim(); if (!title){ $q('#rmTitle').focus(); return; }
+    const r = store(), now = Date.now(); let due = $q('#rmDue').value; const time = $q('#rmTime').value;
+    if (time && !due) due = today();
+    const fields = { title, note: $q('#rmNote').value.trim(), q: pickQ, due, time, updatedAt: now };
+    if (editing){ if (editing.time !== time || editing.due !== due) forgetNotified(editing.id); Object.assign(editing, fields); }
+    else r.tasks.push(Object.assign({ id: uid(), matrixId: curMatrix().id, done: false, createdAt: now }, fields));
+    closeSheet(); save(); if (tab === 'calendar' && due) calDay = due; render();
+    if (time && 'Notification' in window && Notification.permission === 'default' && pref('notify', '1') === '1'){ try { await Notification.requestPermission(); } catch (er) {} }
+  });
+  sheet.addEventListener('pointerdown', e => { if (e.target === sheet) closeSheet(); });
+  sheet.addEventListener('keydown', e => { if (e.key === 'Escape'){ e.stopPropagation(); closeSheet(); } });
+
+  /* ---------- the matrix menu ---------- */
+  const menu = $q('#rmMenu');
+  function openMenu(btn){
+    const r = store(), cur = curMatrix();
+    menu.innerHTML = r.matrices.map(m => `<button type="button" role="menuitemradio" aria-checked="${m.id === cur.id}" data-m="${esc(m.id)}"><span class="ck">${m.id === cur.id ? '✓' : ''}</span>${esc(m.name)}</button>`).join('') +
+      '<hr><button type="button" data-m-act="new"><span class="ck">+</span>New matrix</button><button type="button" data-m-act="rename"><span class="ck">✎</span>Rename</button>' +
+      (r.matrices.length > 1 ? '<button type="button" class="danger" data-m-act="delete"><span class="ck">×</span>Delete this matrix</button>' : '');
+    const b = btn.getBoundingClientRect(); menu.classList.add('show');
+    menu.style.left = Math.max(8, Math.min(innerWidth - menu.offsetWidth - 8, b.left)) + 'px'; menu.style.top = (b.bottom + 6) + 'px';
+  }
+  const closeMenu = () => menu.classList.remove('show');
+  function newMatrix(){ const n = (prompt('Name of the new matrix', 'Teaching') || '').trim(); if (!n) return; const r = store(), m = { id: uid(), name: n.slice(0, 60), createdAt: Date.now(), updatedAt: Date.now() }; r.matrices.push(m); setPref('matrix', m.id); save(); render(); }
+  menu.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return; closeMenu(); const r = store(), cur = curMatrix();
+    if (b.dataset.m){ setPref('matrix', b.dataset.m); render(); return; }
+    const a = b.dataset.mAct;
+    if (a === 'new') newMatrix();
+    else if (a === 'rename'){ const n = (prompt('Rename the matrix', cur.name) || '').trim(); if (n){ cur.name = n.slice(0, 60); cur.updatedAt = Date.now(); save(); render(); } }
+    else if (a === 'delete'){
+      const n = tasksOf(cur.id).length; if (!confirm('Delete “' + cur.name + '”' + (n ? ' and its ' + n + ' task' + (n === 1 ? '' : 's') : '') + '?')) return;
+      const now = Date.now(); r.tombs[cur.id] = now; tasksOf(cur.id).forEach(t => { r.tombs[t.id] = now; });
+      r.tasks = r.tasks.filter(t => t.matrixId !== cur.id); r.matrices = r.matrices.filter(m => m !== cur); store(); setPref('matrix', r.matrices[0].id); save(); render();
+    }
+  });
+  document.addEventListener('pointerdown', e => { if (menu.classList.contains('show') && !e.target.closest('#rmMenu,[data-matrix]')) closeMenu(); }, true);
+
+  /* ---------- clicks, keys, drag ---------- */
+  let dragged = 0;
+  function bind(el){
+    el.addEventListener('click', e => {
+      if (nbxView.current !== 'reminder' || Date.now() - dragged < 350) return;
+      const tb = e.target.closest('[data-tab]');
+      if (tb){ const t = tb.dataset.tab;
+        if (t === 'lock'){ if (confirm('Lock Note Hub now? You will need the password to come back.')) try { parent.document.getElementById('pwLockBtn').click(); } catch (er) {} return; }
+        tab = t; el.scrollTop = 0; render(); return; }
+      const ad = e.target.closest('[data-add]'); if (ad){ const v = ad.dataset.add; openSheet(null, v === 'cal' ? { due: calDay } : { q: +v }); return; }
+      const ck = e.target.closest('.nbx-check'); const row = e.target.closest('[data-task]');
+      if (ck && row){ const t = store().tasks.find(x => x.id === row.dataset.task); if (t){ setDone(t, !t.done); save(); render(); } return; }
+      if (row){ const t = store().tasks.find(x => x.id === row.dataset.task); if (t) openSheet(t); return; }
+      if (e.target.closest('[data-matrix]')){ menu.classList.contains('show') ? closeMenu() : openMenu(e.target.closest('[data-matrix]')); return; }
+      if (e.target.closest('[data-done]')){ setPref('done', showDone() ? '0' : '1'); render(); return; }
+      const ly = e.target.closest('[data-layout]'); if (ly){ setPref('layout', ly.dataset.layout); render(); return; }
+      const mo = e.target.closest('[data-mon]'); if (mo){ const v = +mo.dataset.mon; if (!v){ const d = new Date(); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); calDay = today(); } else calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + v, 1); render(); return; }
+      const dy = e.target.closest('[data-day]'); if (dy){ calDay = dy.dataset.day; const d = parseDay(calDay); if (d.getMonth() !== calMonth.getMonth()) calMonth = new Date(d.getFullYear(), d.getMonth(), 1); render(); return; }
+      const st = e.target.closest('[data-set]');
+      if (st){ const a = st.dataset.set;
+        if (a === 'new') newMatrix();
+        else if (a === 'reset'){ if (confirm('Reset the streak to 0?')){ const r = store(); r.streakResetAt = Date.now() + 1; r.doneDays[today()] = 0; r.updatedAt = Date.now(); save(); render(); } }
+        else if (a === 'notify'){ const s = notifState()[0];
+          if (st.getAttribute('aria-checked') === 'true'){ setPref('notify', '0'); render(); }
+          else { setPref('notify', '1'); if (s === 'default') Notification.requestPermission().then(render, render); else render(); } }
+      }
+    });
+    el.addEventListener('keydown', e => { const row = e.target.closest && e.target.closest('[data-task]'); if (row && e.target === row && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); row.click(); } });
+    el.addEventListener('change', e => { if (e.target.matches('[data-set="name"]')){ const m = curMatrix(), n = e.target.value.trim(); if (n){ m.name = n.slice(0, 60); m.updatedAt = Date.now(); save(); } } });
+    // drag a task onto another quadrant (mouse: drag; finger or Pencil: hold, then move)
+    let dg = null;
+    el.addEventListener('pointerdown', e => {
+      if (nbxView.current !== 'reminder') return;
+      dragged = 0;   // a new press: its click is a real one
+      const row = e.target.closest('[data-task]'); if (!row || e.target.closest('.nbx-check') || tab !== 'tasks' || e.button > 0) return;
+      dg = { row, id: row.dataset.task, x0: e.clientX, y0: e.clientY, pid: e.pointerId, on: false, armed: e.pointerType === 'mouse', touch: e.pointerType !== 'mouse' };
+      if (dg.touch) dg.hold = setTimeout(() => { if (dg) { dg.armed = true; row.classList.add('dragging'); } }, 320);
+    });
+    const target = (x, y) => { const el2 = document.elementFromPoint(x, y); return el2 && el2.closest('#nbxView [data-q]'); };
+    let over = null;
+    addEventListener('pointermove', e => {
+      if (!dg || e.pointerId !== dg.pid) return;
+      const far = Math.hypot(e.clientX - dg.x0, e.clientY - dg.y0) > 6;
+      if (!dg.on){ if (dg.touch && !dg.armed){ if (far){ clearTimeout(dg.hold); dg = null; } return; } if (!far) return; dg.on = true; dg.row.classList.add('dragging'); }
+      e.preventDefault(); const t = target(e.clientX, e.clientY); if (over !== t){ if (over) over.classList.remove('drop'); over = t; if (t) t.classList.add('drop'); }
+    }, { passive: false });
+    addEventListener('touchmove', e => { if (dg && dg.armed) e.preventDefault(); }, { passive: false });
+    const end = ok => { if (!dg) return; clearTimeout(dg.hold); dg.row.classList.remove('dragging'); if (over) over.classList.remove('drop');
+      if (dg.on && ok && over){ const t = store().tasks.find(x => x.id === dg.id), q = +over.dataset.q; if (t && q && +t.q !== q){ t.q = q; t.updatedAt = Date.now(); save(); dragged = Date.now(); render(); } else dragged = Date.now(); }
+      else if (dg.on) dragged = Date.now();
+      over = null; dg = null; };
+    addEventListener('pointerup', () => end(true)); addEventListener('pointercancel', () => end(false));
+  }
+
+  /* ---------- reminders: banner + notification while Notebooks is open; rail badge ---------- */
+  const notified = () => { try { return JSON.parse(localStorage.getItem('nbx_rem_notified') || '{}'); } catch (e) { return {}; } };
+  function forgetNotified(id){ const n = notified(); delete n[id]; try { localStorage.setItem('nbx_rem_notified', JSON.stringify(n)); } catch (e) {} }
+  function banner(t){
+    const b = document.createElement('div'); b.className = 'rm-banner'; b.setAttribute('role', 'alert');
+    b.innerHTML = `<span>🔔 ${esc(t.title)}</span><button type="button">Open</button><button type="button" aria-label="Dismiss">✕</button>`;
+    b.children[1].onclick = () => { b.remove(); nbxView.open('reminder'); };
+    b.children[2].onclick = () => b.remove(); document.body.appendChild(b); setTimeout(() => b.remove(), 15000);
+  }
+  function check(){
+    const r = peek(); if (!r) return; const now = Date.now(), n = notified(); let changed = false;
+    r.tasks.forEach(t => {
+      if (t.done || !t.due || !t.time) return;
+      const at = new Date(t.due + 'T' + t.time).getTime(); if (!(at <= now) || now - at > 12 * 3600e3 || n[t.id] >= at) return;
+      n[t.id] = at; changed = true; banner(t);
+      if (pref('notify', '1') === '1' && 'Notification' in window && Notification.permission === 'granted'){ try { const no = new Notification(t.title, { body: (Q[t.q] ? Q[t.q].name : '') + (t.note ? ' · ' + t.note : ''), tag: 'nbx-' + t.id }); no.onclick = () => { try { window.focus(); parent.focus(); } catch (e) {} nbxView.open('reminder'); }; } catch (e) {} }
+    });
+    if (changed) try { localStorage.setItem('nbx_rem_notified', JSON.stringify(n)); } catch (e) {}
+  }
+  function badge(){ const r = peek(); const k = today(); nbxView.badge('reminder', r ? r.tasks.filter(t => !t.done && t.due && t.due <= k).length : 0); }
+  setInterval(() => { check(); badge(); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden){ check(); badge(); } });
+
+  /* ---------- sync ---------- */
+  if (typeof mergeNotebookData === 'function'){
+    const prev = mergeNotebookData;
+    mergeNotebookData = function(remote){
+      const out = prev.apply(this, arguments);
+      try {
+        if (remote && remote.reminder){
+          const rr = remote.reminder, had = !!data.reminder;
+          data.reminder = nbxMerge(data.reminder, rr, ['matrices', 'tasks']);
+          if (had){ const L = data.reminder; L.doneDays = L.doneDays || {}; for (const k in (rr.doneDays || {})) L.doneDays[k] = Math.max(L.doneDays[k] || 0, rr.doneDays[k]); L.streakResetAt = Math.max(L.streakResetAt || 0, rr.streakResetAt || 0); }
+          if (nbxView.current === 'reminder' && !sheet.classList.contains('show')) render();
+          badge();
+        }
+      } catch (e) { console.warn('reminder merge', e); }
+      return out;
+    };
+  }
+
+  nbxView.register('reminder', {
+    label: 'Reminder', icon: I.bell,
+    show(el){ root = el; store(); if (!el._rmBound){ bind(el); el._rmBound = true; } tab = 'tasks'; render(); check(); },
+    home(){ tab = 'tasks'; render(); },
+    hide(){ closeSheet(); closeMenu(); root = null; }
+  });
+  badge(); setTimeout(check, 1500);
+})();
+</script>
