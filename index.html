@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-22-dragmove-v47" />
+    <meta name="app-build" content="2026-11-26-board-ui-v48" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -4557,6 +4557,260 @@ body.nh-drag-on,body.nh-drag-on *{cursor:grabbing!important;user-select:none!imp
     const t = e.clipboardData &amp;&amp; e.clipboardData.getData('text/plain'); if (t == null) return;
     e.preventDefault(); document.execCommand('insertText', false, t.replace(/\s+/g, ' ').trim());
   });
+})();
+&lt;/script&gt;
+&lt;!-- ===== Notebooks Board UI v35 =====
+     The note screen of Notebooks in the look of Interactive Board (ArticuWrite): lavender background, white cards with
+     large rounded corners and soft shadows, Be Vietnam Pro for the interface, navy and periwinkle buttons.
+     - Computer: the ribbon is a white card with Home · Insert · Draw · View tabs, Full screen and zoom on the right,
+       and labelled groups (Undo, Clipboard, Font, Paragraph, Styles, Insert, Tools).
+     - iPad: the compact OneNote-style bar (v32) keeps its layout, in these colours and this font.
+     - The rail on the left has line icons and labels; To-do and Reminder (v36, v37) add their own items to it.
+     - The page itself keeps its font (Patrick Hand, v34); only the interface changes. Nothing about the data changes.
+     The tokens live in this frame only, so the rest of Note Hub is not affected.
+     Paste before &lt;/body&gt;, after patches v20–v34. To remove: delete this block. --&gt;
+&lt;style&gt;
+:root{
+  --aw-primary:#5661E0; --aw-primary-hv:#4A54D1; --aw-primary-dk:#1E2142; --aw-primary-lt:#E3E6FD;
+  --aw-accent:#C2410C; --aw-danger:#D2372F; --aw-writing:#16825B; --aw-idle:#E0A32E;
+  --aw-bg:#EEF0FD; --aw-surface:#FFFFFF; --aw-surface-2:#F5F6FE;
+  --aw-border:#DDE1F7; --aw-border-2:#E9EBFB;
+  --aw-ink:#1E2142; --aw-ink-2:#4B5075; --aw-ink-3:#585D80; --aw-on-primary:#FFFFFF;
+  --aw-font:'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  --aw-r-sm:12px; --aw-r:18px; --aw-r-lg:24px; --aw-r-pill:999px;
+  --aw-shadow-sm:0 2px 10px rgba(86,97,224,.07);
+  --aw-shadow:0 10px 30px rgba(86,97,224,.09);
+  --aw-shadow-lg:0 18px 48px rgba(86,97,224,.18);
+  --aw-ring:0 0 0 3px rgba(86,97,224,.32);
+}
+/* ---------- the frame ---------- */
+body{background:var(--aw-bg)!important;color:var(--aw-ink);font-family:var(--aw-font)!important}
+button,input,select,textarea{font-family:var(--aw-font)}
+#editorContent,#pageTitle{font-family:"Patrick Hand","Be Vietnam Pro",system-ui,sans-serif}   /* the page keeps the notebook's font */
+:focus-visible{outline:none!important;box-shadow:var(--aw-ring)!important;border-radius:10px}
+
+/* ---------- title bar (computer) ---------- */
+header.top{background:var(--aw-bg)!important;border:0!important;box-shadow:none!important;height:58px!important;padding:0 16px!important;gap:14px!important}
+header.top .brand{color:var(--aw-ink)!important;font-weight:800!important;letter-spacing:-.02em}
+header.top .menu-trigger{border-radius:var(--aw-r-pill)!important;padding:7px 12px!important;color:var(--aw-ink-2)!important;font-weight:600!important;font-size:14px!important}
+header.top .menu-trigger:hover,header.top .menu-trigger[aria-expanded="true"],header.top .menu-trigger.open{background:var(--aw-surface)!important;color:var(--aw-ink)!important;box-shadow:var(--aw-shadow-sm)}
+header.top .menu-spark{color:var(--aw-primary)!important}
+header.top .topright{gap:8px!important}
+header.top .status{color:var(--aw-ink-3)!important;font-size:12.5px!important;font-weight:500}
+header.top .tiny-btn{height:38px;border:0!important;border-radius:var(--aw-r-pill)!important;background:var(--aw-surface)!important;color:var(--aw-ink)!important;font-weight:600!important;font-size:13px!important;padding:0 16px!important;box-shadow:var(--aw-shadow-sm)}
+header.top .tiny-btn:hover{box-shadow:var(--aw-shadow)}
+header.top #settingsBtn{width:40px;padding:0!important;font-size:17px!important}
+header.top .account{width:36px!important;height:36px!important;background:var(--aw-primary-lt)!important;color:var(--aw-primary)!important;font-weight:700}
+header.top .nbx-save{height:40px;padding:0 20px;border:0;border-radius:var(--aw-r-pill);background:var(--aw-primary);color:var(--aw-on-primary);font:700 14px var(--aw-font);cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 6px 16px rgba(86,97,224,.28)}
+header.top .nbx-save:hover{background:var(--aw-primary-hv)}
+header.top .nbx-pdf{height:40px;padding:0 20px;border:0;border-radius:var(--aw-r-pill);background:var(--aw-primary-dk);color:#fff;font:700 14px var(--aw-font);cursor:pointer}
+header.top .nbx-pdf:hover{background:#2b2f5c}
+header.top .nbx-saved{color:var(--aw-ink-3);font-size:13px;font-weight:600;white-space:nowrap}
+#nhHomeBtn{height:40px!important;border:0!important;border-radius:var(--aw-r-pill)!important;background:var(--aw-surface)!important;color:var(--aw-ink)!important;box-shadow:var(--aw-shadow-sm);padding:0 16px 0 12px!important;font-weight:600!important}
+@media (max-width:1560px){header.top .status,header.top #markdownImportBtn,header.top #oneNoteBtn{display:none!important}}   /* in File › Open… and Settings */
+@media (max-width:1180px){header.top .nbx-saved{display:none}}
+
+/* ---------- the ribbon: a white card with tabs (computer) ---------- */
+body:not(.nhi):not(.nhp) .ribbon{margin:4px 14px 12px!important;padding:6px 16px 10px!important;background:var(--aw-surface)!important;border:0!important;border-radius:var(--aw-r-lg)!important;box-shadow:var(--aw-shadow)!important}
+.nbx-tabs{display:none}
+body:not(.nhi):not(.nhp) .nbx-tabs{display:flex;align-items:center;gap:4px;height:46px;margin:0 -4px 8px;border-bottom:1px solid var(--aw-border-2)}
+.nbx-tabs button{position:relative;height:46px;padding:0 18px;border:0;background:none;color:var(--aw-ink-2);font:600 15px var(--aw-font);cursor:pointer;border-radius:12px 12px 0 0}
+.nbx-tabs button:hover{color:var(--aw-ink)}
+.nbx-tabs button.cur{color:var(--aw-primary)}
+.nbx-tabs button.cur::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--aw-primary)}
+.nbx-tabs .sp{flex:1}
+.nbx-tabs .tool{height:36px;padding:0 10px;border-radius:10px;font-size:14px;font-weight:600;color:var(--aw-ink);display:inline-flex;align-items:center;gap:6px}
+.nbx-tabs .tool:hover{background:var(--aw-surface-2)}
+.nbx-tabs .tool::after{display:none}
+.nbx-tabs .zoom{min-width:58px;justify-content:center;font-variant-numeric:tabular-nums}
+.nbx-tabs svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* buttons on the ribbon */
+body:not(.nhp) .ribbon .ribbon-btn{color:var(--aw-ink)!important;background:transparent!important;border:0!important;border-radius:12px!important;box-shadow:none!important}
+body:not(.nhp) .ribbon .ribbon-btn:hover{background:var(--aw-surface-2)!important}
+body:not(.nhp) .ribbon .ribbon-btn.active,body:not(.nhp) .ribbon .ribbon-btn.on,body:not(.nhp) .ribbon .ribbon-btn[aria-pressed="true"]{background:var(--aw-primary-lt)!important;color:var(--aw-primary)!important}
+body:not(.nhi):not(.nhp) .ribbon .ribbon-action{padding:0 10px!important;gap:7px!important;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--aw-ink)!important;border-radius:12px!important;font-weight:600!important}
+body:not(.nhi):not(.nhp) .ribbon .ribbon-action:hover{background:var(--aw-surface-2)!important}
+body:not(.nhi):not(.nhp) .ribbon .ribbon-action.on{background:var(--aw-primary-lt)!important;color:var(--aw-primary)!important}
+body:not(.nhi):not(.nhp) .ribbon .ribbon-action svg{color:var(--aw-primary)}
+.ribbon .font-picker-trigger,.ribbon #fontSize,.ribbon select{border:1.5px solid var(--aw-border)!important;border-radius:var(--aw-r-sm)!important;background:var(--aw-surface)!important;color:var(--aw-ink)!important;box-shadow:none!important}
+.ribbon .font-picker-trigger:hover,.ribbon #fontSize:hover{border-color:var(--aw-primary)!important}
+body:not(.nhi):not(.nhp) .ribbon .color-control{border:0!important;background:var(--aw-surface-2)!important;border-radius:12px!important;box-shadow:none!important}
+body:not(.nhi):not(.nhp) .ribbon .ribbon-sep{background:var(--aw-border-2)!important}
+body:not(.nhi):not(.nhp) .ribbon .ribbon-row.ribbon-primary{border-bottom:0!important}
+/* labelled groups, as on Interactive Board */
+body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]{position:relative;padding-bottom:20px!important;border-right:1px solid var(--aw-border-2)!important;margin-right:6px}
+body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]:last-child{border-right:0!important}
+body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]::after{content:attr(data-label);position:absolute;left:0;right:0;bottom:0;text-align:center;font:500 12px var(--aw-font);color:var(--aw-ink-3);white-space:nowrap;pointer-events:none}
+.nbx-grp{display:flex;align-items:center;gap:6px}
+@media (max-width:1440px){body:not(.nhi):not(.nhp) .ribbon .nbx-grp[data-label="Tools"] .ribbon-action{font-size:0!important;min-width:44px;justify-content:center}body:not(.nhi):not(.nhp) .ribbon .nbx-grp[data-label="Tools"] .ribbon-action svg{width:21px!important;height:21px!important}}   /* icons only (each has a tooltip) */
+body:not(.nhi):not(.nhp) .ribbon .ribbon-secondary{align-items:stretch!important;border:0!important}
+body:not(.nhi):not(.nhp) .ribbon .ribbon-secondary&gt;.ribbon-sep{display:none!important}
+
+/* ---------- iPad: the compact bar, in these colours ---------- */
+body.nhi #nhiBar{background:var(--aw-bg)!important;color:var(--aw-ink)!important;font-family:var(--aw-font)!important}
+body.nhi #nhiBar .search{background:var(--aw-surface)!important;color:var(--aw-ink-2)!important;box-shadow:var(--aw-shadow-sm)}
+body.nhi #nhiBar .tabs{background:var(--aw-surface);box-shadow:var(--aw-shadow-sm)}
+body.nhi #nhiBar .tabs button{color:var(--aw-ink-2)!important;font-family:var(--aw-font)!important}
+body.nhi #nhiBar .tabs button.cur{background:var(--aw-primary-lt)!important;color:var(--aw-primary)!important;box-shadow:none!important}
+body.nhi #nhiBar .ib{color:var(--aw-ink)}
+body.nhi #nhiBar .ib:active,body.nhi #nhiBar .ib.on{background:var(--aw-surface)!important}
+body.nhi #nhiBar .spark{color:var(--aw-primary)!important}
+body.nhi .ribbon{background:var(--aw-surface)!important;margin:0 10px 8px!important;border-radius:var(--aw-r)!important;box-shadow:var(--aw-shadow-sm)!important;border:0!important}
+body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action){color:var(--aw-ink)!important;font-family:var(--aw-font)!important}
+body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action):active,body.nhi .ribbon .ribbon-panel :is(.ribbon-btn,.ribbon-action).on{background:var(--aw-primary-lt)!important;color:var(--aw-primary)!important}
+body.nhi .ribbon .ribbon .nhi-sep,body.nhi .ribbon .ribbon-panel .nhi-sep{background:var(--aw-border)!important}
+#nhiMore{font-family:var(--aw-font)!important;border-radius:var(--aw-r)!important;box-shadow:var(--aw-shadow-lg)!important}
+#nhiMore button:hover{background:var(--aw-surface-2)!important}
+
+/* ---------- the workspace: cards on lavender ---------- */
+body:not(.nhp) .workspace{background:var(--aw-bg)!important;padding:0 14px 14px 0;gap:12px}
+body.nhi .workspace{padding:0 10px 10px 0;gap:10px}
+body:not(.nhp) .rail{background:var(--aw-surface)!important;border:0!important;border-radius:var(--aw-r-lg)!important;box-shadow:var(--aw-shadow)!important;margin:0 0 0 14px;width:84px!important;padding:12px 0!important;gap:4px!important}
+body.nhi .rail{margin-left:10px;width:64px!important}
+body:not(.nhp) .rail button{width:68px!important;height:auto!important;min-height:58px;border-radius:16px!important;color:var(--aw-ink-2)!important;background:transparent!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 0!important;position:relative}
+body.nhi .rail button{width:52px!important;min-height:52px}
+body:not(.nhp) .rail button:hover{background:var(--aw-surface-2)!important;color:var(--aw-ink)!important}
+body:not(.nhp) .rail button.active,body:not(.nhp) .rail button.nbx-cur{background:var(--aw-primary)!important;color:#fff!important;box-shadow:0 8px 18px rgba(86,97,224,.3)}
+body:not(.nhp) .rail button svg{width:24px!important;height:24px!important}
+.rail .nbx-ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.rail .nbx-lbl{font:500 11.5px/1.1 var(--aw-font);white-space:nowrap}
+body.nhi .rail .nbx-lbl{display:none}
+.rail .nbx-badge{position:absolute;top:4px;right:10px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--aw-danger);color:#fff;font:700 10px/17px var(--aw-font);text-align:center;box-shadow:0 0 0 2px #fff}
+body.nhi .rail .nbx-badge{right:2px}
+body:not(.nhp) .pane{background:var(--aw-surface)!important;border:0!important;border-radius:var(--aw-r-lg)!important;box-shadow:var(--aw-shadow)!important;overflow:hidden}
+body:not(.nhp) .pane-head{border-bottom:1px solid var(--aw-border-2)!important;height:54px!important;padding:0 16px!important;font-weight:700!important;color:var(--aw-ink)!important}
+body:not(.nhp) .pane-head .count{color:var(--aw-ink-3)!important}
+body:not(.nhp) .pane-head&gt;span:first-child[style]{color:var(--aw-primary)!important}
+body:not(.nhp) .book-group{color:var(--aw-ink-3)!important}
+body:not(.nhp) .section-group-label{color:var(--aw-ink-2)!important}
+body:not(.nhp) .nb-row,body:not(.nhp) .page-item{border-radius:var(--aw-r-sm)!important;color:var(--aw-ink)!important}
+body:not(.nhp) .nb-row:hover,body:not(.nhp) .page-item:hover{background:var(--aw-surface-2)!important}
+body:not(.nhp) .nb-row.sel,body:not(.nhp) .page-item.sel{background:var(--aw-primary-lt)!important;color:var(--aw-primary-dk)!important;font-weight:600}
+body:not(.nhp) .add-row{border-top:1px solid var(--aw-border-2)!important;color:var(--aw-primary)!important;font-weight:700!important}
+body:not(.nhp) .add-row:hover{background:var(--aw-surface-2)!important}
+body:not(.nhp) main.editor{background:var(--aw-surface)!important;border-radius:var(--aw-r-lg)!important;box-shadow:var(--aw-shadow)!important}
+body:not(.nhp) .editor-head{border-bottom:1px solid var(--aw-border-2)!important}
+body:not(.nhp) .editor-head .crumb{color:var(--aw-ink-3)!important}
+.save-state{color:var(--aw-writing)!important;font-weight:600}
+.date-line{color:var(--aw-ink-3)!important;border-bottom-color:var(--aw-border)!important}
+.note-statusbar{background:var(--aw-surface)!important;border-top:1px solid var(--aw-border-2)!important;color:var(--aw-ink-3)!important;box-shadow:none!important;font-family:var(--aw-font)}
+body:not(.nhp) .chat{background:var(--aw-surface)!important;border:0!important;border-radius:var(--aw-r-lg)!important;box-shadow:var(--aw-shadow)!important}
+.search-pane{border-radius:var(--aw-r-lg);overflow:hidden}
+
+/* ---------- menus, pop-ups, dialogs ---------- */
+#menuContext,.menu-dropdown,.nh-pop,.font-picker-menu{border:0!important;border-radius:var(--aw-r)!important;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2)!important;font-family:var(--aw-font)!important}
+#menuContext .menu-item:hover,.menu-dropdown .menu-item:hover{background:var(--aw-primary-lt)!important;color:var(--aw-primary-dk)!important}
+.overlay .dialog{border-radius:var(--aw-r-lg)!important;box-shadow:var(--aw-shadow-lg)!important;font-family:var(--aw-font)}
+.dialog .primary,.overlay .primary{background:var(--aw-primary)!important;border-radius:var(--aw-r-pill)!important}
+.dialog .secondary,.overlay .secondary{background:var(--aw-primary-lt)!important;color:var(--aw-primary-dk)!important;border:0!important;border-radius:var(--aw-r-pill)!important}
+#toast,.toast{font-family:var(--aw-font)!important;background:var(--aw-primary-dk)!important;border-radius:var(--aw-r-pill)!important;padding:12px 20px!important}
+#nhSecDlg .box,#nhMoveDlg .box{border-radius:var(--aw-r-lg)!important;font-family:var(--aw-font)!important}
+#nhSecDlg .acts .pri{background:var(--aw-primary)!important;border-color:var(--aw-primary)!important;border-radius:var(--aw-r-pill)!important}
+#nhSecDlg .acts button,#nhMoveDlg .acts button{border-radius:var(--aw-r-pill)!important}
+#nhMoveSnack{background:var(--aw-primary-dk)!important;font-family:var(--aw-font)!important;border-radius:var(--aw-r-pill)!important}
+#nhMoveSnack button{color:#b9bfff!important}
+.nh-drop-into{outline-color:var(--aw-primary)!important;background:var(--aw-primary-lt)!important}
+.nh-drag-line,.nh-drag-line::before{background:var(--aw-primary)!important}
+
+/* ---------- phone: the same colours and font ---------- */
+body.nhp{background:var(--aw-bg)!important}
+body.nhp .nhp-bar{background:var(--aw-bg)!important;border-color:var(--aw-border-2)!important;font-family:var(--aw-font)!important}
+body.nhp .nhp-list{background:var(--aw-bg)!important}
+body.nhp .nhp-row.cur,body.nhp .nhp-row:active{background:var(--aw-primary-lt)!important;color:var(--aw-primary-dk)}
+body.nhp .nhp-fab{border:0!important;background:var(--aw-primary)!important;color:#fff!important;box-shadow:0 10px 24px rgba(86,97,224,.35)!important;font-family:var(--aw-font)!important}
+body.nhp .nhp-fmt .grp button.on{background:var(--aw-primary-lt)!important;color:var(--aw-primary)!important}
+body.nhp .nhp-sheet{border-radius:var(--aw-r-lg) var(--aw-r-lg) 0 0!important;font-family:var(--aw-font)!important}
+&lt;/style&gt;
+&lt;script&gt;
+(function(){
+  const $q = s =&gt; document.querySelector(s), body = document.body;
+  const ribbon = $q('.ribbon'); if (!ribbon) return;
+  const svg = p =&gt; '&lt;svg viewBox="0 0 24 24" aria-hidden="true"&gt;' + p + '&lt;/svg&gt;';
+
+  /* ---------- title bar: Saved · Save · Export PDF ---------- */
+  const tr = $q('header.top .topright');
+  if (tr){
+    const saved = document.createElement('span'); saved.className = 'nbx-saved'; saved.textContent = '✓ Saved';
+    const save = document.createElement('button'); save.type = 'button'; save.className = 'nbx-save'; save.innerHTML = '💾 Save'; save.title = 'Save now';
+    const pdf = document.createElement('button'); pdf.type = 'button'; pdf.className = 'nbx-pdf'; pdf.textContent = 'Export PDF'; pdf.title = 'Export this page as PDF';
+    save.onclick = () =&gt; { try { runMenuAction('save'); } catch (e) { try { storeCurrent(false); } catch (er) {} } };
+    pdf.onclick = () =&gt; { try { runMenuAction('export-pdf'); } catch (e) { window.print(); } };
+    const anchor = $q('#settingsBtn') || null;
+    tr.insertBefore(saved, anchor); tr.insertBefore(save, anchor); tr.insertBefore(pdf, anchor);
+    const st = $q('#saveState');
+    if (st){ const upd = () =&gt; { const t = st.textContent.trim(); saved.textContent = /sav(ed)?$/i.test(t) &amp;&amp; !/…|\.\.\./.test(t) ? '✓ Saved' : t; }; new MutationObserver(upd).observe(st, { childList: true, characterData: true, subtree: true }); upd(); }
+  }
+
+  /* ---------- ribbon tabs (computer), with Full screen and zoom on the right ---------- */
+  const panels = [...ribbon.querySelectorAll('[data-ribbon-panel]')];
+  const tabs = document.createElement('div'); tabs.className = 'nbx-tabs'; tabs.setAttribute('role', 'tablist');
+  tabs.innerHTML = [['home', 'Home'], ['insert', 'Insert'], ['draw', 'Draw'], ['view', 'View']].map(([k, l]) =&gt; `&lt;button type="button" role="tab" data-t="${k}"&gt;${l}&lt;/button&gt;`).join('') +
+    '&lt;span class="sp"&gt;&lt;/span&gt;&lt;button type="button" class="tool" data-z="full" title="Full screen"&gt;' + svg('&lt;path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/&gt;') + 'Full screen&lt;/button&gt;' +
+    '&lt;button type="button" class="tool" data-z="out" aria-label="Zoom out"&gt;' + svg('&lt;path d="M5 12h14"/&gt;') + '&lt;/button&gt;&lt;button type="button" class="tool zoom" data-z="reset" title="Reset zoom"&gt;100%&lt;/button&gt;' +
+    '&lt;button type="button" class="tool" data-z="in" aria-label="Zoom in"&gt;' + svg('&lt;path d="M12 5v14M5 12h14"/&gt;') + '&lt;/button&gt;';
+  ribbon.insertBefore(tabs, ribbon.firstChild);
+  function showTab(t){
+    if (body.classList.contains('nhi')) return;   // the iPad bar has its own tabs
+    panels.forEach(p =&gt; { p.hidden = p.dataset.ribbonPanel !== t; });
+    tabs.querySelectorAll('[data-t]').forEach(b =&gt; { const on = b.dataset.t === t; b.classList.toggle('cur', on); b.setAttribute('aria-selected', String(on)); });
+    dispatchEvent(new Event('resize'));
+  }
+  tabs.addEventListener('mousedown', e =&gt; e.preventDefault());   // keep the selection in the page
+  tabs.addEventListener('click', e =&gt; {
+    const t = e.target.closest('[data-t]'); if (t){ showTab(t.dataset.t); return; }
+    const z = e.target.closest('[data-z]'); if (!z) return;
+    const id = { full: '#viewFullscreen', out: '#zoomOut', reset: '#zoomReadout', in: '#zoomIn' }[z.dataset.z]; const el = $q(id); if (el) el.click();
+  });
+  const ro = $q('#zoomReadout'), zr = tabs.querySelector('.zoom');
+  if (ro){ const upd = () =&gt; { zr.textContent = ro.textContent.trim() || '100%'; }; new MutationObserver(upd).observe(ro, { childList: true, characterData: true, subtree: true }); upd(); }
+  showTab('home');
+  // when the iPad bar goes away (computer toolbar), the computer tabs take over again
+  new MutationObserver(() =&gt; { if (!body.classList.contains('nhi') &amp;&amp; !tabs.querySelector('.cur')) showTab('home'); }).observe(body, { attributes: true, attributeFilter: ['class'] });
+
+  /* ---------- labelled groups ---------- */
+  const home = $q('[data-ribbon-panel="home"]');
+  if (home){
+    const label = (g) =&gt; {
+      if (g.querySelector('[data-cmd="undo"]')) return 'Undo';
+      if (g.querySelector('#clipboardPaste')) return 'Clipboard';
+      if (g.querySelector('[data-cmd="bold"]')) return 'Font';
+      if (g.querySelector('[data-cmd="insertUnorderedList"],#todoBtn')) return 'Lists &amp; tags';
+      if (g.querySelector('[data-cmd="justifyLeft"],#alignMenuBtn')) return 'Paragraph';
+      if (g.querySelector('#tagsBtn')) return 'Tags';
+      if (g.querySelector('.style-tool,#stylesBtn')) return 'Styles';
+      if (g.querySelector('#insertMenuBtn,#quoteBtn,#tableBtn')) return 'Insert';
+      if (g.querySelector('#pageLookBtn,#fullscreenBtn')) return 'Page';
+      return '';
+    };
+    home.querySelectorAll('.ribbon-primary &gt; .toolbar-group').forEach(g =&gt; { const l = label(g); if (l) g.dataset.label = l; });
+    // the second row: Font (name, size, colours, painter) and Tools (dictate … send)
+    const row2 = home.querySelector('.ribbon-secondary');
+    if (row2){
+      const wrap = (els, l) =&gt; { els = els.filter(Boolean); if (!els.length) return; const g = document.createElement('div'); g.className = 'toolbar-group nbx-grp'; g.dataset.label = l; els[0].parentNode.insertBefore(g, els[0]); els.forEach(el =&gt; g.appendChild(el)); };
+      wrap([row2.querySelector('.font-picker'), $q('#fontSize'), $q('#textColorBtn'), $q('#textColorPicker'), $q('#highlightBtn'), $q('#highlightPicker'), $q('#formatPainter')].filter(el =&gt; el &amp;&amp; el.closest('.ribbon-secondary') === row2), 'Text');
+      wrap([$q('#toolbarDictate'), $q('#toolbarTranscribe'), $q('#toolbarGemini'), $q('#toolbarMeeting'), $q('#toolbarSendPage')].filter(el =&gt; el &amp;&amp; el.closest('.ribbon-secondary') === row2), 'Tools');
+    }
+  }
+
+  /* ---------- the rail: line icons with labels ---------- */
+  const rail = $q('.rail');
+  const ICON = {
+    sections: '&lt;path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v12.5H7.5A2.5 2.5 0 0 1 5 17z"/&gt;&lt;path d="M5 17a2.5 2.5 0 0 1 2.5-2.5H19M9 8.5h6"/&gt;',
+    pages: '&lt;path d="M7 3.5h7l4 4v13H7z"/&gt;&lt;path d="M13.5 3.5V8H18M9.5 12h5M9.5 15.5h5"/&gt;',
+    search: '&lt;circle cx="11" cy="11" r="6.5"/&gt;&lt;path d="m16 16 4.5 4.5"/&gt;',
+    recent: '&lt;circle cx="12" cy="12" r="8.5"/&gt;&lt;path d="M12 7.5V12l3 2"/&gt;',
+    help: '&lt;circle cx="12" cy="12" r="8.5"/&gt;&lt;path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5v.3M12 16.8h.01"/&gt;'
+  };
+  window.nbxRailItem = function(btn, icon, text){   // shared with v36 and v37
+    btn.innerHTML = '&lt;svg class="nbx-ic" viewBox="0 0 24 24" aria-hidden="true"&gt;' + icon + '&lt;/svg&gt;&lt;span class="nbx-lbl"&gt;' + text + '&lt;/span&gt;';
+    if (!btn.getAttribute('aria-label')) btn.setAttribute('aria-label', text);
+  };
+  if (rail){
+    const bs = [...rail.querySelectorAll(':scope &gt; button')];
+    const pick = (f) =&gt; bs.find(f);
+    [[pick(b =&gt; b.id === 'railNotebooks'), 'sections', 'Sections'], [pick(b =&gt; b.id === 'railPages'), 'pages', 'Pages'], [pick(b =&gt; b.id === 'searchBtn'), 'search', 'Search'],
+     [pick(b =&gt; /recent/i.test(b.title || '')), 'recent', 'Recent'], [pick(b =&gt; /help/i.test(b.title || '')), 'help', 'Help']].forEach(([b, k, t]) =&gt; { if (b) nbxRailItem(b, ICON[k], t); });
+  }
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
