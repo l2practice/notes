@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-27-insert-columns-v58" />
+    <meta name="app-build" content="2026-11-27-trends-rail-v59" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -2607,11 +2607,14 @@ main.editor.nh-look{background-attachment:local!important}
     'Sets &amp; logic':'∅ ∈ ∉ ∋ ∌ ⊂ ⊃ ⊆ ⊇ ⊄ ⊅ ⊊ ⊋ ∪ ∩ ∖ △ ℕ ℤ ℚ ℝ ℂ ℙ ∀ ∃ ∄ ¬ ∧ ∨ ⊻ ⇒ ⇔ ⊢ ⊨ ∴ ∵ ⊕ ⊗ ⊤ ⊥ ℵ ℘',
     'Greek':'α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ ς τ υ φ χ ψ ω Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω',
     'Arrows':'← → ↑ ↓ ↔ ↕ ↖ ↗ ↘ ↙ ⇐ ⇒ ⇑ ⇓ ⇔ ⇕ ⟵ ⟶ ⟷ ⟹ ⟸ ⟺ ↦ ↩ ↪ ↺ ↻ ⇄ ⇆ ➜ ➔ ➤ ↳ ↴',
+    'Trends':'↗ ⇗ ⤴ ⇈ ▲ ↘ ⇘ ⤵ ⇊ ▼ → ⟶ ↔ ▬ ∿ 〰 ↕ ⇅ ⇵ ⋀ ⋁ ⌒ ⌣ ≈ ± Δ % ↑↓ 📈 📉 📊',
     'IPA':'i ɪ e ɛ æ ə ɜ ʌ ɑ ɒ ɔ ʊ u ɐ ɚ ɝ ː ˈ ˌ p b t d k ɡ f v θ ð s z ʃ ʒ h tʃ dʒ m n ŋ l r ɹ j w ʔ ɾ ɫ ʍ ‿ ˞ / [ ]',
     'Linguistics':'→ ⇒ ∅ * ? # √ ✓ ✗ ✔ ✘ ≈ ~ ± [ ] { } ⟨ ⟩ ‖ | / \\ ' + 'Ø ø σ μ ω Φ ° ¹ ² ³ ₁ ₂',
     'Common':'© ® ™ § ¶ † ‡ • ◦ ‣ … – — ‘ ’ “ ” « » ‹ › ¡ ¿ € £ ¥ ¢ $ ₫ ₹ ₩ % ‰ № ℃ ℉ ☐ ☑ ☒ ★ ☆ ♥ ♦ ♣ ♠ ✓ ✗ ☺ ☹ ♪ ♫ ⌘ ⌥ ⇧ ⏎'
   };
   const NAMES={'∅':'empty set','∈':'element of','∉':'not an element of','⊂':'subset of','⊆':'subset of or equal to','∪':'union','∩':'intersection','∖':'set minus','ℕ':'natural numbers','ℤ':'integers','ℚ':'rational numbers','ℝ':'real numbers','ℂ':'complex numbers','∀':'for all','∃':'there exists','∄':'there does not exist','¬':'not','∧':'and','∨':'or','⇒':'implies','⇔':'if and only if','∴':'therefore','∵':'because','±':'plus-minus','×':'multiplication','÷':'division','≠':'not equal','≈':'approximately','≡':'identical to','≤':'less than or equal','≥':'greater than or equal','∞':'infinity','√':'square root','∑':'sum','∏':'product','∫':'integral','∂':'partial','∆':'delta / increment','∇':'nabla','∝':'proportional to','∠':'angle','⊥':'perpendicular','∥':'parallel','°':'degree','ə':'schwa','ɪ':'near-close front vowel (kit)','ʊ':'near-close back vowel (foot)','æ':'ash (trap)','ʌ':'strut','ɑ':'open back vowel (palm)','ɒ':'lot (British)','ɔ':'thought','ɜ':'nurse','ː':'long vowel mark','ˈ':'primary stress','ˌ':'secondary stress','θ':'theta (think)','ð':'eth (this)','ʃ':'esh (ship)','ʒ':'ezh (measure)','ŋ':'eng (sing)','ʔ':'glottal stop','ɾ':'flap','ɹ':'approximant r','Ø':'null / zero morpheme','*':'ungrammatical','?':'questionable','#':'semantically odd','⟨':'left angle bracket (spelling)','⟩':'right angle bracket (spelling)'};
+  /* the Trends tab: words for describing a chart (IELTS Task 1) as the tooltip, so searching "rise" or "fluctuate" finds them */
+  Object.assign(NAMES,{'↗':'increase, rise, go up', '⇗':'rise sharply, surge', '⤴':'recover, rise again after a dip', '⇈':'soar, rocket', '▲':'up, increase', '↘':'decrease, fall, decline', '⇘':'fall sharply, plunge', '⤵':'drop after a peak', '⇊':'plummet', '▼':'down, decrease', '→':'remain stable, stay the same', '⟶':'level off, steady', '↔':'unchanged, no change', '▬':'flat, plateau', '∿':'fluctuate', '〰':'fluctuate wildly, wavy', '↕':'fluctuate up and down, vary', '⇅':'rise and fall', '⇵':'fall and rise', '⋀':'peak, highest point', '⋁':'trough, lowest point', '⌒':'rise then fall', '⌣':'fall then rise', 'Δ':'change, difference', '%':'percent', '↑↓':'up and down', '📈':'chart going up, upward trend', '📉':'chart going down, downward trend', '📊':'bar chart'});
   const symPop=$('#symPop');let tab=localStorage.getItem('nh_sym_tab')||'Math';
   const recent=()=&gt;{try{return JSON.parse(localStorage.getItem('nh_sym_recent')||'[]')}catch{return []}};
   function render(filter){
@@ -8178,6 +8181,45 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     if (pick.classList.contains('show')) close(); else open(b);
   }, true);
   if (typeof runMenuAction === 'function'){ const prev = runMenuAction; runMenuAction = function(a){ if (a === 'insert-table'){ try { closeMenus(); } catch (e) {} open(null); return; } return prev.apply(this, arguments); }; }
+})();
+&lt;/script&gt;
+&lt;!-- ===== Notebooks v42: quieter scrollbars everywhere, room between the iPad bars, one highlighted button on the left rail =====
+     Also (in the ribbon module): Marks gets a Trends tab — rise, fall, stay the same, fluctuate, peak, trough, … for describing charts.
+     Paste before &lt;/body&gt;, after patches v20–v41. --&gt;
+&lt;style&gt;
+/* every scroll area (the Shapes and Symbols panels, Marks, menus, lists): a thin bar in the page's own tint, darker on hover */
+*{scrollbar-width:thin;scrollbar-color:rgba(86,97,224,.18) transparent}
+*:hover{scrollbar-color:rgba(86,97,224,.34) transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(86,97,224,.18);border-radius:8px}
+:hover::-webkit-scrollbar-thumb{background:rgba(86,97,224,.34)}
+/* iPad: the Home / Insert / View pill sat on the edge of the tool strip below it */
+body.nhi #nhiBar{height:58px!important}
+body.nhi .ribbon{margin-top:2px!important;padding:4px 8px!important}
+/* Marks: the category pills were cut off at the bottom; the chosen one in the app's colour */
+#symPop .tabs button{height:auto!important;min-height:28px;line-height:1.2}
+#symPop .tabs button.cur{background:var(--aw-primary,#5661e0);border-color:var(--aw-primary,#5661e0)}
+#symPop .grid button:hover{background:var(--aw-primary-lt,#eef0ff);border-color:var(--aw-primary,#5661e0)}
+&lt;/style&gt;
+&lt;script&gt;
+(function(){
+  /* The left rail lights up one button: the panel showing at the left. "Sections" was lit from the start and never let go,
+     so it stayed lit while Search (or Pages alone) was showing. */
+  const $q = s =&gt; document.querySelector(s);
+  const secs = $q('#railNotebooks'), pages = $q('#railPages'), search = $q('#searchBtn');
+  const nbPane = $q('#notebookPane'), pgPane = $q('#pagePane'), sPane = $q('#searchPane') || (typeof searchPane !== 'undefined' ? searchPane : null);
+  if (!secs || !nbPane) return;
+  const open = el =&gt; el &amp;&amp; !el.classList.contains('collapsed');
+  function sync(){
+    const s = open(sPane), n = !s &amp;&amp; open(nbPane), p = !s &amp;&amp; !n &amp;&amp; open(pgPane);
+    secs.classList.toggle('active', n);
+    if (pages) pages.classList.toggle('active', p);
+    if (search) search.classList.toggle('active', s);
+  }
+  const mo = new MutationObserver(sync);
+  [nbPane, pgPane, sPane].forEach(el =&gt; { if (el) mo.observe(el, { attributes: true, attributeFilter: ['class'] }); });
+  sync();
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;

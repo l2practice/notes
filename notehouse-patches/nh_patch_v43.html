@@ -1,0 +1,39 @@
+<!-- ===== Notebooks v42: quieter scrollbars everywhere, room between the iPad bars, one highlighted button on the left rail =====
+     Also (in the ribbon module): Marks gets a Trends tab — rise, fall, stay the same, fluctuate, peak, trough, … for describing charts.
+     Paste before </body>, after patches v20–v41. -->
+<style>
+/* every scroll area (the Shapes and Symbols panels, Marks, menus, lists): a thin bar in the page's own tint, darker on hover */
+*{scrollbar-width:thin;scrollbar-color:rgba(86,97,224,.18) transparent}
+*:hover{scrollbar-color:rgba(86,97,224,.34) transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(86,97,224,.18);border-radius:8px}
+:hover::-webkit-scrollbar-thumb{background:rgba(86,97,224,.34)}
+/* iPad: the Home / Insert / View pill sat on the edge of the tool strip below it */
+body.nhi #nhiBar{height:58px!important}
+body.nhi .ribbon{margin-top:2px!important;padding:4px 8px!important}
+/* Marks: the category pills were cut off at the bottom; the chosen one in the app's colour */
+#symPop .tabs button{height:auto!important;min-height:28px;line-height:1.2}
+#symPop .tabs button.cur{background:var(--aw-primary,#5661e0);border-color:var(--aw-primary,#5661e0)}
+#symPop .grid button:hover{background:var(--aw-primary-lt,#eef0ff);border-color:var(--aw-primary,#5661e0)}
+</style>
+<script>
+(function(){
+  /* The left rail lights up one button: the panel showing at the left. "Sections" was lit from the start and never let go,
+     so it stayed lit while Search (or Pages alone) was showing. */
+  const $q = s => document.querySelector(s);
+  const secs = $q('#railNotebooks'), pages = $q('#railPages'), search = $q('#searchBtn');
+  const nbPane = $q('#notebookPane'), pgPane = $q('#pagePane'), sPane = $q('#searchPane') || (typeof searchPane !== 'undefined' ? searchPane : null);
+  if (!secs || !nbPane) return;
+  const open = el => el && !el.classList.contains('collapsed');
+  function sync(){
+    const s = open(sPane), n = !s && open(nbPane), p = !s && !n && open(pgPane);
+    secs.classList.toggle('active', n);
+    if (pages) pages.classList.toggle('active', p);
+    if (search) search.classList.toggle('active', s);
+  }
+  const mo = new MutationObserver(sync);
+  [nbPane, pgPane, sPane].forEach(el => { if (el) mo.observe(el, { attributes: true, attributeFilter: ['class'] }); });
+  sync();
+})();
+</script>
