@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-27-minutes-v56" />
+    <meta name="app-build" content="2026-11-27-insert-merge-v57" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -4563,7 +4563,7 @@ body.nh-drag-on,body.nh-drag-on *{cursor:grabbing!important;user-select:none!imp
      The note screen of Notebooks in the look of Interactive Board (ArticuWrite): lavender background, white cards with
      large rounded corners and soft shadows, Be Vietnam Pro for the interface, navy and periwinkle buttons.
      - Computer: the ribbon is a white card with Home · Insert · Draw · View tabs, Full screen and zoom on the right,
-       and labelled groups (Undo, Clipboard, Font, Paragraph, Styles, Insert, Tools).
+       and grouped tools (the group names were taken off: the icons and their names say what they do).
      - iPad: the compact OneNote-style bar (v32) keeps its layout, in these colours and this font.
      - The rail on the left has line icons and labels; To-do and Reminder (v36, v37) add their own items to it.
      - The page itself keeps its font (Patrick Hand, v34); only the interface changes. Nothing about the data changes.
@@ -4646,9 +4646,9 @@ body:not(.nhi):not(.nhp) .ribbon .color-control{border:0!important;background:va
 body:not(.nhi):not(.nhp) .ribbon .ribbon-sep{background:var(--aw-border-2)!important}
 body:not(.nhi):not(.nhp) .ribbon .ribbon-row.ribbon-primary{border-bottom:0!important}
 /* labelled groups, as on Interactive Board */
-body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]{position:relative;padding-bottom:20px!important;border-right:1px solid var(--aw-border-2)!important;margin-right:6px}
+body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]{position:relative;padding-bottom:0!important;border-right:1px solid var(--aw-border-2)!important;margin-right:6px}
 body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]:last-child{border-right:0!important}
-body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]::after{content:attr(data-label);position:absolute;left:0;right:0;bottom:0;text-align:center;font:500 12px var(--aw-font);color:var(--aw-ink-3);white-space:nowrap;pointer-events:none}
+body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]::after{display:none;content:attr(data-label);position:absolute;left:0;right:0;bottom:0;text-align:center;font:500 12px var(--aw-font);color:var(--aw-ink-3);white-space:nowrap;pointer-events:none}
 .nbx-grp{display:flex;align-items:center;gap:6px}
 @media (max-width:1440px){body:not(.nhi):not(.nhp) .ribbon .nbx-grp[data-label="Tools"] .ribbon-action{font-size:0!important;min-width:44px;justify-content:center}body:not(.nhi):not(.nhp) .ribbon .nbx-grp[data-label="Tools"] .ribbon-action svg{width:21px!important;height:21px!important}}   /* icons only (each has a tooltip) */
 body:not(.nhi):not(.nhp) .ribbon .ribbon-secondary{align-items:stretch!important;border:0!important}
@@ -5749,6 +5749,15 @@ body.nhi #tb .aw-rb-big svg{width:20px;height:20px}
 .nbd-pop[hidden]{display:none}
 #tb .nbd-pop .aw-rb-b{width:100%;justify-content:flex-start;padding:0 12px}
 .nbd-hold{display:none}
+/* Insert + Draw in one tab: groups one after another, wrapping as a whole */
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged:not([hidden]){display:flex!important;flex-wrap:wrap;align-items:center;column-gap:22px;row-gap:8px;padding-top:2px}
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged &gt; .ribbon-row{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px;min-height:0!important;border:0!important;padding:0!important;margin:0!important;flex:0 1 auto}
+body:not(.nhi):not(.nhp) #tb.nbd-mock,body:not(.nhi):not(.nhp) #tb .nbd-style{display:contents!important}
+.nbd-g{display:inline-flex;align-items:center;gap:4px;flex:none}
+[data-ribbon-panel="insert"].nbd-merged{position:relative}
+body.nhi #tb .nbd-g{display:contents!important}
+.aw-fp-body{flex:1;min-height:0}
+.aw-fp-rs{position:absolute;right:0;bottom:0;width:22px;height:22px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 52%,var(--aw-border) 52%,var(--aw-border) 60%,transparent 60%,transparent 70%,var(--aw-border) 70%,var(--aw-border) 78%,transparent 78%);border-bottom-right-radius:16px}
 body.nhi #tb .nbd-row,body.nhi #tb .nbd-style{display:contents!important}
 body.nhi #tb .nbd-sep{height:22px;margin:0 6px}
 body.nhi .nbd-chip{width:34px;height:34px}
@@ -6722,9 +6731,8 @@ function onUp(e){
     S.sel = [g.el]; clearBadges(); changed();
   } else if (g.kind === 'sym'){
     clearBadges();
-    if (!g.dragged){ S.sel = [g.el]; changed(); return; }   // a plain click places the symbol at its usual size (a drag sizes it)
-    S.symDims[g.key] = [Math.round(g.w), Math.round(g.h)]; lsSet('aw_sym_dims', S.symDims);   // the next symbols of this kind come out the same size
-    S.sel = [g.el]; changed();
+    if (g.dragged){ S.symDims[g.key] = [Math.round(g.w), Math.round(g.h)]; lsSet('aw_sym_dims', S.symDims); }   // dragged: the next symbols of this kind come out this size
+    setTool('select'); S.sel = [g.el]; changed();   // placed (a click: its usual size). The next click selects or moves; it does not place another one
   } else if (g.kind === 'text'){
     const dx = Math.abs(e.clientX - g.vx) / zoomF();
     const x = Math.min(g.x0, pt(e).x), y = Math.min(g.y0, pt(e).y);
@@ -6936,6 +6944,19 @@ function makePanel(id, title, w){
   document.body.appendChild(p); panels[id] = p;
   p.querySelector('.aw-fp-x').onclick = () =&gt; { p.remove(); panels[id] = null; syncStyleUI(); };
   p.addEventListener('mousedown', e =&gt; { if (!/^(INPUT|SELECT)$/.test(e.target.tagName)) e.preventDefault(); });
+  // the bottom-right corner resizes the panel (the icons wrap to the new width); the size is remembered
+  const sz = lsGet('aw_fp_size_' + id, null); if (sz &amp;&amp; sz[0] &amp;&amp; sz[1]){ p.style.width = Math.min(innerWidth - 16, sz[0]) + 'px'; p.style.height = Math.min(innerHeight - 16, sz[1]) + 'px'; p.style.maxHeight = 'none'; }
+  p.insertAdjacentHTML('beforeend', '&lt;div class="aw-fp-rs" title="Drag to resize" aria-hidden="true"&gt;&lt;/div&gt;');
+  const rs = p.querySelector('.aw-fp-rs');
+  rs.addEventListener('pointerdown', e =&gt; {
+    e.preventDefault(); e.stopPropagation();
+    const r = p.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    p.style.left = r.left + 'px'; p.style.top = r.top + 'px'; p.style.right = 'auto'; p.style.maxHeight = 'none';   // the corner moves, the top-left stays
+    try { rs.setPointerCapture(e.pointerId); } catch (er) {}
+    const mv = ev =&gt; { p.style.width = Math.max(180, Math.min(innerWidth - r.left - 8, r.width + ev.clientX - x0)) + 'px'; p.style.height = Math.max(150, Math.min(innerHeight - r.top - 8, r.height + ev.clientY - y0)) + 'px'; };
+    const up = () =&gt; { rs.removeEventListener('pointermove', mv); rs.removeEventListener('pointerup', up); rs.removeEventListener('pointercancel', up); lsSet('aw_fp_size_' + id, [p.offsetWidth, p.offsetHeight]); };
+    rs.addEventListener('pointermove', mv); rs.addEventListener('pointerup', up); rs.addEventListener('pointercancel', up);
+  });
   // drag by the header
   const head = p.querySelector('.aw-fp-head');
   head.addEventListener('pointerdown', e =&gt; {
@@ -6974,7 +6995,7 @@ function openSyms(){
     const own = symOwn();
     h += '&lt;div class="aw-symhd"&gt;&lt;span&gt;Your own&lt;/span&gt;&lt;/div&gt;' + (own.length ? '&lt;div class="aw-symgrid"&gt;' + own.map((c, i) =&gt; '&lt;span class="sym-own"&gt;' + chip(c.t, c.ring) + '&lt;button type="button" class="sym-del" data-del="' + i + '" title="Remove"&gt;×&lt;/button&gt;&lt;/span&gt;').join('') + '&lt;/div&gt;' : '') +
       '&lt;div class="aw-symadd"&gt;&lt;input id="symTxt" maxlength="14" placeholder="e.g. Adj"&gt;&lt;label&gt;&lt;input type="checkbox" id="symRing"&gt; circle&lt;/label&gt;&lt;button type="button" id="symAdd"&gt;Add&lt;/button&gt;&lt;/div&gt;' +
-      '&lt;div class="aw-fp-tip"&gt;Click the board to place a symbol, or drag to size it. It takes the current colour.&lt;/div&gt;';
+      '&lt;div class="aw-fp-tip"&gt;Choose a symbol, then click the board to place it (or drag to size it). Choose it again for the next one. It takes the current colour.&lt;/div&gt;';
     body.innerHTML = h;
   }
   build();
@@ -7079,54 +7100,55 @@ window.AWFree = { panelHtml, wire, tool: () =&gt; S.tool, setTool, fit, serializ
     if (!tb) return;
     const q = s =&gt; tb.querySelector(s), all = s =&gt; [...tb.querySelectorAll(s)];
     const el = (tag, cls, html) =&gt; { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
-    const sep = () =&gt; el('span', 'nbd-sep');
     const ic = p =&gt; '&lt;svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"&gt;' + p + '&lt;/svg&gt;';
-    const row1 = el('div', 'nbd-row'), row2 = el('div', 'nbd-row');
-    all('[data-fl-tool]').forEach(b =&gt; row1.append(b)); row1.append(sep());
+    /* groups of icons that wrap as a whole, one after another, so the row fills up before a new one starts */
+    const grp = (...els) =&gt; { const g = el('div', 'nbd-g'); els.filter(Boolean).forEach(x =&gt; g.append(x)); return g; };
+    const gTools = grp(...all('[data-fl-tool]'));
+    const gEdit = grp(...['#flUndo', '#flRedo', '[data-fl-act="dup"]', '[data-fl-act="del"]'].map(s =&gt; q(s)));
     const lw = q('#flSW') &amp;&amp; q('#flSW').closest('label'), lh = q('#flSH') &amp;&amp; q('#flSH').closest('label');
-    if (lw) row1.append(lw); if (lh) row1.append(lh); row1.append(sep());
     const more = el('button', 'aw-rb-b nbd-more', ic('&lt;path d="m12 3 9 5-9 5-9-5z"/&gt;&lt;path d="m3 12 9 5 9-5"/&gt;&lt;path d="m3 16 9 5 9-5"/&gt;'));
     more.type = 'button'; more.title = 'More: ruler, smoothing, finger drawing, level, reset turn'; more.setAttribute('aria-label', more.title); more.setAttribute('aria-haspopup', 'menu');
-    row1.append(more, sep());
-    const th = q('#flW') &amp;&amp; q('#flW').closest('label');
-    if (th){ [...th.childNodes].forEach(n =&gt; { if (n.nodeType === 3) n.textContent = ' '; }); th.title = 'Thickness'; row1.append(th, sep()); }
-    all('[data-ls]').forEach(b =&gt; row1.append(b));
-    ['#flUndo', '#flRedo', '[data-fl-act="dup"]', '[data-fl-act="del"]'].forEach(s =&gt; { const b = q(s); if (b) row2.append(b); });
-    row2.append(sep());
+    const gSize = grp(lw, lh, more);
+    const th = q('#flW') &amp;&amp; q('#flW').closest('label'); if (th){ [...th.childNodes].forEach(n =&gt; { if (n.nodeType === 3) n.textContent = ' '; }); th.title = 'Thickness'; }
+    const gLine = grp(th, ...all('[data-ls]'));
     const style = q('#flStyle'), fs = all('[data-fs]').filter(b =&gt; b.dataset.fs.toUpperCase() !== '#FFFFFF'), cust = q('.aw-cust'), ff = all('[data-ff]');
     const white = q('[data-fs="#FFFFFF"]'); if (white) white.remove();
     const chip = (path, t) =&gt; { const c = el('span', 'nbd-chip', ic(path)); c.title = t; c.setAttribute('role', 'img'); c.setAttribute('aria-label', t); return c; };
     if (style){
-      style.innerHTML = ''; style.className = 'nbd-style';
-      style.append(chip('&lt;path d="M4.5 19.5 5.5 15 16 4.5l3.5 3.5L9 18.5z"/&gt;&lt;path d="m14 6.5 3.5 3.5"/&gt;', 'Pen and line colour'), ...fs);
-      if (cust) style.append(cust);
-      style.append(sep(), chip('&lt;path d="M12 3.5c3.2 4.2 5.5 7.2 5.5 10a5.5 5.5 0 0 1-11 0c0-2.8 2.3-5.8 5.5-10z"/&gt;', 'Fill colour'), ...ff);
-      row2.append(style, sep());
+      style.innerHTML = ''; style.className = 'nbd-style';   // display: contents — the colour marks still find their buttons inside #flStyle
+      style.append(grp(chip('&lt;path d="M4.5 19.5 5.5 15 16 4.5l3.5 3.5L9 18.5z"/&gt;&lt;path d="m14 6.5 3.5 3.5"/&gt;', 'Pen and line colour'), ...fs, cust),
+                   grp(chip('&lt;path d="M12 3.5c3.2 4.2 5.5 7.2 5.5 10a5.5 5.5 0 0 1-11 0c0-2.8 2.3-5.8 5.5-10z"/&gt;', 'Fill colour'), ...ff));
     }
-    all('[data-rot]').filter(b =&gt; b.dataset.rot !== '0').forEach(b =&gt; row2.append(b)); row2.append(sep());
     const fx = q('[data-flip="x"]'), fy = q('[data-flip="y"]'), an = q('#flAngles');
-    if (fx){ fx.innerHTML = ic('&lt;path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/&gt;'); row2.append(fx); }
-    if (fy){ fy.innerHTML = ic('&lt;path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/&gt;'); row2.append(fy); }
-    if (an){ an.innerHTML = ic('&lt;path d="M12 4 21 20H3z"/&gt;'); row2.append(an); }
+    if (fx) fx.innerHTML = ic('&lt;path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/&gt;');
+    if (fy) fy.innerHTML = ic('&lt;path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/&gt;');
+    if (an) an.innerHTML = ic('&lt;path d="M12 4 21 20H3z"/&gt;');
+    const gTurn = grp(...all('[data-rot]').filter(b =&gt; b.dataset.rot !== '0'), fx, fy, an);
     const pop = el('div', 'nbd-pop'); pop.hidden = true; pop.setAttribute('role', 'menu');
     const rs = q('[data-rot="0"]'); if (rs) rs.textContent = '↺ Reset turn';
     const lv = q('[data-fl-act="align"]'); if (lv) lv.textContent = '≡ Level handwriting';
     [rs, lv, q('#flRuler'), q('#flSmooth'), q('#flFinger')].forEach(b =&gt; { if (b) pop.append(b); });
     const hold = el('div', 'nbd-hold'); all('.aw-fpanel-btn').forEach(b =&gt; hold.append(b));
-    ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s =&gt; { const b = q(s); if (b) b.remove(); });
-    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(row1, row2, pop, hold);
-    more.addEventListener('click', () =&gt; { pop.hidden = !pop.hidden; if (!pop.hidden){ pop.style.left = more.offsetLeft + 'px'; pop.style.top = (more.offsetTop + more.offsetHeight + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
+    ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s =&gt; { const b = q(s); if (b) b.remove(); });   // in the right-click menu (v40)
+    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(gTools, gEdit, gSize, gLine, style || '', gTurn, pop, hold);
+    more.addEventListener('click', () =&gt; { pop.hidden = !pop.hidden; if (!pop.hidden){ const r = more.getBoundingClientRect(), pr = (pop.offsetParent || document.body).getBoundingClientRect(); pop.style.left = (r.left - pr.left) + 'px'; pop.style.top = (r.bottom - pr.top + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
     document.addEventListener('pointerdown', e =&gt; { if (!pop.hidden &amp;&amp; !e.target.closest('.nbd-pop,.nbd-more')){ pop.hidden = true; more.classList.remove('on'); } }, true);
-    // Shapes and Symbols live on the Insert tab (they open the same panels)
-    const insRow = $q('[data-ribbon-panel="insert"] .ribbon-row') || $q('[data-ribbon-panel="insert"]');
+    /* Insert and Draw are one tab: the insert buttons first (with Shapes and Symbols), then the drawing tools */
+    const ins = $q('[data-ribbon-panel="insert"]'), insRow = ins &amp;&amp; (ins.querySelector('.ribbon-row') || ins);
     const insRef = insRow &amp;&amp; insRow.firstChild;
     if (insRow) all('.aw-fpanel-btn').forEach(orig =&gt; {
       const b = el('button', 'ribbon-action nbd-ins', orig.innerHTML); b.type = 'button'; b.title = orig.title; b.setAttribute('aria-label', orig.getAttribute('aria-label') || orig.title);
       b.addEventListener('click', () =&gt; orig.click()); insRow.insertBefore(b, insRef);
     });
+    if (ins){ ins.classList.add('nbd-merged'); ins.appendChild(tb); }
   }
   // leaving the Draw tab goes back to typing, so the page never stays in pen mode by surprise
-  if (draw) new MutationObserver(() =&gt; { if (draw.hidden &amp;&amp; AWFree.tool() !== 'type') AWFree.setTool('type'); }).observe(draw, { attributes: true, attributeFilter: ['hidden'] });
+  const toolsPanel = ($q('#tb') &amp;&amp; $q('#tb').closest('[data-ribbon-panel]')) || draw;
+  if (toolsPanel) new MutationObserver(() =&gt; { if (toolsPanel.hidden &amp;&amp; AWFree.tool() !== 'type') AWFree.setTool('type'); }).observe(toolsPanel, { attributes: true, attributeFilter: ['hidden'] });
+  // the Draw tab is gone (its tools are on Insert); a Draw tab remembered from before opens Insert
+  document.querySelectorAll('.nbx-tabs [data-t="draw"], #nhiBar [data-tab="draw"]').forEach(b =&gt; { b.hidden = true; b.style.display = 'none'; });
+  setTimeout(() =&gt; { if (draw &amp;&amp; !draw.hidden){ const t = $q('.nbx-tabs [data-t="insert"]'), t2 = $q('#nhiBar [data-tab="insert"]'); if (document.body.classList.contains('nhi') &amp;&amp; t2) t2.click(); else if (t) t.click(); } }, 0);
+  try { if (localStorage.getItem('nh_ipad_tab') === 'draw') localStorage.setItem('nh_ipad_tab', 'insert'); } catch (e) {}
 
   /* ---------- each page brings its own drawings; a page is saved with the short form of them ---------- */
   const prevRender = render;
@@ -7227,7 +7249,7 @@ window.AWFree = { panelHtml, wire, tool: () =&gt; S.tool, setTool, fit, serializ
        above / below / left / right, delete row / column / table, merge and split cells, height and width in cm,
        distribute rows / columns, 9-way alignment, shading, borders, header row, sort. Cells selected by dragging
        across them are tinted so you can see them.
-     - On a phone or an iPad, things that can be moved (text boxes, shapes, symbols, drawings, tables and pictures taken
+     - On a phone, things that can be moved (text boxes, shapes, symbols, drawings, tables and pictures taken
        out of the text, note containers) keep their places next to each other: if they reach past the width of the screen,
        they are all shown smaller by the same factor (only on screen, nothing is saved). Typed text still wraps to the screen.
      Paste before &lt;/body&gt;, after patches v20–v38 (needs v38). To remove: delete this block. --&gt;
@@ -7238,7 +7260,18 @@ body:not(.nhp) #editorContent{padding-bottom:45vh!important;min-height:calc(100v
 #editorContent img{max-width:100%;height:auto}
 #editorContent img.aw-tfree{max-width:none}
 /* small screens: the free layer as a whole, smaller by one factor (set by the script below) */
-#editorContent[data-fit] &gt; :is(.aw-fl,.aw-tfree,.note-block){zoom:var(--nbfit,1)}
+#editorContent[data-fit] &gt; :is(.aw-fl,.aw-tfree,.note-block,.nb-free){zoom:var(--nbfit,1)}
+/* the page no longer measures 100% of its frame: with the page zoom at 110% that came out 1px too wide, which brought a
+   horizontal scroll bar for nothing; a block that fills the width exactly does not */
+body:not(.nhp) .editor-inner{width:auto!important}
+/* scroll bars: thin, in the colour of the page, darker only under the pointer */
+main.editor,.pane-scroll,#nbxView,#sectionList,#pageList,.chat-body{scrollbar-width:thin;scrollbar-color:rgba(86,97,224,.16) transparent}
+main.editor:hover,.pane-scroll:hover,#nbxView:hover{scrollbar-color:rgba(86,97,224,.32) transparent}
+main.editor::-webkit-scrollbar,.pane-scroll::-webkit-scrollbar,#nbxView::-webkit-scrollbar{width:8px;height:8px}
+main.editor::-webkit-scrollbar-track,.pane-scroll::-webkit-scrollbar-track,#nbxView::-webkit-scrollbar-track{background:transparent}
+main.editor::-webkit-scrollbar-thumb,.pane-scroll::-webkit-scrollbar-thumb,#nbxView::-webkit-scrollbar-thumb{background:rgba(86,97,224,.16);border-radius:8px}
+main.editor:hover::-webkit-scrollbar-thumb,.pane-scroll:hover::-webkit-scrollbar-thumb,#nbxView:hover::-webkit-scrollbar-thumb{background:rgba(86,97,224,.32)}
+main.editor::-webkit-scrollbar-corner{background:transparent}
 /* ---------- bigger Draw tools on a computer ---------- */
 body:not(.nhi):not(.nhp) #tb{column-gap:0;row-gap:12px}
 body:not(.nhi):not(.nhp) #tb .aw-rb-grp{padding:0 16px;gap:8px}
@@ -7327,10 +7360,27 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     try { expandCanvasToFit(); } catch (er) {} save();
   }, true);
 
+  /* ================= no horizontal scroll bar for nothing =================
+     The page used to get a minimum width measured outside the zoomed page (so at 110% and more it came out wider than
+     the screen) plus 900px of room right of every note container. Now it is only as wide as what is really placed
+     past its right edge (note containers, tables and pictures out of the text, recording cards), with a small margin. */
+  if (typeof expandCanvasToFit === 'function'){
+    const prevE = expandCanvasToFit;
+    expandCanvasToFit = function(){
+      const out = prevE.apply(this, arguments);
+      let right = 0; editor.querySelectorAll(':scope &gt; .note-block, :scope &gt; .aw-tfree, :scope &gt; .nb-free').forEach(b =&gt; { right = Math.max(right, (parseFloat(b.style.left) || 0) + b.offsetWidth + 40); });
+      editor.style.minWidth = ''; if (right &gt; editor.offsetWidth) editor.style.minWidth = Math.ceil(right) + 'px';
+      return out;
+    };
+    try { expandCanvasToFit(); } catch (e) {}
+    if (typeof render === 'function'){ const pr = render; render = function(){ const o = pr.apply(this, arguments); try { expandCanvasToFit(); } catch (e) {} return o; }; }
+    if (typeof setPageZoom === 'function'){ const pz = setPageZoom; setPageZoom = function(){ const o = pz.apply(this, arguments); try { expandCanvasToFit(); } catch (e) {} return o; }; }
+  }
+
   /* ================= small screens: things side by side stay side by side ================= */
-  const FREE = ':scope &gt; .aw-tfree, :scope &gt; .note-block, :scope &gt; .aw-fl .fo, :scope &gt; .aw-fl .aw-fb';
+  const FREE = ':scope &gt; .aw-tfree, :scope &gt; .note-block, :scope &gt; .nb-free, :scope &gt; .aw-fl .fo, :scope &gt; .aw-fl .aw-fb';
   function fitFree(){
-    const small = document.body.classList.contains('nhp') || document.body.classList.contains('nhi');
+    const small = document.body.classList.contains('nhp');   // phones only: on an iPad things are edited (dragged, resized), so they keep their real size and the page scrolls
     const was = editor.dataset.fit ? (+editor.style.getPropertyValue('--nbfit') || 1) : 1;
     const inner = $q('.editor-inner'), pz = (inner &amp;&amp; parseFloat(inner.style.zoom) &gt; 0 ? parseFloat(inner.style.zoom) / 100 : 1);
     let s = 1;
@@ -7572,13 +7622,22 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
 #nbKeys .acts button{height:42px;padding:0 18px;border-radius:999px;border:0;font:700 14px var(--aw-font);cursor:pointer;background:var(--aw-primary-lt);color:var(--aw-primary-dk)}
 #nbKeys .acts .pri{background:var(--aw-primary-dk);color:#fff}
 /* recording pill */
-.nbr-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));z-index:96;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-radius:999px;background:var(--aw-primary-dk);color:#fff;font:600 14px var(--aw-font);box-shadow:var(--aw-shadow-lg)}
-.nbr-pill .dot{width:11px;height:11px;border-radius:50%;background:#ff5a5a;animation:nbrb 1.2s infinite}
+.nbr-pill{position:fixed;right:20px;bottom:calc(56px + env(safe-area-inset-bottom));z-index:96;display:flex;align-items:center;gap:4px;padding:3px 3px 3px 9px;border-radius:999px;background:var(--aw-primary-dk);color:#fff;font:600 12px var(--aw-font);box-shadow:0 6px 16px rgba(30,33,66,.28);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.nbr-pill.drag{cursor:grabbing}
+.nbr-pill .lab{display:none}
+.nbr-pill .dot{width:8px;height:8px;border-radius:50%;background:#ff5a5a;animation:nbrb 1.2s infinite;flex:none}
 .nbr-pill.paused .dot{animation:none;background:#f0b84a}
 @keyframes nbrb{50%{opacity:.25}}
-.nbr-pill .t{font-variant-numeric:tabular-nums;min-width:52px}
-.nbr-pill button{height:36px;padding:0 14px;border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font:700 13px var(--aw-font);cursor:pointer}
+.nbr-pill .t{font-variant-numeric:tabular-nums;min-width:30px;margin:0 2px}
+.nbr-pill button{width:24px;height:24px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;cursor:pointer;display:grid;place-items:center;flex:none}
+.nbr-pill button svg{width:12px;height:12px;fill:currentColor}
 .nbr-pill button.stop{background:#fff;color:var(--aw-primary-dk)}
+.nbr-pill.busy .dot{animation:none;background:#9fb0ff}
+/* a message that stays until it is closed (errors of Transcribe / Summarize) */
+.nb-note{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top));transform:translateX(-50%);z-index:99;display:flex;align-items:flex-start;gap:10px;max-width:min(560px,calc(100vw - 24px));padding:12px 12px 12px 16px;border-radius:16px;background:#fff;color:var(--aw-ink);font:13.5px/1.45 var(--aw-font);box-shadow:var(--aw-shadow-lg),0 0 0 1px #f3c9c3}
+.nb-note b{color:var(--aw-danger)}
+.nb-note button{flex:none;height:30px;padding:0 12px;border:0;border-radius:999px;background:var(--aw-primary-lt);color:var(--aw-primary-dk);font:700 12.5px var(--aw-font);cursor:pointer}
+#nbKeys .test{margin-top:12px;font-size:.84rem;line-height:1.5;color:var(--aw-ink-2);white-space:pre-line;min-height:18px}
 /* the recording card in the page */
 #editorContent .nb-rec{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0;padding:12px 14px;border-radius:16px;background:var(--aw-surface-2);border:1px solid var(--aw-border-2);font:14px var(--aw-font);color:var(--aw-ink);max-width:640px;user-select:none}
 #editorContent .nb-rec .ic{font-size:20px}
@@ -7588,6 +7647,10 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
 #editorContent .nb-rec button{height:34px;padding:0 12px;border:0;border-radius:999px;background:#fff;box-shadow:var(--aw-shadow-sm);font:600 13px var(--aw-font);color:var(--aw-ink);cursor:pointer}
 #editorContent .nb-rec button:hover{background:var(--aw-primary-lt)}
 #editorContent .nb-rec .st{font-size:.8rem;color:var(--aw-ink-3);width:100%}
+#editorContent .nb-rec .grip{cursor:grab;color:var(--aw-ink-3);font-size:18px;line-height:1;padding:2px 2px 2px 0;touch-action:none}
+#editorContent .nb-rec .intext{display:none}
+#editorContent .nb-rec.nb-free{box-shadow:var(--aw-shadow)}
+#editorContent .nb-rec.nb-free .intext{display:inline-block}
 &lt;/style&gt;
 &lt;div class="nbo-menu" id="nboMenu" role="menu"&gt;&lt;/div&gt;
 &lt;div id="nbKeys" role="dialog" aria-modal="true" aria-labelledby="nbKeysT"&gt;&lt;form class="box" autocomplete="off"&gt;
@@ -7595,7 +7658,8 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
   &lt;p&gt;Transcribe sends your voice to Groq (Whisper) for the words; Gemini is used when there is no Groq key or Groq does not answer. The keys stay in this browser.&lt;/p&gt;
   &lt;label for="nbGroq"&gt;Groq API key&lt;/label&gt;&lt;input type="password" id="nbGroq" placeholder="gsk_…"&gt;&lt;small&gt;Free at &lt;a href="https://console.groq.com/keys" target="_blank" rel="noopener"&gt;console.groq.com/keys&lt;/a&gt;&lt;/small&gt;
   &lt;label for="nbGem"&gt;Gemini API key&lt;/label&gt;&lt;input type="password" id="nbGem" placeholder="AIza…"&gt;&lt;small&gt;Free at &lt;a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener"&gt;aistudio.google.com/apikey&lt;/a&gt; — also used by the Gemini assistant&lt;/small&gt;
-  &lt;div class="acts"&gt;&lt;button type="button" data-x&gt;Cancel&lt;/button&gt;&lt;button type="submit" class="pri"&gt;Save&lt;/button&gt;&lt;/div&gt;
+  &lt;div class="test" id="nbKeyTest"&gt;&lt;/div&gt;
+  &lt;div class="acts"&gt;&lt;button type="button" data-test style="margin-right:auto"&gt;Test keys&lt;/button&gt;&lt;button type="button" data-x&gt;Cancel&lt;/button&gt;&lt;button type="submit" class="pri"&gt;Save&lt;/button&gt;&lt;/div&gt;
 &lt;/form&gt;&lt;/div&gt;
 &lt;script&gt;
 (function(){
@@ -7673,6 +7737,18 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
   }
   const closeKeys = () =&gt; { keys.classList.remove('show'); afterKeys = null; };
   keys.querySelector('[data-x]').onclick = closeKeys;
+  // asks each service with the key that is typed in (nothing is saved): it shows at once whether the key and the connection work
+  keys.querySelector('[data-test]').onclick = async () =&gt; {
+    const out = $q('#nbKeyTest'), g = $q('#nbGroq').value.trim(), m = $q('#nbGem').value.trim(); out.textContent = 'Testing…';
+    const one = async (name, key, url, opt) =&gt; {
+      if (!key) return name + ': no key';
+      try { const r = await fetch(url, opt); if (r.ok) return name + ': ✓ works'; const j = await r.json().catch(() =&gt; ({})); return name + ': ✗ ' + r.status + ' ' + ((j.error &amp;&amp; (j.error.message || j.error)) || '').toString().slice(0, 120); }
+      catch (e) { return name + ': ✗ the browser could not reach it (' + e.message + ')'; }
+    };
+    const a = await one('Groq', g, 'https://api.groq.com/openai/v1/models', { headers: { Authorization: 'Bearer ' + g } });
+    const b = await one('Gemini', m, 'https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(m), {});
+    out.textContent = a + '\n' + b;
+  };
   keys.addEventListener('pointerdown', e =&gt; { if (e.target === keys) closeKeys(); });
   kf.addEventListener('submit', e =&gt; {
     e.preventDefault(); setK('notehouse_groq_key', $q('#nbGroq').value.trim()); setK('notehouse_gemini_key', $q('#nbGem').value.trim());
@@ -7710,6 +7786,26 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     return ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p =&gt; p.text || '').join('').trim();
   }
 
+  /* ---- the pill can be dragged anywhere; its place is remembered ---- */
+  function placePill(p){
+    let pos = null; try { pos = JSON.parse(localStorage.getItem('nbr_pill_pos') || 'null'); } catch (e) {}
+    if (pos){ p.style.left = Math.max(4, Math.min(innerWidth - p.offsetWidth - 4, pos[0])) + 'px'; p.style.top = Math.max(4, Math.min(innerHeight - p.offsetHeight - 4, pos[1])) + 'px'; p.style.right = 'auto'; p.style.bottom = 'auto'; }
+    p.addEventListener('pointerdown', e =&gt; {
+      if (e.target.closest('button')) return;
+      e.preventDefault(); const r = p.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top; p.classList.add('drag'); try { p.setPointerCapture(e.pointerId); } catch (er) {}
+      const mv = ev =&gt; { p.style.left = Math.max(4, Math.min(innerWidth - p.offsetWidth - 4, ev.clientX - dx)) + 'px'; p.style.top = Math.max(4, Math.min(innerHeight - p.offsetHeight - 4, ev.clientY - dy)) + 'px'; p.style.right = 'auto'; p.style.bottom = 'auto'; };
+      const up = () =&gt; { p.classList.remove('drag'); p.removeEventListener('pointermove', mv); p.removeEventListener('pointerup', up); p.removeEventListener('pointercancel', up); try { localStorage.setItem('nbr_pill_pos', JSON.stringify([parseFloat(p.style.left) || 0, parseFloat(p.style.top) || 0])); } catch (er) {} };
+      p.addEventListener('pointermove', mv); p.addEventListener('pointerup', up); p.addEventListener('pointercancel', up);
+    });
+  }
+  /* ---- a message that stays until it is closed ---- */
+  function notice(html, withKeys){
+    document.querySelectorAll('.nb-note').forEach(n =&gt; n.remove());
+    const n = document.createElement('div'); n.className = 'nb-note'; n.setAttribute('role', 'alert');
+    n.innerHTML = '&lt;div style="flex:1"&gt;' + html + '&lt;/div&gt;' + (withKeys ? '&lt;button type="button" data-n="keys"&gt;Keys&lt;/button&gt;' : '') + '&lt;button type="button" data-n="x" aria-label="Close"&gt;✕&lt;/button&gt;';
+    n.addEventListener('click', e =&gt; { const b = e.target.closest('[data-n]'); if (!b) return; n.remove(); if (b.dataset.n === 'keys') askKeys(); });
+    document.body.appendChild(n);
+  }
   /* ---- a microphone recorder with a pill on screen ---- */
   let rec = null;
   function mime(){ const c = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus']; return (window.MediaRecorder &amp;&amp; MediaRecorder.isTypeSupported) ? (c.find(t =&gt; MediaRecorder.isTypeSupported(t)) || '') : ''; }
@@ -7730,8 +7826,10 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     mr.ondataavailable = e =&gt; { if (e.data &amp;&amp; e.data.size) chunks.push(e.data); };
     let wake = null; try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
     const pill = document.createElement('div'); pill.className = 'nbr-pill'; pill.setAttribute('role', 'status');
-    pill.innerHTML = `&lt;span class="dot"&gt;&lt;/span&gt;&lt;span&gt;${kind === 'meeting' ? 'Recording meeting' : 'Listening — speak'}&lt;/span&gt;&lt;span class="t"&gt;0:00&lt;/span&gt;` + (kind === 'meeting' ? '&lt;button type="button" data-r="pause"&gt;Pause&lt;/button&gt;' : '') + `&lt;button type="button" data-r="cancel"&gt;Cancel&lt;/button&gt;&lt;button type="button" class="stop" data-r="stop"&gt;${kind === 'meeting' ? 'Stop' : 'Done'}&lt;/button&gt;`;
-    document.body.appendChild(pill);
+    const SV = { pause: '&lt;svg viewBox="0 0 12 12"&gt;&lt;rect x="2.5" y="2" width="2.6" height="8" rx=".8"/&gt;&lt;rect x="6.9" y="2" width="2.6" height="8" rx=".8"/&gt;&lt;/svg&gt;', play: '&lt;svg viewBox="0 0 12 12"&gt;&lt;path d="M3.5 2.2 10 6l-6.5 3.8z"/&gt;&lt;/svg&gt;', stop: '&lt;svg viewBox="0 0 12 12"&gt;&lt;rect x="2.5" y="2.5" width="7" height="7" rx="1.4"/&gt;&lt;/svg&gt;', done: '&lt;svg viewBox="0 0 12 12"&gt;&lt;path d="M2.2 6.4 4.8 9 9.8 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/&gt;&lt;/svg&gt;', x: '&lt;svg viewBox="0 0 12 12"&gt;&lt;path d="M3 3l6 6M9 3 3 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/&gt;&lt;/svg&gt;' };
+    pill.title = kind === 'meeting' ? 'Recording the meeting — drag to move' : 'Listening — speak, then ✓ (drag to move)';
+    pill.innerHTML = `&lt;span class="dot"&gt;&lt;/span&gt;&lt;span class="lab"&gt;${kind === 'meeting' ? 'Recording meeting' : 'Listening'}&lt;/span&gt;&lt;span class="t"&gt;0:00&lt;/span&gt;` + (kind === 'meeting' ? `&lt;button type="button" data-r="pause" aria-label="Pause" title="Pause"&gt;${SV.pause}&lt;/button&gt;` : '') + `&lt;button type="button" data-r="cancel" aria-label="Cancel" title="Cancel"&gt;${SV.x}&lt;/button&gt;&lt;button type="button" class="stop" data-r="stop" aria-label="${kind === 'meeting' ? 'Stop' : 'Done'}" title="${kind === 'meeting' ? 'Stop and save' : 'Done — type what I said'}"&gt;${kind === 'meeting' ? SV.stop : SV.done}&lt;/button&gt;`;
+    document.body.appendChild(pill); placePill(pill);
     let ms = 0, last = Date.now(); const tick = setInterval(() =&gt; { if (mr.state === 'recording'){ ms += Date.now() - last; } last = Date.now();
       if (kind === 'meeting' &amp;&amp; seg &amp;&amp; mr.state === 'recording' &amp;&amp; ms - segStart &gt;= SEG_MS){ const old = seg; segStart = ms; seg = newSeg(); setTimeout(() =&gt; { if (old.state !== 'inactive') old.stop(); }, 1000); } const s = Math.floor(ms / 1000); pill.querySelector('.t').textContent = (s &gt;= 3600 ? Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') : Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0'); }, 500);
     rec = { mr, stream, pill, kind };
@@ -7743,7 +7841,7 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     mr.onstop = () =&gt; { keepIt = !!(rec &amp;&amp; rec.keep); mainStopped = true; if (seg &amp;&amp; seg.state !== 'inactive') seg.stop(); maybeDone(); };
     pill.addEventListener('click', e =&gt; {
       const b = e.target.closest('[data-r]'); if (!b) return;
-      if (b.dataset.r === 'pause'){ if (mr.state === 'recording'){ mr.pause(); if (seg &amp;&amp; seg.state === 'recording') seg.pause(); b.textContent = 'Resume'; pill.classList.add('paused'); } else { mr.resume(); if (seg &amp;&amp; seg.state === 'paused') seg.resume(); b.textContent = 'Pause'; pill.classList.remove('paused'); } return; }
+      if (b.dataset.r === 'pause'){ if (mr.state === 'recording'){ mr.pause(); if (seg &amp;&amp; seg.state === 'recording') seg.pause(); b.innerHTML = SV.play; b.title = 'Resume'; pill.classList.add('paused'); } else { mr.resume(); if (seg &amp;&amp; seg.state === 'paused') seg.resume(); b.innerHTML = SV.pause; b.title = 'Pause'; pill.classList.remove('paused'); } return; }
       rec.keep = b.dataset.r === 'stop'; if (!rec.keep &amp;&amp; kind === 'meeting' &amp;&amp; !confirm('Throw this recording away?')){ rec.keep = undefined; return; }
       mr.stop();
     });
@@ -7756,12 +7854,12 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     if (!getK('notehouse_groq_key') &amp;&amp; !getK('notehouse_gemini_key')){ askKeys(transcribe); return; }
     try { rememberEditSelection(); } catch (e) {}
     startRec('speech', async blob =&gt; {
-      say('Writing what you said…');
+      say('Writing what you said… (a few seconds)');
       try {
         const text = await toText(blob); if (!text){ say('No words were heard'); return; }
         try { restoreEditSelection(); } catch (e) { editor.focus(); }
         document.execCommand('insertText', false, text + ' '); save(); say('Done');
-      } catch (e) { say('Transcribe: ' + e.message); }
+      } catch (e) { notice('&lt;b&gt;Transcribe did not work.&lt;/b&gt;&lt;br&gt;' + esc(e.message) + '&lt;br&gt;&lt;small&gt;Check the keys with “Test keys”.&lt;/small&gt;', true); }
     });
   }
   const tb = $q('#toolbarTranscribe');
@@ -7775,8 +7873,8 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
   function cardHTML(id, at, dur, drive, parts){
     const d = new Date(at), when = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const pa = parts &amp;&amp; parts.length &gt; 1 ? ` data-segs="${parts.length}" data-seg-starts="${parts.map(x =&gt; x.start).join(',')}" data-seg-drive=""` : '';
-    return `&lt;div class="nb-rec" contenteditable="false" data-rec="${esc(id)}" data-at="${at}" data-dur="${dur}" data-drive="${esc(drive || '')}"${pa}&gt;&lt;span class="ic"&gt;🎙&lt;/span&gt;&lt;b&gt;Meeting recording&lt;/b&gt;&lt;span class="m"&gt;${when} · ${fmtDur(dur)}&lt;/span&gt;` +
-      '&lt;button type="button" data-rec-act="transcribe"&gt;Transcribe&lt;/button&gt;&lt;button type="button" data-rec-act="summarize"&gt;Summarize&lt;/button&gt;&lt;button type="button" data-rec-act="download"&gt;Download&lt;/button&gt;&lt;audio controls preload="none"&gt;&lt;/audio&gt;&lt;span class="st"&gt;&lt;/span&gt;&lt;/div&gt;';
+    return `&lt;div class="nb-rec" contenteditable="false" data-rec="${esc(id)}" data-at="${at}" data-dur="${dur}" data-drive="${esc(drive || '')}"${pa}&gt;&lt;span class="grip" title="Drag to move"&gt;⠿&lt;/span&gt;&lt;span class="ic"&gt;🎙&lt;/span&gt;&lt;b&gt;Meeting recording&lt;/b&gt;&lt;span class="m"&gt;${when} · ${fmtDur(dur)}&lt;/span&gt;` +
+      '&lt;button type="button" data-rec-act="transcribe"&gt;Transcribe&lt;/button&gt;&lt;button type="button" data-rec-act="summarize"&gt;Summarize&lt;/button&gt;&lt;button type="button" data-rec-act="download"&gt;Download&lt;/button&gt;&lt;button type="button" class="intext" data-rec-act="intext" title="Put it back in the text"&gt;⇩ In text&lt;/button&gt;&lt;audio controls preload="none"&gt;&lt;/audio&gt;&lt;span class="st"&gt;&lt;/span&gt;&lt;/div&gt;';
   }
   async function uploadToDrive(id, blob, at, part){
     try {
@@ -7829,6 +7927,8 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
   async function hydrate(){
     for (const c of editor.querySelectorAll('.nb-rec')){
       const a = c.querySelector('audio'), st = c.querySelector('.st'); if (!a || live.has(a)) continue; live.add(a); a.removeAttribute('src');
+      if (!c.querySelector('.grip')) c.insertAdjacentHTML('afterbegin', '&lt;span class="grip" title="Drag to move"&gt;⠿&lt;/span&gt;');
+      if (!c.querySelector('[data-rec-act="intext"]')){ const d = c.querySelector('[data-rec-act="download"]'); if (d) d.insertAdjacentHTML('afterend', '&lt;button type="button" class="intext" data-rec-act="intext" title="Put it back in the text"&gt;⇩ In text&lt;/button&gt;'); }
       if (!c.querySelector('[data-rec-act="summarize"]')){ const t = c.querySelector('[data-rec-act="transcribe"]'); if (t) t.insertAdjacentHTML('afterend', '&lt;button type="button" data-rec-act="summarize"&gt;Summarize&lt;/button&gt;'); }
       const b = await getBlob(c.dataset.rec);
       if (b){ a.src = URL.createObjectURL(b); st.textContent = c.dataset.drive ? 'On this device and in Google Drive' : 'On this device'; }
@@ -7929,6 +8029,7 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
   editor.addEventListener('click', async e =&gt; {
     const b = e.target.closest('.nb-rec [data-rec-act]'); if (!b) return; e.preventDefault(); e.stopPropagation();
     const c = b.closest('.nb-rec'), st = c.querySelector('.st'), act = b.dataset.recAct;
+    if (act === 'intext'){ try { if (window.AWFree) AWFree.snap(); } catch (er) {} c.classList.remove('nb-free'); ['position', 'left', 'top', 'width', 'z-index', 'margin'].forEach(p =&gt; c.style.removeProperty(p)); if (!c.getAttribute('style')) c.removeAttribute('style'); save(); return; }
     if (act === 'summarize' &amp;&amp; block(c, 'tr').length) return summarize(c, st, null);   // a transcript is there: the sound is not needed
     let blob; try { blob = await blobFor(c); } catch (er) {} if (!blob){ say('This recording is not on this device'); return; }
     if (act === 'download'){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Meeting ' + new Date(+c.dataset.at).toISOString().slice(0, 10) + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm'); document.body.appendChild(a); a.click(); a.remove(); return; }
@@ -7937,6 +8038,25 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     await transcribeCard(c, st, blob);
   }, true);
   if (typeof render === 'function'){ const pr = render; render = function(){ const out = pr.apply(this, arguments); setTimeout(hydrate, 30); return out; }; }
+  // drag the card by its ⠿: it leaves the text and goes where you put it (like a table moved by its handle)
+  editor.addEventListener('pointerdown', e =&gt; {
+    const g = e.target.closest &amp;&amp; e.target.closest('.nb-rec &gt; .grip'); if (!g || e.button &gt; 0) return;
+    e.preventDefault(); e.stopPropagation();
+    const c = g.parentElement, inner = document.querySelector('.editor-inner'), pz = inner &amp;&amp; parseFloat(inner.style.zoom) &gt; 0 ? parseFloat(inner.style.zoom) / 100 : 1, fit = editor.dataset.fit ? (+editor.style.getPropertyValue('--nbfit') || 1) : 1, z = pz;
+    try { if (window.AWFree) AWFree.snap(); } catch (er) {}
+    if (!c.classList.contains('nb-free')){
+      const er = editor.getBoundingClientRect(), r = c.getBoundingClientRect();
+      editor.style.minHeight = Math.max(editor.offsetHeight, parseFloat(editor.style.minHeight) || 0) + 'px';   // taking it out of the text must not shorten the page
+      const w = c.offsetWidth; editor.insertBefore(c, editor.querySelector(':scope &gt; .aw-fl-pad'));
+      c.classList.add('nb-free'); c.style.position = 'absolute'; c.style.margin = '0'; c.style.zIndex = '2'; c.style.width = w + 'px';
+      c.style.left = Math.round((r.left - er.left) / z) + 'px'; c.style.top = Math.round((r.top - er.top) / z) + 'px';
+    }
+    const x0 = e.clientX, y0 = e.clientY, l0 = parseFloat(c.style.left) || 0, t0 = parseFloat(c.style.top) || 0, k = z * (c.closest('[data-fit]') ? fit : 1);
+    try { g.setPointerCapture(e.pointerId); } catch (er) {}
+    const mv = ev =&gt; { c.style.left = Math.max(0, Math.round(l0 + (ev.clientX - x0) / k)) + 'px'; c.style.top = Math.max(0, Math.round(t0 + (ev.clientY - y0) / k)) + 'px'; };
+    const up = () =&gt; { g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up); try { expandCanvasToFit(); } catch (er) {} try { if (window.AWFree) AWFree.fit(); } catch (er) {} save(); };
+    g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+  }, true);
   // the page is saved without this session's sound address and status line
   if (typeof storeCurrent === 'function'){ const ps = storeCurrent; storeCurrent = function(){ const out = ps.apply(this, arguments);
     try { const p = data.sections[si] &amp;&amp; data.sections[si].pages &amp;&amp; data.sections[si].pages[pi]; if (p &amp;&amp; p.content &amp;&amp; p.content.indexOf('nb-rec') &gt;= 0) p.content = p.content.replace(/(&lt;audio\b[^&gt;]*?)\ssrc="blob:[^"]*"/g, '$1').replace(/(&lt;span class="st"&gt;)[^&lt;]*(&lt;\/span&gt;)/g, '$1$2'); } catch (e) {}
@@ -7964,6 +8084,66 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
   const sp = $q('#symPop'); if (sp) sp.setAttribute('aria-label', 'Marks');
   const sheet = $q('#nhpSheet');
   if (sheet) new MutationObserver(() =&gt; { sheet.querySelectorAll('[data-s="symbol"] span').forEach(s =&gt; { if (s.textContent === 'Symbol') s.textContent = 'Marks'; }); }).observe(sheet, { childList: true });
+})();
+&lt;/script&gt;
+&lt;!-- ===== Notebooks v41: choose the size of a new table =====
+     Insert › Table (and the table button on Home, the Insert menu, the phone menu) opens a grid: point at (or drag a
+     finger over) the size you want, or type the number of rows and columns. The table appears where the caret is.
+     Paste before &lt;/body&gt;, after patches v20–v40. --&gt;
+&lt;style&gt;
+#nbTblPick{position:fixed;z-index:97;display:none;padding:12px;background:#fff;border-radius:16px;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);font:14px var(--aw-font);color:var(--aw-ink);user-select:none;-webkit-user-select:none}
+#nbTblPick.show{display:block}
+#nbTblPick .lbl{font-weight:700;margin:0 2px 8px;min-height:18px}
+#nbTblPick .grid{display:grid;grid-template-columns:repeat(10,22px);gap:3px;touch-action:none}
+#nbTblPick .grid i{width:22px;height:22px;border:1.5px solid var(--aw-border);border-radius:5px;background:#fff;display:block;cursor:pointer}
+#nbTblPick .grid i.on{background:var(--aw-primary-lt);border-color:var(--aw-primary)}
+#nbTblPick .num{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--aw-border-2);font-size:.86rem;font-weight:600}
+#nbTblPick .num input{width:52px;height:34px;border:1.5px solid var(--aw-border);border-radius:9px;padding:0 6px;font:inherit}
+#nbTblPick .num button{margin-left:auto;height:34px;padding:0 14px;border:0;border-radius:999px;background:var(--aw-primary-dk);color:#fff;font:700 13px var(--aw-font);cursor:pointer}
+&lt;/style&gt;
+&lt;div id="nbTblPick" role="dialog" aria-label="Insert table"&gt;&lt;div class="lbl"&gt;Insert table&lt;/div&gt;&lt;div class="grid"&gt;&lt;/div&gt;
+&lt;div class="num"&gt;&lt;label&gt;Rows &lt;input type="number" id="nbTpR" min="1" max="60" value="3"&gt;&lt;/label&gt;&lt;label&gt;Columns &lt;input type="number" id="nbTpC" min="1" max="20" value="3"&gt;&lt;/label&gt;&lt;button type="button" id="nbTpGo"&gt;Insert&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  if (typeof editor === 'undefined' || typeof insertTableAtSelection !== 'function') return;
+  const $q = s =&gt; document.querySelector(s), pick = $q('#nbTblPick'), grid = pick.querySelector('.grid'), lbl = pick.querySelector('.lbl');
+  const R = 8, C = 10; let saved = null, cur = [0, 0];
+  grid.innerHTML = Array.from({ length: R * C }, (_, i) =&gt; `&lt;i data-r="${Math.floor(i / C) + 1}" data-c="${i % C + 1}"&gt;&lt;/i&gt;`).join('');
+  const label = (r, c) =&gt; c + (c === 1 ? ' column' : ' columns') + ' × ' + r + (r === 1 ? ' row' : ' rows');
+  function mark(r, c){ cur = [r, c]; grid.querySelectorAll('i').forEach(x =&gt; x.classList.toggle('on', +x.dataset.r &lt;= r &amp;&amp; +x.dataset.c &lt;= c)); lbl.textContent = r ? label(r, c) : 'Insert table'; }
+  // the caret, kept from before the button took the click
+  function keepCaret(){ const s = getSelection(); if (s.rangeCount){ const r = s.getRangeAt(0); if (editor.contains(r.startContainer)) saved = r.cloneRange(); } }
+  document.addEventListener('pointerdown', e =&gt; { if (e.target.closest &amp;&amp; e.target.closest('#tableBtn, [data-insert="table"]')) keepCaret(); }, true);
+  function open(anchor){
+    keepCaret(); mark(0, 0); pick.classList.add('show');
+    const w = pick.offsetWidth, h = pick.offsetHeight; let x, y;
+    if (anchor){ const r = anchor.getBoundingClientRect(); x = r.left; y = r.bottom + 6; }
+    else { const r = editor.getBoundingClientRect(); x = r.left + 40; y = Math.max(80, r.top + 40); }
+    pick.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px'; pick.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+  }
+  const close = () =&gt; pick.classList.remove('show');
+  function insert(r, c){
+    close(); if (!(r &gt; 0 &amp;&amp; c &gt; 0)) return;
+    editor.focus({ preventScroll: true });
+    if (saved &amp;&amp; saved.startContainer.isConnected){ const s = getSelection(); s.removeAllRanges(); s.addRange(saved); try { rememberEditSelection(); } catch (e) {} }
+    insertTableAtSelection(Math.min(60, r), Math.min(20, c));
+  }
+  const cellAt = (x, y) =&gt; { const el = document.elementFromPoint(x, y); return el &amp;&amp; el.closest &amp;&amp; el.closest('#nbTblPick .grid i'); };
+  grid.addEventListener('pointermove', e =&gt; { const i = cellAt(e.clientX, e.clientY); if (i) mark(+i.dataset.r, +i.dataset.c); });
+  grid.addEventListener('pointerdown', e =&gt; { e.preventDefault(); const i = cellAt(e.clientX, e.clientY); if (i) mark(+i.dataset.r, +i.dataset.c); });
+  grid.addEventListener('pointerup', e =&gt; { const i = cellAt(e.clientX, e.clientY); if (i) insert(+i.dataset.r, +i.dataset.c); });
+  grid.addEventListener('pointerleave', () =&gt; mark(0, 0));
+  pick.addEventListener('mousedown', e =&gt; { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
+  $q('#nbTpGo').addEventListener('click', () =&gt; insert(parseInt($q('#nbTpR').value, 10), parseInt($q('#nbTpC').value, 10)));
+  pick.addEventListener('keydown', e =&gt; { if (e.key === 'Enter' &amp;&amp; e.target.tagName === 'INPUT'){ e.preventDefault(); $q('#nbTpGo').click(); } if (e.key === 'Escape') close(); });
+  document.addEventListener('pointerdown', e =&gt; { if (pick.classList.contains('show') &amp;&amp; !e.target.closest('#nbTblPick, #tableBtn, [data-insert="table"]')) close(); }, true);
+  // the table buttons open the grid instead of putting in a 2 × 2 table at once
+  document.addEventListener('click', e =&gt; {
+    const b = e.target.closest &amp;&amp; e.target.closest('#tableBtn, [data-insert="table"]'); if (!b) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (pick.classList.contains('show')) close(); else open(b);
+  }, true);
+  if (typeof runMenuAction === 'function'){ const prev = runMenuAction; runMenuAction = function(a){ if (a === 'insert-table'){ try { closeMenus(); } catch (e) {} open(null); return; } return prev.apply(this, arguments); }; }
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;

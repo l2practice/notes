@@ -8,7 +8,7 @@
        above / below / left / right, delete row / column / table, merge and split cells, height and width in cm,
        distribute rows / columns, 9-way alignment, shading, borders, header row, sort. Cells selected by dragging
        across them are tinted so you can see them.
-     - On a phone or an iPad, things that can be moved (text boxes, shapes, symbols, drawings, tables and pictures taken
+     - On a phone, things that can be moved (text boxes, shapes, symbols, drawings, tables and pictures taken
        out of the text, note containers) keep their places next to each other: if they reach past the width of the screen,
        they are all shown smaller by the same factor (only on screen, nothing is saved). Typed text still wraps to the screen.
      Paste before </body>, after patches v20–v38 (needs v38). To remove: delete this block. -->
@@ -19,7 +19,18 @@ body:not(.nhp) #editorContent{padding-bottom:45vh!important;min-height:calc(100v
 #editorContent img{max-width:100%;height:auto}
 #editorContent img.aw-tfree{max-width:none}
 /* small screens: the free layer as a whole, smaller by one factor (set by the script below) */
-#editorContent[data-fit] > :is(.aw-fl,.aw-tfree,.note-block){zoom:var(--nbfit,1)}
+#editorContent[data-fit] > :is(.aw-fl,.aw-tfree,.note-block,.nb-free){zoom:var(--nbfit,1)}
+/* the page no longer measures 100% of its frame: with the page zoom at 110% that came out 1px too wide, which brought a
+   horizontal scroll bar for nothing; a block that fills the width exactly does not */
+body:not(.nhp) .editor-inner{width:auto!important}
+/* scroll bars: thin, in the colour of the page, darker only under the pointer */
+main.editor,.pane-scroll,#nbxView,#sectionList,#pageList,.chat-body{scrollbar-width:thin;scrollbar-color:rgba(86,97,224,.16) transparent}
+main.editor:hover,.pane-scroll:hover,#nbxView:hover{scrollbar-color:rgba(86,97,224,.32) transparent}
+main.editor::-webkit-scrollbar,.pane-scroll::-webkit-scrollbar,#nbxView::-webkit-scrollbar{width:8px;height:8px}
+main.editor::-webkit-scrollbar-track,.pane-scroll::-webkit-scrollbar-track,#nbxView::-webkit-scrollbar-track{background:transparent}
+main.editor::-webkit-scrollbar-thumb,.pane-scroll::-webkit-scrollbar-thumb,#nbxView::-webkit-scrollbar-thumb{background:rgba(86,97,224,.16);border-radius:8px}
+main.editor:hover::-webkit-scrollbar-thumb,.pane-scroll:hover::-webkit-scrollbar-thumb,#nbxView:hover::-webkit-scrollbar-thumb{background:rgba(86,97,224,.32)}
+main.editor::-webkit-scrollbar-corner{background:transparent}
 /* ---------- bigger Draw tools on a computer ---------- */
 body:not(.nhi):not(.nhp) #tb{column-gap:0;row-gap:12px}
 body:not(.nhi):not(.nhp) #tb .aw-rb-grp{padding:0 16px;gap:8px}
@@ -108,10 +119,27 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     try { expandCanvasToFit(); } catch (er) {} save();
   }, true);
 
+  /* ================= no horizontal scroll bar for nothing =================
+     The page used to get a minimum width measured outside the zoomed page (so at 110% and more it came out wider than
+     the screen) plus 900px of room right of every note container. Now it is only as wide as what is really placed
+     past its right edge (note containers, tables and pictures out of the text, recording cards), with a small margin. */
+  if (typeof expandCanvasToFit === 'function'){
+    const prevE = expandCanvasToFit;
+    expandCanvasToFit = function(){
+      const out = prevE.apply(this, arguments);
+      let right = 0; editor.querySelectorAll(':scope > .note-block, :scope > .aw-tfree, :scope > .nb-free').forEach(b => { right = Math.max(right, (parseFloat(b.style.left) || 0) + b.offsetWidth + 40); });
+      editor.style.minWidth = ''; if (right > editor.offsetWidth) editor.style.minWidth = Math.ceil(right) + 'px';
+      return out;
+    };
+    try { expandCanvasToFit(); } catch (e) {}
+    if (typeof render === 'function'){ const pr = render; render = function(){ const o = pr.apply(this, arguments); try { expandCanvasToFit(); } catch (e) {} return o; }; }
+    if (typeof setPageZoom === 'function'){ const pz = setPageZoom; setPageZoom = function(){ const o = pz.apply(this, arguments); try { expandCanvasToFit(); } catch (e) {} return o; }; }
+  }
+
   /* ================= small screens: things side by side stay side by side ================= */
-  const FREE = ':scope > .aw-tfree, :scope > .note-block, :scope > .aw-fl .fo, :scope > .aw-fl .aw-fb';
+  const FREE = ':scope > .aw-tfree, :scope > .note-block, :scope > .nb-free, :scope > .aw-fl .fo, :scope > .aw-fl .aw-fb';
   function fitFree(){
-    const small = document.body.classList.contains('nhp') || document.body.classList.contains('nhi');
+    const small = document.body.classList.contains('nhp');   // phones only: on an iPad things are edited (dragged, resized), so they keep their real size and the page scrolls
     const was = editor.dataset.fit ? (+editor.style.getPropertyValue('--nbfit') || 1) : 1;
     const inner = $q('.editor-inner'), pz = (inner && parseFloat(inner.style.zoom) > 0 ? parseFloat(inner.style.zoom) / 100 : 1);
     let s = 1;

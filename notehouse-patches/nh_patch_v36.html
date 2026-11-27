@@ -2,7 +2,7 @@
      The note screen of Notebooks in the look of Interactive Board (ArticuWrite): lavender background, white cards with
      large rounded corners and soft shadows, Be Vietnam Pro for the interface, navy and periwinkle buttons.
      - Computer: the ribbon is a white card with Home · Insert · Draw · View tabs, Full screen and zoom on the right,
-       and labelled groups (Undo, Clipboard, Font, Paragraph, Styles, Insert, Tools).
+       and grouped tools (the group names were taken off: the icons and their names say what they do).
      - iPad: the compact OneNote-style bar (v32) keeps its layout, in these colours and this font.
      - The rail on the left has line icons and labels; To-do and Reminder (v36, v37) add their own items to it.
      - The page itself keeps its font (Patrick Hand, v34); only the interface changes. Nothing about the data changes.
@@ -85,9 +85,9 @@ body:not(.nhi):not(.nhp) .ribbon .color-control{border:0!important;background:va
 body:not(.nhi):not(.nhp) .ribbon .ribbon-sep{background:var(--aw-border-2)!important}
 body:not(.nhi):not(.nhp) .ribbon .ribbon-row.ribbon-primary{border-bottom:0!important}
 /* labelled groups, as on Interactive Board */
-body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]{position:relative;padding-bottom:20px!important;border-right:1px solid var(--aw-border-2)!important;margin-right:6px}
+body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]{position:relative;padding-bottom:0!important;border-right:1px solid var(--aw-border-2)!important;margin-right:6px}
 body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]:last-child{border-right:0!important}
-body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]::after{content:attr(data-label);position:absolute;left:0;right:0;bottom:0;text-align:center;font:500 12px var(--aw-font);color:var(--aw-ink-3);white-space:nowrap;pointer-events:none}
+body:not(.nhi):not(.nhp) .ribbon .toolbar-group[data-label]::after{display:none;content:attr(data-label);position:absolute;left:0;right:0;bottom:0;text-align:center;font:500 12px var(--aw-font);color:var(--aw-ink-3);white-space:nowrap;pointer-events:none}
 .nbx-grp{display:flex;align-items:center;gap:6px}
 @media (max-width:1440px){body:not(.nhi):not(.nhp) .ribbon .nbx-grp[data-label="Tools"] .ribbon-action{font-size:0!important;min-width:44px;justify-content:center}body:not(.nhi):not(.nhp) .ribbon .nbx-grp[data-label="Tools"] .ribbon-action svg{width:21px!important;height:21px!important}}   /* icons only (each has a tooltip) */
 body:not(.nhi):not(.nhp) .ribbon .ribbon-secondary{align-items:stretch!important;border:0!important}

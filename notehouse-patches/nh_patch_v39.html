@@ -148,6 +148,15 @@ body.nhi #tb .aw-rb-big svg{width:20px;height:20px}
 .nbd-pop[hidden]{display:none}
 #tb .nbd-pop .aw-rb-b{width:100%;justify-content:flex-start;padding:0 12px}
 .nbd-hold{display:none}
+/* Insert + Draw in one tab: groups one after another, wrapping as a whole */
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged:not([hidden]){display:flex!important;flex-wrap:wrap;align-items:center;column-gap:22px;row-gap:8px;padding-top:2px}
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged > .ribbon-row{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px;min-height:0!important;border:0!important;padding:0!important;margin:0!important;flex:0 1 auto}
+body:not(.nhi):not(.nhp) #tb.nbd-mock,body:not(.nhi):not(.nhp) #tb .nbd-style{display:contents!important}
+.nbd-g{display:inline-flex;align-items:center;gap:4px;flex:none}
+[data-ribbon-panel="insert"].nbd-merged{position:relative}
+body.nhi #tb .nbd-g{display:contents!important}
+.aw-fp-body{flex:1;min-height:0}
+.aw-fp-rs{position:absolute;right:0;bottom:0;width:22px;height:22px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 52%,var(--aw-border) 52%,var(--aw-border) 60%,transparent 60%,transparent 70%,var(--aw-border) 70%,var(--aw-border) 78%,transparent 78%);border-bottom-right-radius:16px}
 body.nhi #tb .nbd-row,body.nhi #tb .nbd-style{display:contents!important}
 body.nhi #tb .nbd-sep{height:22px;margin:0 6px}
 body.nhi .nbd-chip{width:34px;height:34px}
@@ -1121,9 +1130,8 @@ function onUp(e){
     S.sel = [g.el]; clearBadges(); changed();
   } else if (g.kind === 'sym'){
     clearBadges();
-    if (!g.dragged){ S.sel = [g.el]; changed(); return; }   // a plain click places the symbol at its usual size (a drag sizes it)
-    S.symDims[g.key] = [Math.round(g.w), Math.round(g.h)]; lsSet('aw_sym_dims', S.symDims);   // the next symbols of this kind come out the same size
-    S.sel = [g.el]; changed();
+    if (g.dragged){ S.symDims[g.key] = [Math.round(g.w), Math.round(g.h)]; lsSet('aw_sym_dims', S.symDims); }   // dragged: the next symbols of this kind come out this size
+    setTool('select'); S.sel = [g.el]; changed();   // placed (a click: its usual size). The next click selects or moves; it does not place another one
   } else if (g.kind === 'text'){
     const dx = Math.abs(e.clientX - g.vx) / zoomF();
     const x = Math.min(g.x0, pt(e).x), y = Math.min(g.y0, pt(e).y);
@@ -1335,6 +1343,19 @@ function makePanel(id, title, w){
   document.body.appendChild(p); panels[id] = p;
   p.querySelector('.aw-fp-x').onclick = () => { p.remove(); panels[id] = null; syncStyleUI(); };
   p.addEventListener('mousedown', e => { if (!/^(INPUT|SELECT)$/.test(e.target.tagName)) e.preventDefault(); });
+  // the bottom-right corner resizes the panel (the icons wrap to the new width); the size is remembered
+  const sz = lsGet('aw_fp_size_' + id, null); if (sz && sz[0] && sz[1]){ p.style.width = Math.min(innerWidth - 16, sz[0]) + 'px'; p.style.height = Math.min(innerHeight - 16, sz[1]) + 'px'; p.style.maxHeight = 'none'; }
+  p.insertAdjacentHTML('beforeend', '<div class="aw-fp-rs" title="Drag to resize" aria-hidden="true"></div>');
+  const rs = p.querySelector('.aw-fp-rs');
+  rs.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation();
+    const r = p.getBoundingClientRect(), x0 = e.clientX, y0 = e.clientY;
+    p.style.left = r.left + 'px'; p.style.top = r.top + 'px'; p.style.right = 'auto'; p.style.maxHeight = 'none';   // the corner moves, the top-left stays
+    try { rs.setPointerCapture(e.pointerId); } catch (er) {}
+    const mv = ev => { p.style.width = Math.max(180, Math.min(innerWidth - r.left - 8, r.width + ev.clientX - x0)) + 'px'; p.style.height = Math.max(150, Math.min(innerHeight - r.top - 8, r.height + ev.clientY - y0)) + 'px'; };
+    const up = () => { rs.removeEventListener('pointermove', mv); rs.removeEventListener('pointerup', up); rs.removeEventListener('pointercancel', up); lsSet('aw_fp_size_' + id, [p.offsetWidth, p.offsetHeight]); };
+    rs.addEventListener('pointermove', mv); rs.addEventListener('pointerup', up); rs.addEventListener('pointercancel', up);
+  });
   // drag by the header
   const head = p.querySelector('.aw-fp-head');
   head.addEventListener('pointerdown', e => {
@@ -1373,7 +1394,7 @@ function openSyms(){
     const own = symOwn();
     h += '<div class="aw-symhd"><span>Your own</span></div>' + (own.length ? '<div class="aw-symgrid">' + own.map((c, i) => '<span class="sym-own">' + chip(c.t, c.ring) + '<button type="button" class="sym-del" data-del="' + i + '" title="Remove">×</button></span>').join('') + '</div>' : '') +
       '<div class="aw-symadd"><input id="symTxt" maxlength="14" placeholder="e.g. Adj"><label><input type="checkbox" id="symRing"> circle</label><button type="button" id="symAdd">Add</button></div>' +
-      '<div class="aw-fp-tip">Click the board to place a symbol, or drag to size it. It takes the current colour.</div>';
+      '<div class="aw-fp-tip">Choose a symbol, then click the board to place it (or drag to size it). Choose it again for the next one. It takes the current colour.</div>';
     body.innerHTML = h;
   }
   build();
@@ -1478,54 +1499,55 @@ window.AWFree = { panelHtml, wire, tool: () => S.tool, setTool, fit, serialize, 
     if (!tb) return;
     const q = s => tb.querySelector(s), all = s => [...tb.querySelectorAll(s)];
     const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
-    const sep = () => el('span', 'nbd-sep');
     const ic = p => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
-    const row1 = el('div', 'nbd-row'), row2 = el('div', 'nbd-row');
-    all('[data-fl-tool]').forEach(b => row1.append(b)); row1.append(sep());
+    /* groups of icons that wrap as a whole, one after another, so the row fills up before a new one starts */
+    const grp = (...els) => { const g = el('div', 'nbd-g'); els.filter(Boolean).forEach(x => g.append(x)); return g; };
+    const gTools = grp(...all('[data-fl-tool]'));
+    const gEdit = grp(...['#flUndo', '#flRedo', '[data-fl-act="dup"]', '[data-fl-act="del"]'].map(s => q(s)));
     const lw = q('#flSW') && q('#flSW').closest('label'), lh = q('#flSH') && q('#flSH').closest('label');
-    if (lw) row1.append(lw); if (lh) row1.append(lh); row1.append(sep());
     const more = el('button', 'aw-rb-b nbd-more', ic('<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/>'));
     more.type = 'button'; more.title = 'More: ruler, smoothing, finger drawing, level, reset turn'; more.setAttribute('aria-label', more.title); more.setAttribute('aria-haspopup', 'menu');
-    row1.append(more, sep());
-    const th = q('#flW') && q('#flW').closest('label');
-    if (th){ [...th.childNodes].forEach(n => { if (n.nodeType === 3) n.textContent = ' '; }); th.title = 'Thickness'; row1.append(th, sep()); }
-    all('[data-ls]').forEach(b => row1.append(b));
-    ['#flUndo', '#flRedo', '[data-fl-act="dup"]', '[data-fl-act="del"]'].forEach(s => { const b = q(s); if (b) row2.append(b); });
-    row2.append(sep());
+    const gSize = grp(lw, lh, more);
+    const th = q('#flW') && q('#flW').closest('label'); if (th){ [...th.childNodes].forEach(n => { if (n.nodeType === 3) n.textContent = ' '; }); th.title = 'Thickness'; }
+    const gLine = grp(th, ...all('[data-ls]'));
     const style = q('#flStyle'), fs = all('[data-fs]').filter(b => b.dataset.fs.toUpperCase() !== '#FFFFFF'), cust = q('.aw-cust'), ff = all('[data-ff]');
     const white = q('[data-fs="#FFFFFF"]'); if (white) white.remove();
     const chip = (path, t) => { const c = el('span', 'nbd-chip', ic(path)); c.title = t; c.setAttribute('role', 'img'); c.setAttribute('aria-label', t); return c; };
     if (style){
-      style.innerHTML = ''; style.className = 'nbd-style';
-      style.append(chip('<path d="M4.5 19.5 5.5 15 16 4.5l3.5 3.5L9 18.5z"/><path d="m14 6.5 3.5 3.5"/>', 'Pen and line colour'), ...fs);
-      if (cust) style.append(cust);
-      style.append(sep(), chip('<path d="M12 3.5c3.2 4.2 5.5 7.2 5.5 10a5.5 5.5 0 0 1-11 0c0-2.8 2.3-5.8 5.5-10z"/>', 'Fill colour'), ...ff);
-      row2.append(style, sep());
+      style.innerHTML = ''; style.className = 'nbd-style';   // display: contents — the colour marks still find their buttons inside #flStyle
+      style.append(grp(chip('<path d="M4.5 19.5 5.5 15 16 4.5l3.5 3.5L9 18.5z"/><path d="m14 6.5 3.5 3.5"/>', 'Pen and line colour'), ...fs, cust),
+                   grp(chip('<path d="M12 3.5c3.2 4.2 5.5 7.2 5.5 10a5.5 5.5 0 0 1-11 0c0-2.8 2.3-5.8 5.5-10z"/>', 'Fill colour'), ...ff));
     }
-    all('[data-rot]').filter(b => b.dataset.rot !== '0').forEach(b => row2.append(b)); row2.append(sep());
     const fx = q('[data-flip="x"]'), fy = q('[data-flip="y"]'), an = q('#flAngles');
-    if (fx){ fx.innerHTML = ic('<path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/>'); row2.append(fx); }
-    if (fy){ fy.innerHTML = ic('<path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/>'); row2.append(fy); }
-    if (an){ an.innerHTML = ic('<path d="M12 4 21 20H3z"/>'); row2.append(an); }
+    if (fx) fx.innerHTML = ic('<path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/>');
+    if (fy) fy.innerHTML = ic('<path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/>');
+    if (an) an.innerHTML = ic('<path d="M12 4 21 20H3z"/>');
+    const gTurn = grp(...all('[data-rot]').filter(b => b.dataset.rot !== '0'), fx, fy, an);
     const pop = el('div', 'nbd-pop'); pop.hidden = true; pop.setAttribute('role', 'menu');
     const rs = q('[data-rot="0"]'); if (rs) rs.textContent = '↺ Reset turn';
     const lv = q('[data-fl-act="align"]'); if (lv) lv.textContent = '≡ Level handwriting';
     [rs, lv, q('#flRuler'), q('#flSmooth'), q('#flFinger')].forEach(b => { if (b) pop.append(b); });
     const hold = el('div', 'nbd-hold'); all('.aw-fpanel-btn').forEach(b => hold.append(b));
-    ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s => { const b = q(s); if (b) b.remove(); });
-    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(row1, row2, pop, hold);
-    more.addEventListener('click', () => { pop.hidden = !pop.hidden; if (!pop.hidden){ pop.style.left = more.offsetLeft + 'px'; pop.style.top = (more.offsetTop + more.offsetHeight + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
+    ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s => { const b = q(s); if (b) b.remove(); });   // in the right-click menu (v40)
+    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(gTools, gEdit, gSize, gLine, style || '', gTurn, pop, hold);
+    more.addEventListener('click', () => { pop.hidden = !pop.hidden; if (!pop.hidden){ const r = more.getBoundingClientRect(), pr = (pop.offsetParent || document.body).getBoundingClientRect(); pop.style.left = (r.left - pr.left) + 'px'; pop.style.top = (r.bottom - pr.top + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
     document.addEventListener('pointerdown', e => { if (!pop.hidden && !e.target.closest('.nbd-pop,.nbd-more')){ pop.hidden = true; more.classList.remove('on'); } }, true);
-    // Shapes and Symbols live on the Insert tab (they open the same panels)
-    const insRow = $q('[data-ribbon-panel="insert"] .ribbon-row') || $q('[data-ribbon-panel="insert"]');
+    /* Insert and Draw are one tab: the insert buttons first (with Shapes and Symbols), then the drawing tools */
+    const ins = $q('[data-ribbon-panel="insert"]'), insRow = ins && (ins.querySelector('.ribbon-row') || ins);
     const insRef = insRow && insRow.firstChild;
     if (insRow) all('.aw-fpanel-btn').forEach(orig => {
       const b = el('button', 'ribbon-action nbd-ins', orig.innerHTML); b.type = 'button'; b.title = orig.title; b.setAttribute('aria-label', orig.getAttribute('aria-label') || orig.title);
       b.addEventListener('click', () => orig.click()); insRow.insertBefore(b, insRef);
     });
+    if (ins){ ins.classList.add('nbd-merged'); ins.appendChild(tb); }
   }
   // leaving the Draw tab goes back to typing, so the page never stays in pen mode by surprise
-  if (draw) new MutationObserver(() => { if (draw.hidden && AWFree.tool() !== 'type') AWFree.setTool('type'); }).observe(draw, { attributes: true, attributeFilter: ['hidden'] });
+  const toolsPanel = ($q('#tb') && $q('#tb').closest('[data-ribbon-panel]')) || draw;
+  if (toolsPanel) new MutationObserver(() => { if (toolsPanel.hidden && AWFree.tool() !== 'type') AWFree.setTool('type'); }).observe(toolsPanel, { attributes: true, attributeFilter: ['hidden'] });
+  // the Draw tab is gone (its tools are on Insert); a Draw tab remembered from before opens Insert
+  document.querySelectorAll('.nbx-tabs [data-t="draw"], #nhiBar [data-tab="draw"]').forEach(b => { b.hidden = true; b.style.display = 'none'; });
+  setTimeout(() => { if (draw && !draw.hidden){ const t = $q('.nbx-tabs [data-t="insert"]'), t2 = $q('#nhiBar [data-tab="insert"]'); if (document.body.classList.contains('nhi') && t2) t2.click(); else if (t) t.click(); } }, 0);
+  try { if (localStorage.getItem('nh_ipad_tab') === 'draw') localStorage.setItem('nh_ipad_tab', 'insert'); } catch (e) {}
 
   /* ---------- each page brings its own drawings; a page is saved with the short form of them ---------- */
   const prevRender = render;

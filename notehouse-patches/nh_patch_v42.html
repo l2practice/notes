@@ -1,0 +1,60 @@
+<!-- ===== Notebooks v41: choose the size of a new table =====
+     Insert › Table (and the table button on Home, the Insert menu, the phone menu) opens a grid: point at (or drag a
+     finger over) the size you want, or type the number of rows and columns. The table appears where the caret is.
+     Paste before </body>, after patches v20–v40. -->
+<style>
+#nbTblPick{position:fixed;z-index:97;display:none;padding:12px;background:#fff;border-radius:16px;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);font:14px var(--aw-font);color:var(--aw-ink);user-select:none;-webkit-user-select:none}
+#nbTblPick.show{display:block}
+#nbTblPick .lbl{font-weight:700;margin:0 2px 8px;min-height:18px}
+#nbTblPick .grid{display:grid;grid-template-columns:repeat(10,22px);gap:3px;touch-action:none}
+#nbTblPick .grid i{width:22px;height:22px;border:1.5px solid var(--aw-border);border-radius:5px;background:#fff;display:block;cursor:pointer}
+#nbTblPick .grid i.on{background:var(--aw-primary-lt);border-color:var(--aw-primary)}
+#nbTblPick .num{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--aw-border-2);font-size:.86rem;font-weight:600}
+#nbTblPick .num input{width:52px;height:34px;border:1.5px solid var(--aw-border);border-radius:9px;padding:0 6px;font:inherit}
+#nbTblPick .num button{margin-left:auto;height:34px;padding:0 14px;border:0;border-radius:999px;background:var(--aw-primary-dk);color:#fff;font:700 13px var(--aw-font);cursor:pointer}
+</style>
+<div id="nbTblPick" role="dialog" aria-label="Insert table"><div class="lbl">Insert table</div><div class="grid"></div>
+<div class="num"><label>Rows <input type="number" id="nbTpR" min="1" max="60" value="3"></label><label>Columns <input type="number" id="nbTpC" min="1" max="20" value="3"></label><button type="button" id="nbTpGo">Insert</button></div></div>
+<script>
+(function(){
+  if (typeof editor === 'undefined' || typeof insertTableAtSelection !== 'function') return;
+  const $q = s => document.querySelector(s), pick = $q('#nbTblPick'), grid = pick.querySelector('.grid'), lbl = pick.querySelector('.lbl');
+  const R = 8, C = 10; let saved = null, cur = [0, 0];
+  grid.innerHTML = Array.from({ length: R * C }, (_, i) => `<i data-r="${Math.floor(i / C) + 1}" data-c="${i % C + 1}"></i>`).join('');
+  const label = (r, c) => c + (c === 1 ? ' column' : ' columns') + ' × ' + r + (r === 1 ? ' row' : ' rows');
+  function mark(r, c){ cur = [r, c]; grid.querySelectorAll('i').forEach(x => x.classList.toggle('on', +x.dataset.r <= r && +x.dataset.c <= c)); lbl.textContent = r ? label(r, c) : 'Insert table'; }
+  // the caret, kept from before the button took the click
+  function keepCaret(){ const s = getSelection(); if (s.rangeCount){ const r = s.getRangeAt(0); if (editor.contains(r.startContainer)) saved = r.cloneRange(); } }
+  document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#tableBtn, [data-insert="table"]')) keepCaret(); }, true);
+  function open(anchor){
+    keepCaret(); mark(0, 0); pick.classList.add('show');
+    const w = pick.offsetWidth, h = pick.offsetHeight; let x, y;
+    if (anchor){ const r = anchor.getBoundingClientRect(); x = r.left; y = r.bottom + 6; }
+    else { const r = editor.getBoundingClientRect(); x = r.left + 40; y = Math.max(80, r.top + 40); }
+    pick.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px'; pick.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+  }
+  const close = () => pick.classList.remove('show');
+  function insert(r, c){
+    close(); if (!(r > 0 && c > 0)) return;
+    editor.focus({ preventScroll: true });
+    if (saved && saved.startContainer.isConnected){ const s = getSelection(); s.removeAllRanges(); s.addRange(saved); try { rememberEditSelection(); } catch (e) {} }
+    insertTableAtSelection(Math.min(60, r), Math.min(20, c));
+  }
+  const cellAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest && el.closest('#nbTblPick .grid i'); };
+  grid.addEventListener('pointermove', e => { const i = cellAt(e.clientX, e.clientY); if (i) mark(+i.dataset.r, +i.dataset.c); });
+  grid.addEventListener('pointerdown', e => { e.preventDefault(); const i = cellAt(e.clientX, e.clientY); if (i) mark(+i.dataset.r, +i.dataset.c); });
+  grid.addEventListener('pointerup', e => { const i = cellAt(e.clientX, e.clientY); if (i) insert(+i.dataset.r, +i.dataset.c); });
+  grid.addEventListener('pointerleave', () => mark(0, 0));
+  pick.addEventListener('mousedown', e => { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
+  $q('#nbTpGo').addEventListener('click', () => insert(parseInt($q('#nbTpR').value, 10), parseInt($q('#nbTpC').value, 10)));
+  pick.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT'){ e.preventDefault(); $q('#nbTpGo').click(); } if (e.key === 'Escape') close(); });
+  document.addEventListener('pointerdown', e => { if (pick.classList.contains('show') && !e.target.closest('#nbTblPick, #tableBtn, [data-insert="table"]')) close(); }, true);
+  // the table buttons open the grid instead of putting in a 2 × 2 table at once
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#tableBtn, [data-insert="table"]'); if (!b) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (pick.classList.contains('show')) close(); else open(b);
+  }, true);
+  if (typeof runMenuAction === 'function'){ const prev = runMenuAction; runMenuAction = function(a){ if (a === 'insert-table'){ try { closeMenus(); } catch (e) {} open(null); return; } return prev.apply(this, arguments); }; }
+})();
+</script>
