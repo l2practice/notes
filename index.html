@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-27-draw-v51" />
+    <meta name="app-build" content="2026-11-27-free-layout-v52" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -6022,7 +6022,7 @@ S.circ = lsGet('aw_sym_circ', {}) || {}; S.ls = lsGet('aw_ls', '') || ''; S.angl
 S.dims = lsGet('aw_shape_dims', {}) || {}; S.symDims = lsGet('aw_sym_dims', {}) || {}; S.loopBend = lsGet('aw_loop_bend', 0.5); S.ruler = Object.assign(S.ruler, lsGet('aw_ruler', {}) || {}, { on: false });
 const SMOOTH_EPS = [0.3, 0.7, 1.6];
 let G = null, ui = null, band = null, lassoEl = null, panels = {}, badgeEls = [], rl = null;
-const zoomF = () =&gt; { const i = document.querySelector('.editor-inner'), v = i &amp;&amp; parseFloat(i.style.zoom); return v &gt; 0 ? v / 100 : 1; };   /* Notebooks: the page zoom (CSS zoom on .editor-inner) */
+const zoomF = () =&gt; { const i = document.querySelector('.editor-inner'), v = i &amp;&amp; parseFloat(i.style.zoom), f = canvas &amp;&amp; canvas.dataset.fit ? (+canvas.style.getPropertyValue('--nbfit') || 1) : 1; return (v &gt; 0 ? v / 100 : 1) * f; };   /* Notebooks: the page zoom (CSS zoom on .editor-inner) times the fit of the free layer on small screens (v39) */
 const uid = () =&gt; 'f' + Math.random().toString(36).slice(2, 9);
 const polysToD = polys =&gt; polys.map(poly =&gt; poly.map((q, i) =&gt; (i ? 'L' : 'M') + r1(q[0]) + ' ' + r1(q[1])).join('')).join('');
 
@@ -6692,7 +6692,7 @@ function onUp(e){
     S.sel = [g.el]; clearBadges(); changed();
   } else if (g.kind === 'sym'){
     clearBadges();
-    if (!g.dragged){ g.el.remove(); S.undo.pop(); paintSel(); return; }   // a plain click draws nothing
+    if (!g.dragged){ S.sel = [g.el]; changed(); return; }   // a plain click places the symbol at its usual size (a drag sizes it)
     S.symDims[g.key] = [Math.round(g.w), Math.round(g.h)]; lsSet('aw_sym_dims', S.symDims);   // the next symbols of this kind come out the same size
     S.sel = [g.el]; changed();
   } else if (g.kind === 'text'){
@@ -7129,6 +7129,325 @@ window.AWFree = { panelHtml, wire, tool: () =&gt; S.tool, setTool, fit, serializ
     if (AWFree.tool() !== 'type') return;
     if (e.target.tagName === 'IMG' &amp;&amp; inFlow(e.target)) AWFree.selectEl(e.target);
   });
+})();
+&lt;/script&gt;
+&lt;!-- ===== Notebooks v39: free page, bigger Draw tools, pasted pictures, the table menu =====
+     - The page is one open sheet: no frame or ring while you type, it grows downwards as far as you write or draw,
+       there is always room below to click and continue, and text wraps at the width of the screen.
+     - Draw tab: larger buttons and icons (two rows of groups where the screen is narrow).
+     - Ctrl/⌘+V pastes a picture (a screenshot, a copied image) where the caret is: in the page, a note container,
+       a text box or a table cell. Big pictures are scaled down to 1600px wide.
+     - Right-click in a table (or the table bar's More ▾) opens Interactive Board's Table Layout as a menu: insert
+       above / below / left / right, delete row / column / table, merge and split cells, height and width in cm,
+       distribute rows / columns, 9-way alignment, shading, borders, header row, sort. Cells selected by dragging
+       across them are tinted so you can see them.
+     - On a phone or an iPad, things that can be moved (text boxes, shapes, symbols, drawings, tables and pictures taken
+       out of the text, note containers) keep their places next to each other: if they reach past the width of the screen,
+       they are all shown smaller by the same factor (only on screen, nothing is saved). Typed text still wraps to the screen.
+     Paste before &lt;/body&gt;, after patches v20–v38 (needs v38). To remove: delete this block. --&gt;
+&lt;style&gt;
+/* ---------- one open sheet ---------- */
+#editorContent:focus,#editorContent:focus-visible,#pageTitle:focus-visible,#editorContent [contenteditable]:focus-visible,#editorContent td:focus-visible,#editorContent th:focus-visible{outline:none!important;box-shadow:none!important}
+body:not(.nhp) #editorContent{padding-bottom:45vh!important;min-height:calc(100vh - 160px)!important;border:0!important;background:transparent!important}
+#editorContent img{max-width:100%;height:auto}
+#editorContent img.aw-tfree{max-width:none}
+/* small screens: the free layer as a whole, smaller by one factor (set by the script below) */
+#editorContent[data-fit] &gt; :is(.aw-fl,.aw-tfree,.note-block){zoom:var(--nbfit,1)}
+/* ---------- bigger Draw tools on a computer ---------- */
+body:not(.nhi):not(.nhp) #tb{column-gap:0;row-gap:12px}
+body:not(.nhi):not(.nhp) #tb .aw-rb-grp{padding:0 16px;gap:8px}
+body:not(.nhi):not(.nhp) #tb .aw-rb-row{gap:6px}
+body:not(.nhi):not(.nhp) #tb .aw-rb-b{min-width:42px;height:42px;border-radius:12px;font-size:.92rem;padding:0 9px;color:var(--aw-ink)}
+body:not(.nhi):not(.nhp) #tb .aw-rb-b:hover{background:var(--aw-surface-2)}
+body:not(.nhi):not(.nhp) #tb .aw-rb-b svg{width:24px;height:24px}
+body:not(.nhi):not(.nhp) #tb .aw-rb-b.on{background:var(--aw-primary);color:#fff}
+body:not(.nhi):not(.nhp) #tb .aw-rb-big{height:64px;min-width:72px;font-size:.84rem;flex-direction:column;gap:4px}
+body:not(.nhi):not(.nhp) #tb .aw-rb-big svg{width:28px;height:28px}
+body:not(.nhi):not(.nhp) #tb .aw-tcolor-sw{width:28px;height:28px;border-radius:7px}
+body:not(.nhi):not(.nhp) #tb .aw-rb-hint,body:not(.nhi):not(.nhp) #tb .aw-tl-f{font-size:.92rem}
+body:not(.nhi):not(.nhp) #tb .aw-tl-f input[type=range]{width:120px!important}
+body:not(.nhi):not(.nhp) #tb .aw-tl-f input[type=number]{width:62px!important;height:34px;border-radius:9px}
+body:not(.nhi):not(.nhp) #tb .aw-ls svg{width:36px!important;height:12px!important}
+body:not(.nhi):not(.nhp) #tb .aw-rb-lbl{font-size:.8rem;margin-top:4px}
+body.nhi #tb .aw-rb-b{min-width:40px;height:40px}
+body.nhi #tb .aw-rb-b svg{width:22px;height:22px}
+body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
+/* ---------- selected cells ---------- */
+.nbt-cells{position:fixed;left:0;top:0;width:0;height:0;z-index:45;pointer-events:none}
+.nbt-cell{position:fixed;box-sizing:border-box;border:2px solid var(--aw-primary);border-radius:2px;background:rgba(86,97,224,.2)}
+/* ---------- the table menu ---------- */
+#nbtMenu{position:fixed;z-index:97;width:360px;max-height:calc(100dvh - 16px);overflow:auto;padding:10px 12px 12px;background:#fff;border-radius:var(--aw-r);box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);font:14px var(--aw-font);color:var(--aw-ink);display:none}
+#nbtMenu.show{display:block}
+#nbtMenu h4{margin:10px 2px 6px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--aw-ink-3)}
+#nbtMenu h4:first-child{margin-top:2px}
+#nbtMenu .g2{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+#nbtMenu .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+#nbtMenu button.it{min-height:36px;border:0;border-radius:10px;background:var(--aw-surface-2);color:var(--aw-ink);font:600 13px var(--aw-font);cursor:pointer;padding:0 8px;text-align:left;display:flex;align-items:center;gap:6px}
+#nbtMenu button.it:hover{background:var(--aw-primary-lt);color:var(--aw-primary-dk)}
+#nbtMenu button.it.danger{color:var(--aw-danger)}
+#nbtMenu button.it.danger:hover{background:#fdecea}
+#nbtMenu .hint{font-size:.76rem;color:var(--aw-ink-3);margin:5px 2px 0;line-height:1.4}
+#nbtMenu .size{display:flex;gap:8px;align-items:center;font-size:.86rem;font-weight:600}
+#nbtMenu .size input{width:64px;height:34px;border:1.5px solid var(--aw-border);border-radius:9px;padding:0 8px;font:inherit}
+#nbtMenu .al{display:inline-grid;grid-template-columns:repeat(3,34px);gap:3px}
+#nbtMenu .al button{width:34px;height:30px;border:0;border-radius:8px;background:var(--aw-surface-2);cursor:pointer;display:grid;place-items:center;color:var(--aw-ink-2)}
+#nbtMenu .al button:hover{background:var(--aw-primary-lt);color:var(--aw-primary)}
+#nbtMenu .row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+#nbtMenu .sw{display:flex;gap:5px;flex-wrap:wrap}
+#nbtMenu .sw button{width:26px;height:26px;border-radius:7px;border:2px solid rgba(0,0,0,.12);cursor:pointer;padding:0;font-size:.7rem;font-weight:700;color:#888}
+#nbtMenu label.ck{display:flex;align-items:center;gap:8px;font-size:.88rem;margin-top:6px;cursor:pointer}
+&lt;/style&gt;
+&lt;div id="nbtMenu" role="menu" aria-label="Table"&gt;&lt;/div&gt;
+&lt;script&gt;
+(function(){
+  if (typeof editor === 'undefined') return;
+  const $q = s =&gt; document.querySelector(s);
+  const save = () =&gt; { try { storeCurrent(false); } catch (e) {} };
+  const say = m =&gt; { try { toast(m); } catch (e) {} };
+
+  /* ================= Ctrl/⌘+V pastes pictures ================= */
+  function shrink(file){
+    return new Promise(res =&gt; {
+      const rd = new FileReader();
+      rd.onload = () =&gt; {
+        const img = new Image();
+        img.onload = () =&gt; {
+          const MAX = 1600; let w = img.width, h = img.height;
+          if (w &lt;= MAX &amp;&amp; rd.result.length &lt; 900000) return res(rd.result);   // a normal screenshot stays sharp (PNG)
+          if (w &gt; MAX){ h = Math.round(h * MAX / w); w = MAX; }
+          const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const cx = cv.getContext('2d');
+          cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(img, 0, 0, w, h);
+          res(cv.toDataURL('image/jpeg', 0.86));
+        };
+        img.onerror = () =&gt; res(rd.result); img.src = rd.result;
+      };
+      rd.onerror = () =&gt; res(null); rd.readAsDataURL(file);
+    });
+  }
+  editor.addEventListener('paste', async e =&gt; {
+    const cd = e.clipboardData; if (!cd) return;
+    const files = [...(cd.items || [])].filter(i =&gt; i.kind === 'file' &amp;&amp; /^image\//.test(i.type)).map(i =&gt; i.getAsFile()).filter(Boolean);
+    if (!files.length) return;
+    const html = cd.getData('text/html') || '';
+    if (html &amp;&amp; /&lt;img\b[^&gt;]*src="https?:/i.test(html) &amp;&amp; (cd.getData('text/plain') || '').trim()) return;   // a web page with text and pictures: the normal paste keeps both
+    e.preventDefault(); e.stopImmediatePropagation();
+    const s = getSelection(), range = s.rangeCount ? s.getRangeAt(0).cloneRange() : null;
+    try { if (window.AWFree) AWFree.snap(); } catch (er) {}
+    for (const f of files){
+      const url = await shrink(f); if (!url) continue;
+      if (range){ s.removeAllRanges(); s.addRange(range); }
+      document.execCommand('insertHTML', false, '&lt;img src="' + url + '" alt=""&gt;');
+    }
+    try { expandCanvasToFit(); } catch (er) {} save();
+  }, true);
+
+  /* ================= small screens: things side by side stay side by side ================= */
+  const FREE = ':scope &gt; .aw-tfree, :scope &gt; .note-block, :scope &gt; .aw-fl .fo, :scope &gt; .aw-fl .aw-fb';
+  function fitFree(){
+    const small = document.body.classList.contains('nhp') || document.body.classList.contains('nhi');
+    const was = editor.dataset.fit ? (+editor.style.getPropertyValue('--nbfit') || 1) : 1;
+    const inner = $q('.editor-inner'), pz = (inner &amp;&amp; parseFloat(inner.style.zoom) &gt; 0 ? parseFloat(inner.style.zoom) / 100 : 1);
+    let s = 1;
+    if (small){
+      const er = editor.getBoundingClientRect(), cs = getComputedStyle(editor), sc = editor.closest('main.editor') || $q('main.editor');
+      const seen = sc ? (Math.min(sc.getBoundingClientRect().right, innerWidth) - er.left) / pz : editor.clientWidth;   // the part of the page you can see, not the whole page
+      const w = Math.min(editor.clientWidth - (parseFloat(cs.paddingRight) || 0), seen - 12);
+      let R = 0; editor.querySelectorAll(FREE).forEach(el =&gt; { const r = el.getBoundingClientRect(); if (r.width || r.height) R = Math.max(R, (r.right - er.left) / (pz * was)); });
+      if (R &gt; w + 2) s = Math.max(0.25, Math.floor((w - 4) / R * 1000) / 1000);
+    }
+    if (s &lt; 1){ editor.dataset.fit = '1'; editor.style.setProperty('--nbfit', String(s)); }
+    else { delete editor.dataset.fit; editor.style.removeProperty('--nbfit'); }
+    if (s !== was){ try { if (window.AWFree) AWFree.fit(); } catch (e) {} }
+  }
+  let fitT = 0; const fitLater = () =&gt; { clearTimeout(fitT); fitT = setTimeout(fitFree, 120); };
+  if (typeof render === 'function'){ const prevR = render; render = function(){ const out = prevR.apply(this, arguments); fitLater(); return out; }; }
+  addEventListener('resize', fitLater); addEventListener('orientationchange', fitLater);
+  new MutationObserver(fitLater).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  window.nbFitFree = fitFree; fitLater();
+
+  /* ================= tables: Interactive Board's Table Layout, as a menu ================= */
+  const PX_CM = 37.795;
+  function tblGrid(t){ const g = []; [...t.rows].forEach((tr, r) =&gt; { g[r] = g[r] || []; let c = 0; [...tr.cells].forEach(cell =&gt; { while (g[r][c]) c++; const rs = cell.rowSpan || 1, cs = cell.colSpan || 1; for (let i = 0; i &lt; rs; i++){ g[r + i] = g[r + i] || []; for (let j = 0; j &lt; cs; j++) g[r + i][c + j] = cell; } c += cs; }); }); return g; }
+  const tblCols = g =&gt; g.reduce((m, row) =&gt; Math.max(m, row.length), 0);
+  function tblPos(t, cell){ const g = tblGrid(t); for (let r = 0; r &lt; g.length; r++) for (let c = 0; c &lt; g[r].length; c++) if (g[r][c] === cell) return { r, c }; return { r: 0, c: 0 }; }
+  function tblSyncWidth(t){ const cg = t.querySelector('colgroup'); if (!cg) return; t.style.width = [...cg.children].reduce((s, c) =&gt; s + (parseFloat(c.style.width) || 0), 0) + 'px'; t.style.minWidth = '0'; t.style.maxWidth = 'none'; }
+  function tblEnsureCols(t){
+    const g = tblGrid(t), n = tblCols(g); let cg = t.querySelector('colgroup'); if (!n) return null;
+    if (!cg || cg.children.length !== n){
+      if (cg) cg.remove(); cg = document.createElement('colgroup');
+      for (let c = 0; c &lt; n; c++){ let w = 0; for (let r = 0; r &lt; g.length &amp;&amp; !w; r++){ const cell = g[r][c]; if (cell &amp;&amp; (cell.colSpan || 1) === 1) w = cell.offsetWidth; } const col = document.createElement('col'); col.style.width = Math.max(30, Math.round(w || 100)) + 'px'; cg.appendChild(col); }
+      t.insertBefore(cg, t.firstChild);
+    }
+    t.style.tableLayout = 'fixed'; tblSyncWidth(t); return cg;
+  }
+  const tblWidths = t =&gt; { const cg = tblEnsureCols(t); return cg ? [...cg.children].map(c =&gt; parseFloat(c.style.width) || 60) : []; };
+  function tblSetCol(t, i, px){ const cg = tblEnsureCols(t); if (!cg || !cg.children[i]) return; cg.children[i].style.width = Math.max(30, Math.round(px)) + 'px'; tblSyncWidth(t); }
+  const tblSetRow = (tr, px) =&gt; { tr.style.height = Math.max(20, Math.round(px)) + 'px'; };
+  function newCell(t, tag){ const d = document.createElement(tag || 'td'); d.innerHTML = '&lt;br&gt;'; const ref = t.querySelector('td,th'); if (ref &amp;&amp; ref.getAttribute('contenteditable')) d.setAttribute('contenteditable', ref.getAttribute('contenteditable')); return d; }
+  function tblPlace(t, g, r, c, cell){ const tr = t.rows[r]; let ref = null; for (let k = c; k &lt; (g[r] || []).length; k++){ const x = g[r][k]; if (x &amp;&amp; x.parentElement === tr &amp;&amp; x !== cell){ ref = x; break; } } if (ref) tr.insertBefore(cell, ref); else tr.appendChild(cell); }
+  const cellOf = n =&gt; { const el = n &amp;&amp; (n.nodeType === 1 ? n : n.parentElement), c = el &amp;&amp; el.closest &amp;&amp; el.closest('td,th'); return c &amp;&amp; editor.contains(c) ? c : null; };
+  function extent(t, cell){ const p = tblPos(t, cell); return { r1: p.r, c1: p.c, r2: p.r + (cell.rowSpan || 1) - 1, c2: p.c + (cell.colSpan || 1) - 1 }; }
+  function rectOf(t, cells){
+    let R = null; cells.forEach(c =&gt; { const e = extent(t, c); R = R ? { r1: Math.min(R.r1, e.r1), c1: Math.min(R.c1, e.c1), r2: Math.max(R.r2, e.r2), c2: Math.max(R.c2, e.c2) } : e; });
+    const g = tblGrid(t); let grew = true;
+    while (grew){ grew = false; for (let r = R.r1; r &lt;= R.r2; r++) for (let c = R.c1; c &lt;= R.c2; c++){ const cell = g[r] &amp;&amp; g[r][c]; if (!cell) continue; const e = extent(t, cell); if (e.r1 &lt; R.r1 || e.c1 &lt; R.c1 || e.r2 &gt; R.r2 || e.c2 &gt; R.c2){ R = { r1: Math.min(R.r1, e.r1), c1: Math.min(R.c1, e.c1), r2: Math.max(R.r2, e.r2), c2: Math.max(R.c2, e.c2) }; grew = true; } } }
+    return R;
+  }
+  function cellsIn(t, R){ const g = tblGrid(t), out = []; for (let r = R.r1; r &lt;= R.r2; r++) for (let c = R.c1; c &lt;= R.c2; c++){ const x = g[r] &amp;&amp; g[r][c]; if (x &amp;&amp; out.indexOf(x) &lt; 0) out.push(x); } return out; }
+  function selCells(){
+    const s = getSelection(); if (!s.rangeCount) return [];
+    const a = cellOf(s.anchorNode); if (!a) return [];
+    const f = cellOf(s.focusNode), t = a.closest('table');
+    if (!s.isCollapsed &amp;&amp; f &amp;&amp; f !== a &amp;&amp; f.closest('table') === t) return cellsIn(t, rectOf(t, [a, f]));
+    return [a];
+  }
+
+  /* the selected cells are tinted by an overlay (nothing is added to the page) */
+  const layer = document.createElement('div'); layer.className = 'nbt-cells'; document.body.appendChild(layer);
+  let tCell = null, tCells = [], menuOpen = false;
+  function paint(){
+    layer.innerHTML = '';
+    const cells = menuOpen ? tCells : selCells(); if (!(cells.length &gt; 1 || (menuOpen &amp;&amp; cells.length))) return;
+    cells.forEach(c =&gt; { if (!c.isConnected) return; const r = c.getBoundingClientRect(), d = document.createElement('div'); d.className = 'nbt-cell'; d.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`; layer.appendChild(d); });
+  }
+  let raf = 0; const later = () =&gt; { cancelAnimationFrame(raf); raf = requestAnimationFrame(paint); };
+  document.addEventListener('selectionchange', later); addEventListener('resize', later); addEventListener('scroll', later, true);
+
+  function done(keep){ save(); if (keep) fillSize(); later(); }
+  function caretIn(cell){ if (!cell) return; const rg = document.createRange(); rg.selectNodeContents(cell); rg.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(rg); }
+  const snap = () =&gt; { try { if (window.AWFree) AWFree.snap(); } catch (e) {} };
+  function insRow(after){
+    const t = tCell.closest('table'), g = tblGrid(t), n = tblCols(g), p = tblPos(t, tCell), k = after ? p.r + (tCell.rowSpan || 1) - 1 : p.r;
+    const nr = document.createElement('tr'); if (t.rows[k].style.height) nr.style.height = t.rows[k].style.height; const seen = [];
+    for (let c = 0; c &lt; n; c++){
+      const cell = g[k][c], other = after ? (g[k + 1] &amp;&amp; g[k + 1][c]) : (k &gt; 0 &amp;&amp; g[k - 1] &amp;&amp; g[k - 1][c]);
+      if (cell &amp;&amp; other &amp;&amp; other === cell){ if (seen.indexOf(cell) &lt; 0){ cell.rowSpan = (cell.rowSpan || 1) + 1; seen.push(cell); } continue; }
+      const d = newCell(t); if (cell) ['textAlign', 'verticalAlign'].forEach(s =&gt; { if (cell.style[s]) d.style[s] = cell.style[s]; }); nr.appendChild(d);
+    }
+    t.rows[k].parentNode.insertBefore(nr, after ? t.rows[k].nextSibling : t.rows[k]); done();
+  }
+  function insCol(after){
+    const t = tCell.closest('table'), cg = tblEnsureCols(t), g = tblGrid(t), p = tblPos(t, tCell), ci = after ? p.c + (tCell.colSpan || 1) : p.c, seen = [];
+    for (let r = 0; r &lt; g.length; r++){ const left = ci &gt; 0 ? g[r][ci - 1] : null, right = g[r][ci];
+      if (left &amp;&amp; right &amp;&amp; left === right){ if (seen.indexOf(left) &lt; 0){ left.colSpan = (left.colSpan || 1) + 1; seen.push(left); } continue; }
+      tblPlace(t, g, r, ci, newCell(t, r === 0 &amp;&amp; t.rows[0].cells[0] &amp;&amp; t.rows[0].cells[0].tagName === 'TH' ? 'th' : 'td')); }
+    const col = document.createElement('col'); col.style.width = '110px'; if (cg.children[ci]) cg.insertBefore(col, cg.children[ci]); else cg.appendChild(col);
+    tblSyncWidth(t); done();
+  }
+  function delTable(){ if (!confirm('Delete this whole table?')) return; tCell.closest('table').remove(); tCell = null; tCells = []; done(); }
+  function delRow(){
+    const t = tCell.closest('table'), g = tblGrid(t), r = tblPos(t, tCell).r; if (t.rows.length &lt;= 1) return delTable();
+    const seen = [];
+    for (let c = 0; c &lt; g[r].length; c++){ const cell = g[r][c]; if (!cell || seen.indexOf(cell) &gt;= 0) continue; seen.push(cell);
+      if ((cell.rowSpan || 1) &gt; 1){ if (cell.parentElement === t.rows[r]){ const cp = cell.cloneNode(true); cp.rowSpan = cell.rowSpan - 1; if (cp.rowSpan === 1) cp.removeAttribute('rowspan'); tblPlace(t, g, r + 1, c, cp); } else { cell.rowSpan = cell.rowSpan - 1; if (cell.rowSpan === 1) cell.removeAttribute('rowspan'); } } }
+    t.rows[r].remove(); caretIn(t.rows[Math.min(r, t.rows.length - 1)].cells[0]); done();
+  }
+  function delCol(){
+    const t = tCell.closest('table'), g = tblGrid(t), ci = tblPos(t, tCell).c; if (tblCols(g) &lt;= 1) return delTable();
+    const cg = tblEnsureCols(t), seen = [];
+    for (let r = 0; r &lt; g.length; r++){ const cell = g[r][ci]; if (!cell || seen.indexOf(cell) &gt;= 0) continue; seen.push(cell); if ((cell.colSpan || 1) &gt; 1){ cell.colSpan = cell.colSpan - 1; if (cell.colSpan === 1) cell.removeAttribute('colspan'); } else cell.remove(); }
+    if (cg.children[ci]) cg.children[ci].remove(); tblSyncWidth(t); caretIn(t.rows[0].cells[Math.min(ci, t.rows[0].cells.length - 1)]); done();
+  }
+  function merge(){
+    if (tCells.length &lt; 2){ say('Drag across several cells first, then Merge.'); return; }
+    const t = tCell.closest('table'), R = rectOf(t, tCells), cells = cellsIn(t, R); if (cells.length &lt; 2) return;
+    const first = cells[0], keep = [];
+    cells.slice(1).forEach(c =&gt; { if (c.textContent.trim() || c.querySelector('img,table')) keep.push(c.innerHTML.replace(/(&lt;br\s*\/?&gt;)+$/i, '')); c.remove(); });
+    if (keep.length){ const own = first.textContent.trim() || first.querySelector('img,table'); first.innerHTML = (own ? first.innerHTML.replace(/(&lt;br\s*\/?&gt;)+$/i, '') + '&lt;br&gt;' : '') + keep.join('&lt;br&gt;'); }
+    const cs = R.c2 - R.c1 + 1, rs = R.r2 - R.r1 + 1;
+    if (cs &gt; 1) first.colSpan = cs; else first.removeAttribute('colspan'); if (rs &gt; 1) first.rowSpan = rs; else first.removeAttribute('rowspan');
+    tCell = first; tCells = [first]; caretIn(first); done();
+  }
+  function split(){
+    const t = tCell.closest('table'), cs = tCell.colSpan || 1, rs = tCell.rowSpan || 1;
+    if (cs === 1 &amp;&amp; rs === 1){ say('This cell is not merged.'); return; }
+    const p = tblPos(t, tCell), g = tblGrid(t);
+    for (let r = p.r; r &lt; p.r + rs; r++) for (let c = p.c; c &lt; p.c + cs; c++){ if (r === p.r &amp;&amp; c === p.c) continue; let ref = null; for (let k = c + 1; k &lt; (g[r] || []).length &amp;&amp; !ref; k++){ const x = g[r][k]; if (x &amp;&amp; x !== tCell &amp;&amp; x.parentElement === t.rows[r]) ref = x; } const nc = newCell(t); if (ref) t.rows[r].insertBefore(nc, ref); else t.rows[r].appendChild(nc); }
+    tCell.removeAttribute('colspan'); tCell.removeAttribute('rowspan'); tCells = [tCell]; done();
+  }
+  function distRows(){ const t = tCell.closest('table'); let tot = 0; [...t.rows].forEach(r =&gt; { tot += r.offsetHeight; }); const h = tot / t.rows.length; [...t.rows].forEach(r =&gt; tblSetRow(r, h)); done(true); }
+  function distCols(){ const t = tCell.closest('table'), w = tblWidths(t), tot = w.reduce((a, b) =&gt; a + b, 0); w.forEach((_, i) =&gt; tblSetCol(t, i, tot / w.length)); done(true); }
+  function setAlign(h, v){ tCells.forEach(c =&gt; { c.style.textAlign = h; c.style.verticalAlign = v; }); done(true); }
+  function setShade(col){ tCells.forEach(c =&gt; { if (col === 'none') c.style.removeProperty('background-color'); else c.style.backgroundColor = col; if (!c.getAttribute('style')) c.removeAttribute('style'); }); done(true); }
+  function toggleHeader(on){
+    const t = tCell.closest('table'), row = t.rows[0];
+    [...row.cells].forEach(c =&gt; { const n = document.createElement(on ? 'th' : 'td'); [...c.attributes].forEach(a =&gt; n.setAttribute(a.name, a.value)); while (c.firstChild) n.appendChild(c.firstChild); c.replaceWith(n); });
+    done(true);
+  }
+  function sort(dir){
+    const t = tCell.closest('table'), ci = tblPos(t, tCell).c;
+    if (t.querySelector('[rowspan],[colspan]')){ say('Split the merged cells before sorting.'); return; }
+    const rows = [...t.rows], head = rows[0] &amp;&amp; [...rows[0].cells].every(c =&gt; c.tagName === 'TH') ? rows.shift() : null;
+    const key = r =&gt; (r.cells[ci] ? r.cells[ci].textContent : '').trim();
+    rows.sort((a, b) =&gt; key(a).localeCompare(key(b), undefined, { numeric: true, sensitivity: 'base' }) * dir);
+    const body = (head || rows[0]).parentNode; rows.forEach(r =&gt; body.appendChild(r)); done(true);
+  }
+
+  /* ---------- the menu ---------- */
+  const menu = $q('#nbtMenu');
+  const AL = (h, v, t) =&gt; { const y = { t: 3, m: 7, b: 11 }[v], l1 = h === 'l' ? [2, 10] : h === 'c' ? [4, 12] : [6, 14];
+    return `&lt;button type="button" data-al="${{ l: 'left', c: 'center', r: 'right' }[h]},${{ t: 'top', m: 'middle', b: 'bottom' }[v]}" title="Align ${t}" aria-label="Align ${t}"&gt;&lt;svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"&gt;&lt;path d="M${l1[0]} ${y}H${l1[1]}M${l1[0] + 1} ${y + 2.6}H${l1[1] - 1}" fill="none"/&gt;&lt;/svg&gt;&lt;/button&gt;`; };
+  function build(){
+    const t = tCell.closest('table'), head = [...t.rows[0].cells].every(c =&gt; c.tagName === 'TH'), multi = tCells.length &gt; 1;
+    const b = (a, l, cls) =&gt; `&lt;button type="button" class="it ${cls || ''}" data-ta="${a}"&gt;${l}&lt;/button&gt;`;
+    menu.innerHTML =
+      '&lt;h4&gt;Rows &amp;amp; columns&lt;/h4&gt;&lt;div class="g2"&gt;' + b('rowA', '↑ Insert above') + b('rowB', '↓ Insert below') + b('colL', '← Insert left') + b('colR', '→ Insert right') + '&lt;/div&gt;' +
+      '&lt;div class="g3" style="margin-top:4px"&gt;' + b('delRow', 'Delete row', 'danger') + b('delCol', 'Delete column', 'danger') + b('delTbl', 'Delete table', 'danger') + '&lt;/div&gt;' +
+      '&lt;h4&gt;Merge&lt;/h4&gt;&lt;div class="g2"&gt;' + b('merge', '⊞ Merge cells') + b('split', '⊟ Split cells') + '&lt;/div&gt;' + (multi ? `&lt;div class="hint"&gt;${tCells.length} cells selected.&lt;/div&gt;` : '&lt;div class="hint"&gt;Drag across several cells, then right-click and Merge.&lt;/div&gt;') +
+      '&lt;h4&gt;Cell size&lt;/h4&gt;&lt;div class="size"&gt;&lt;label&gt;Height &lt;input type="number" id="nbtH" step="0.1" min="0.5"&gt; cm&lt;/label&gt;&lt;label&gt;Width &lt;input type="number" id="nbtW" step="0.1" min="0.8"&gt; cm&lt;/label&gt;&lt;/div&gt;' +
+      '&lt;div class="g2" style="margin-top:6px"&gt;' + b('distR', 'Distribute rows') + b('distC', 'Distribute columns') + '&lt;/div&gt;' +
+      '&lt;h4&gt;Alignment · Shading&lt;/h4&gt;&lt;div class="row"&gt;&lt;span class="al"&gt;' + AL('l', 't', 'top left') + AL('c', 't', 'top centre') + AL('r', 't', 'top right') + AL('l', 'm', 'centre left') + AL('c', 'm', 'centre') + AL('r', 'm', 'centre right') + AL('l', 'b', 'bottom left') + AL('c', 'b', 'bottom centre') + AL('r', 'b', 'bottom right') + '&lt;/span&gt;' +
+      '&lt;span class="sw" style="max-width:150px"&gt;' + ['#FFF3A3', '#B6F0C2', '#BFE0FF', '#FFC9D6', '#E0C9FF', '#E5E7EB'].map(c =&gt; `&lt;button type="button" data-sh="${c}" style="background:${c}" aria-label="Shading ${c}"&gt;&lt;/button&gt;`).join('') + '&lt;button type="button" data-sh="none" style="background:#fff" aria-label="No shading"&gt;✕&lt;/button&gt;&lt;/span&gt;&lt;/div&gt;' +
+      '&lt;div style="margin-top:8px"&gt;' + b('borders', t.classList.contains('no-borders') ? '▦ Show borders' : '▦ Hide borders') + '&lt;/div&gt;' +
+      `&lt;label class="ck"&gt;&lt;input type="checkbox" id="nbtHead" ${head ? 'checked' : ''}&gt; Header row&lt;/label&gt;` +
+      '&lt;h4&gt;Sort this column&lt;/h4&gt;&lt;div class="g2"&gt;' + b('sortA', '↑ A → Z') + b('sortZ', '↓ Z → A') + '&lt;/div&gt;';
+    fillSize();
+  }
+  function fillSize(){ const h = $q('#nbtH'), w = $q('#nbtW'); if (!h || !tCell || !tCell.isConnected) return; if (document.activeElement !== h) h.value = (tCell.parentElement.offsetHeight / PX_CM).toFixed(2); if (document.activeElement !== w) w.value = (tCell.offsetWidth / PX_CM).toFixed(2); }
+  function openMenu(x, y){
+    menuOpen = true; build(); menu.classList.add('show');
+    const w = menu.offsetWidth, h = menu.offsetHeight;
+    menu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px'; menu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+    paint();
+  }
+  function closeMenu(){ if (!menuOpen) return; menuOpen = false; menu.classList.remove('show'); paint(); }
+  const ACT = { rowA: () =&gt; insRow(false), rowB: () =&gt; insRow(true), colL: () =&gt; insCol(false), colR: () =&gt; insCol(true), delRow, delCol, delTbl: delTable,
+    merge, split, distR: distRows, distC: distCols, borders: () =&gt; { tCell.closest('table').classList.toggle('no-borders'); done(true); build(); }, sortA: () =&gt; sort(1), sortZ: () =&gt; sort(-1) };
+  const KEEP = { distR: 1, distC: 1, borders: 1 };
+  menu.addEventListener('mousedown', e =&gt; { if (!/^(INPUT|SELECT|LABEL)$/.test(e.target.tagName)) e.preventDefault(); });
+  menu.addEventListener('click', e =&gt; {
+    if (!tCell || !tCell.isConnected){ closeMenu(); return; }
+    const a = e.target.closest('[data-ta]'), al = e.target.closest('[data-al]'), sh = e.target.closest('[data-sh]');
+    if (a){ snap(); ACT[a.dataset.ta](); if (!KEEP[a.dataset.ta]) closeMenu(); return; }
+    if (al){ snap(); const p = al.dataset.al.split(','); setAlign(p[0], p[1]); return; }
+    if (sh){ snap(); setShade(sh.dataset.sh); return; }
+  });
+  menu.addEventListener('change', e =&gt; {
+    if (!tCell || !tCell.isConnected) return;
+    if (e.target.id === 'nbtHead'){ snap(); toggleHeader(e.target.checked); return; }
+    const v = parseFloat(e.target.value); if (!(v &gt; 0)) return; snap();
+    if (e.target.id === 'nbtH'){ const rows = []; tCells.forEach(c =&gt; { if (rows.indexOf(c.parentElement) &lt; 0) rows.push(c.parentElement); }); rows.forEach(r =&gt; tblSetRow(r, v * PX_CM)); done(true); }
+    if (e.target.id === 'nbtW'){ const t = tCell.closest('table'), seen = {}; tCells.forEach(c =&gt; { const p = tblPos(t, c), cs = c.colSpan || 1; for (let k = 0; k &lt; cs; k++) if (!seen[p.c + k]){ seen[p.c + k] = 1; tblSetCol(t, p.c + k, v * PX_CM / cs); } }); done(true); }
+  });
+  document.addEventListener('pointerdown', e =&gt; { if (menuOpen &amp;&amp; !e.target.closest('#nbtMenu')) closeMenu(); }, true);
+  document.addEventListener('keydown', e =&gt; { if (e.key === 'Escape' &amp;&amp; menuOpen){ e.stopPropagation(); closeMenu(); } }, true);
+  addEventListener('scroll', e =&gt; { if (menuOpen &amp;&amp; !(e.target.closest &amp;&amp; e.target.closest('#nbtMenu'))) paint(); }, true);
+
+  // right-click in a cell (the selected cells stay selected; a cell outside them becomes the selection)
+  editor.addEventListener('contextmenu', e =&gt; {
+    const c = cellOf(e.target); if (!c) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    let cells = selCells(); if (cells.indexOf(c) &lt; 0){ caretIn(c); cells = [c]; }
+    tCells = cells; tCell = cells[0]; openMenu(e.clientX + 2, e.clientY + 2);
+  }, true);
+  // the table bar's More ▾ (iPad: where there is no right-click) opens the same menu
+  document.addEventListener('click', e =&gt; {
+    const mb = e.target.closest &amp;&amp; e.target.closest('#tableMoreBtn'); if (!mb) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (menuOpen){ closeMenu(); return; }
+    const cells = selCells(); if (!cells.length){ say('Click in a table cell first.'); return; }
+    tCells = cells; tCell = cells[0]; const r = mb.getBoundingClientRect(); openMenu(r.left - 200, r.bottom + 6);
+  }, true);
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;

@@ -435,7 +435,7 @@ S.circ = lsGet('aw_sym_circ', {}) || {}; S.ls = lsGet('aw_ls', '') || ''; S.angl
 S.dims = lsGet('aw_shape_dims', {}) || {}; S.symDims = lsGet('aw_sym_dims', {}) || {}; S.loopBend = lsGet('aw_loop_bend', 0.5); S.ruler = Object.assign(S.ruler, lsGet('aw_ruler', {}) || {}, { on: false });
 const SMOOTH_EPS = [0.3, 0.7, 1.6];
 let G = null, ui = null, band = null, lassoEl = null, panels = {}, badgeEls = [], rl = null;
-const zoomF = () => { const i = document.querySelector('.editor-inner'), v = i && parseFloat(i.style.zoom); return v > 0 ? v / 100 : 1; };   /* Notebooks: the page zoom (CSS zoom on .editor-inner) */
+const zoomF = () => { const i = document.querySelector('.editor-inner'), v = i && parseFloat(i.style.zoom), f = canvas && canvas.dataset.fit ? (+canvas.style.getPropertyValue('--nbfit') || 1) : 1; return (v > 0 ? v / 100 : 1) * f; };   /* Notebooks: the page zoom (CSS zoom on .editor-inner) times the fit of the free layer on small screens (v39) */
 const uid = () => 'f' + Math.random().toString(36).slice(2, 9);
 const polysToD = polys => polys.map(poly => poly.map((q, i) => (i ? 'L' : 'M') + r1(q[0]) + ' ' + r1(q[1])).join('')).join('');
 
@@ -1105,7 +1105,7 @@ function onUp(e){
     S.sel = [g.el]; clearBadges(); changed();
   } else if (g.kind === 'sym'){
     clearBadges();
-    if (!g.dragged){ g.el.remove(); S.undo.pop(); paintSel(); return; }   // a plain click draws nothing
+    if (!g.dragged){ S.sel = [g.el]; changed(); return; }   // a plain click places the symbol at its usual size (a drag sizes it)
     S.symDims[g.key] = [Math.round(g.w), Math.round(g.h)]; lsSet('aw_sym_dims', S.symDims);   // the next symbols of this kind come out the same size
     S.sel = [g.el]; changed();
   } else if (g.kind === 'text'){
