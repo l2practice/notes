@@ -6,7 +6,8 @@
      - Record: records a meeting (pause, resume, stop; the screen stays on), also in parts of 15 minutes so a long
        meeting is transcribed part by part (with the time each part starts). The recording is kept on this device
        (IndexedDB) and, when Google Drive is connected, uploaded to the Notehouse folder so other devices can play it.
-       A card in the page plays it, downloads it, and turns it into a transcript.
+       A card in the page plays it, downloads it, turns it into a transcript, and Summarize has Gemini write the minutes
+       (summary, key points, decisions, action items with owner and deadline, open questions) in the meeting's language.
      - Dictate and Send Page are gone from the ribbon (Share and Export PDF stay). "Symbol" (characters to type) is now
        "Marks"; "Symbols" (syntax labels to draw) keeps its name.
      Keys are stored in this browser only (localStorage: notehouse_groq_key, notehouse_gemini_key).
@@ -237,7 +238,7 @@
     const d = new Date(at), when = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const pa = parts && parts.length > 1 ? ` data-segs="${parts.length}" data-seg-starts="${parts.map(x => x.start).join(',')}" data-seg-drive=""` : '';
     return `<div class="nb-rec" contenteditable="false" data-rec="${esc(id)}" data-at="${at}" data-dur="${dur}" data-drive="${esc(drive || '')}"${pa}><span class="ic">🎙</span><b>Meeting recording</b><span class="m">${when} · ${fmtDur(dur)}</span>` +
-      '<button type="button" data-rec-act="transcribe">Transcribe</button><button type="button" data-rec-act="download">Download</button><audio controls preload="none"></audio><span class="st"></span></div>';
+      '<button type="button" data-rec-act="transcribe">Transcribe</button><button type="button" data-rec-act="summarize">Summarize</button><button type="button" data-rec-act="download">Download</button><audio controls preload="none"></audio><span class="st"></span></div>';
   }
   async function uploadToDrive(id, blob, at, part){
     try {
@@ -290,19 +291,33 @@
   async function hydrate(){
     for (const c of editor.querySelectorAll('.nb-rec')){
       const a = c.querySelector('audio'), st = c.querySelector('.st'); if (!a || live.has(a)) continue; live.add(a); a.removeAttribute('src');
+      if (!c.querySelector('[data-rec-act="summarize"]')){ const t = c.querySelector('[data-rec-act="transcribe"]'); if (t) t.insertAdjacentHTML('afterend', '<button type="button" data-rec-act="summarize">Summarize</button>'); }
       const b = await getBlob(c.dataset.rec);
       if (b){ a.src = URL.createObjectURL(b); st.textContent = c.dataset.drive ? 'On this device and in Google Drive' : 'On this device'; }
       else if (c.dataset.drive){ st.textContent = 'In Google Drive — press play to load it'; a.addEventListener('play', async function once(){ a.removeEventListener('play', once); try { st.textContent = 'Loading from Google Drive…'; const bb = await blobFor(c); if (bb){ a.src = URL.createObjectURL(bb); a.play(); st.textContent = 'Loaded from Google Drive'; } } catch (e) { st.textContent = 'Could not load it from Google Drive'; } }); }
       else st.textContent = 'The recording is on another device (Google Drive was not connected)';
     }
   }
-  editor.addEventListener('click', async e => {
-    const b = e.target.closest('.nb-rec [data-rec-act]'); if (!b) return; e.preventDefault(); e.stopPropagation();
-    const c = b.closest('.nb-rec'), st = c.querySelector('.st');
-    let blob; try { blob = await blobFor(c); } catch (er) {} if (!blob){ say('This recording is not on this device'); return; }
-    if (b.dataset.recAct === 'download'){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Meeting ' + new Date(+c.dataset.at).toISOString().slice(0, 10) + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm'); document.body.appendChild(a); a.click(); a.remove(); return; }
-    if (!getK('notehouse_groq_key') && !getK('notehouse_gemini_key')){ askKeys(() => b.click()); return; }
-    const n = +c.dataset.segs || 0, paras = t => t.split(/\n{2,}/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+  /* the blocks a card writes under itself: the minutes (h3[data-sum]) and the transcript (h3[data-tr]), each up to the next heading */
+  function block(c, kind){
+    let h = null;
+    for (let n = c.nextElementSibling; n && !n.matches('.nb-rec'); n = n.nextElementSibling){
+      if (n.matches('h3[data-' + kind + '="' + c.dataset.rec + '"]') || (kind === 'tr' && !h && n.matches('h3:not([data-sum]):not([data-tr])') && /^Transcript$/i.test(n.textContent.trim()))){ h = n; break; }
+    }
+    if (!h) return [];
+    const out = [h]; for (let n = h.nextElementSibling; n && !n.matches('h1,h2,h3,.nb-rec'); n = n.nextElementSibling) out.push(n);
+    return out;
+  }
+  const paras = t => t.split(/\n{2,}/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+  function place(c, html, kind){   // minutes go right under the card, the transcript under the minutes
+    const old = block(c, kind), box = document.createElement('div'); box.innerHTML = html;
+    try { if (window.AWFree) AWFree.snap(); } catch (er) {}
+    if (old.length){ old[0].before(...box.childNodes); old.forEach(n => n.remove()); }
+    else { const sum = kind === 'tr' ? block(c, 'sum') : []; (sum.length ? sum[sum.length - 1] : c).after(...box.childNodes); }
+    save();
+  }
+  async function transcribeCard(c, st, blob){
+    const n = +c.dataset.segs || 0;
     if (n > 1){   // a long meeting: part by part, with the time each part starts
       const starts = (c.dataset.segStarts || '').split(',').map(Number), dids = (c.dataset.segDrive || '').split(','), out = [], bad = [];
       for (let i = 0; i < n; i++){
@@ -314,19 +329,74 @@
         out.push('<p><b>[' + fmtDur(starts[i] || 0) + ']</b></p>' + (txt === null ? '<p><i>(Part ' + (i + 1) + ' could not be transcribed: ' + esc(why) + ')</i></p>' : txt ? paras(txt) : '<p><i>(no words)</i></p>'));
         if (txt === null) bad.push(i + 1);
       }
-      const box = document.createElement('div'); box.innerHTML = '<h3>Transcript</h3>' + out.join('');
-      try { if (window.AWFree) AWFree.snap(); } catch (er) {}
-      c.after(...box.childNodes); save();
+      place(c, '<h3 data-tr="' + esc(c.dataset.rec) + '">Transcript</h3>' + out.join(''), 'tr');
       st.textContent = bad.length ? 'Transcript added below · part ' + bad.join(', ') + ' failed (press Transcribe again later)' : 'Transcript added below (' + n + ' parts)';
-      return;
+      return bad.length < n;
     }
     st.textContent = 'Transcribing… (a long meeting takes a minute)';
     try {
-      const text = await toText(blob); if (!text){ st.textContent = 'No words were heard'; return; }
-      const box = document.createElement('div'); box.innerHTML = '<h3>Transcript</h3>' + paras(text);
-      try { if (window.AWFree) AWFree.snap(); } catch (er) {}
-      c.after(...box.childNodes); st.textContent = 'Transcript added below'; save();
-    } catch (er) { st.textContent = 'Transcribe: ' + er.message; }
+      const text = await toText(blob); if (!text){ st.textContent = 'No words were heard'; return false; }
+      place(c, '<h3 data-tr="' + esc(c.dataset.rec) + '">Transcript</h3>' + paras(text), 'tr'); st.textContent = 'Transcript added below'; return true;
+    } catch (er) { st.textContent = 'Transcribe: ' + er.message; return false; }
+  }
+
+  /* ---- Summarize: Gemini writes the minutes of the meeting from the transcript ---- */
+  function md(t){   // the little Markdown Gemini writes: headings, lists, tables, bold, italics
+    const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*]+)\*/g, '$1<i>$2</i>');
+    const lines = t.replace(/\r/g, '').split('\n'), out = []; let list = null, table = null;
+    const close = () => { if (list){ out.push('</' + list + '>'); list = null; } if (table){ out.push('</tbody></table>'); table = null; } };
+    for (const raw of lines){
+      const l = raw.trim();
+      if (/^\|.*\|$/.test(l)){
+        const cells = l.slice(1, -1).split('|').map(x => x.trim()); if (cells.every(x => /^:?-{2,}:?$/.test(x))) continue;
+        if (!table){ close(); out.push('<table class="notehouse-table"><tbody><tr>' + cells.map(x => '<th>' + inl(x) + '</th>').join('') + '</tr>'); table = 1; }
+        else out.push('<tr>' + cells.map(x => '<td>' + inl(x) + '</td>').join('') + '</tr>');
+        continue;
+      }
+      let m;
+      if ((m = l.match(/^#{1,6}\s+(.*)$/))){ close(); out.push('<h4>' + inl(m[1].replace(/:$/, '')) + '</h4>'); continue; }
+      if ((m = l.match(/^[-*•]\s+(.*)$/))){ if (list !== 'ul'){ close(); out.push('<ul>'); list = 'ul'; } out.push('<li>' + inl(m[1]) + '</li>'); continue; }
+      if ((m = l.match(/^\d+[.)]\s+(.*)$/))){ if (list !== 'ol'){ close(); out.push('<ol>'); list = 'ol'; } out.push('<li>' + inl(m[1]) + '</li>'); continue; }
+      if (!l){ close(); continue; }
+      close(); out.push('<p>' + inl(l) + '</p>');
+    }
+    close(); return out.join('');
+  }
+  async function summarize(c, st, blob){
+    const key = getK('notehouse_gemini_key');
+    if (!key){ askKeys(() => { const b = c.querySelector('[data-rec-act="summarize"]'); if (b) b.click(); }); return; }
+    let tr = block(c, 'tr');
+    if (!tr.length){ st.textContent = 'Transcribing first…'; if (!(await transcribeCard(c, st, blob))) return; tr = block(c, 'tr'); }
+    const text = tr.slice(1).map(n => n.innerText.trim()).filter(Boolean).join('\n\n');
+    if (!text){ st.textContent = 'The transcript is empty'; return; }
+    const d = new Date(+c.dataset.at), when = d.toLocaleString('en-GB', { dateStyle: 'full', timeStyle: 'short' });
+    const prompt = 'Write the minutes of a meeting from its transcript below.\n' +
+      'Write in the language of the transcript. If it is Vietnamese, use these headings: "Tóm tắt", "Nội dung chính", "Quyết định", "Việc cần làm", "Vấn đề còn bỏ ngỏ". Otherwise: "Summary", "Key points", "Decisions", "Action items", "Open questions".\n' +
+      'Format: Markdown. Each section starts with "## " and its heading. Summary: 3–5 sentences. Key points, Decisions and Open questions: short bullet points. Action items: a table with the columns Task | Owner | Deadline (write "—" when the transcript does not say).\n' +
+      'Use only what the transcript says; do not invent names, numbers or dates. A section with nothing in it gets a single "—". The times in square brackets mark where each part of the recording starts.\n' +
+      'Meeting: ' + when + ', length ' + fmtDur(+c.dataset.dur || 0) + '. Page: ' + (titleEl.textContent || '').trim() + '.\n\nTranscript:\n' + text;
+    st.textContent = 'Gemini is writing the minutes…';
+    try {
+      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(key), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error((j.error && j.error.message) || ('Gemini ' + r.status));
+      const out = ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || '').join('').trim();
+      if (!out) throw new Error('Gemini gave no answer');
+      const vi = /^##\s*Tóm tắt/im.test(out);
+      place(c, '<h3 data-sum="' + esc(c.dataset.rec) + '">' + (vi ? 'Biên bản họp' : 'Meeting minutes') + '</h3>' + md(out), 'sum');
+      st.textContent = vi ? 'Biên bản họp đã được thêm bên dưới' : 'Minutes added below';
+    } catch (er) { st.textContent = 'Summarize: ' + er.message; }
+  }
+
+  editor.addEventListener('click', async e => {
+    const b = e.target.closest('.nb-rec [data-rec-act]'); if (!b) return; e.preventDefault(); e.stopPropagation();
+    const c = b.closest('.nb-rec'), st = c.querySelector('.st'), act = b.dataset.recAct;
+    if (act === 'summarize' && block(c, 'tr').length) return summarize(c, st, null);   // a transcript is there: the sound is not needed
+    let blob; try { blob = await blobFor(c); } catch (er) {} if (!blob){ say('This recording is not on this device'); return; }
+    if (act === 'download'){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Meeting ' + new Date(+c.dataset.at).toISOString().slice(0, 10) + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm'); document.body.appendChild(a); a.click(); a.remove(); return; }
+    if (!getK('notehouse_groq_key') && !getK('notehouse_gemini_key')){ askKeys(() => b.click()); return; }
+    if (act === 'summarize') return summarize(c, st, blob);
+    await transcribeCard(c, st, blob);
   }, true);
   if (typeof render === 'function'){ const pr = render; render = function(){ const out = pr.apply(this, arguments); setTimeout(hydrate, 30); return out; }; }
   // the page is saved without this session's sound address and status line
