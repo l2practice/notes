@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-27-record-v54" />
+    <meta name="app-build" content="2026-11-27-record-parts-v55" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -7541,7 +7541,8 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
        Send to back, Duplicate, Delete. The table menu has Bring to front / Send to back too.
      - Transcribe (you speak, the page gets the words): asks for the Groq and Gemini API keys the first time; records
        until Done, then Groq Whisper (or Gemini if there is no Groq key, or Groq fails) writes the words at the caret.
-     - Record: records a meeting (pause, resume, stop; the screen stays on). The recording is kept on this device
+     - Record: records a meeting (pause, resume, stop; the screen stays on), also in parts of 15 minutes so a long
+       meeting is transcribed part by part (with the time each part starts). The recording is kept on this device
        (IndexedDB) and, when Google Drive is connected, uploaded to the Notehouse folder so other devices can play it.
        A card in the page plays it, downloads it, and turns it into a transcript.
      - Dictate and Send Page are gone from the ribbon (Share and Export PDF stay). "Symbol" (characters to type) is now
@@ -7699,7 +7700,7 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
       } catch (e) { err = 'Groq: ' + e.message; if (!gem) throw new Error(err); }
     }
     if (!gem) throw new Error('Add a Groq or Gemini key first');
-    if (blob.size &gt; 18 * 1024 * 1024) throw new Error((err ? err + ' · ' : '') + 'Gemini takes recordings up to 18 MB');
+    if (blob.size &gt; 14 * 1024 * 1024) throw new Error((err ? err + ' · ' : '') + 'Gemini takes recordings up to 14 MB');   // sent as base64 (a third larger) in a request of at most 20 MB
     const bytes = new Uint8Array(await blob.arrayBuffer()); let bin = ''; for (let i = 0; i &lt; bytes.length; i += 32768) bin += String.fromCharCode(...bytes.subarray(i, i + 32768));
     const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(gem), { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: 'Transcribe the spoken words in this audio. Return only the transcript, in the language that is spoken, with punctuation and paragraphs.' }, { inlineData: { mimeType: (blob.type || 'audio/webm').split(';')[0], data: btoa(bin) } }] }] }) });
@@ -7715,23 +7716,37 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     if (rec){ say('A recording is already running'); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){ say('This browser cannot record here'); return; }
     let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); } catch (e) { say('Allow microphone access to record'); return; }
-    const m = mime(), mr = new MediaRecorder(stream, Object.assign({ audioBitsPerSecond: 32000 }, m ? { mimeType: m } : {})), chunks = [];
+    const m = mime(), opts = Object.assign({ audioBitsPerSecond: 32000 }, m ? { mimeType: m } : {}), mr = new MediaRecorder(stream, opts), chunks = [];
+    /* a meeting is also recorded in parts of 15 minutes (each a whole audio file, one second of overlap so no word is cut):
+       a long meeting is transcribed part by part, within what Groq and Gemini accept */
+    const SEG_MS = window.nbSegMs || 15 * 60 * 1000, segs = []; let seg = null, segStart = 0, pending = 0, mainStopped = false, keepIt = false;
+    function newSeg(){
+      const r = new MediaRecorder(stream, opts), parts = [], idx = segs.length, start = Math.round(ms / 1000); segs.push(null); pending++;
+      r.ondataavailable = e =&gt; { if (e.data &amp;&amp; e.data.size) parts.push(e.data); };
+      r.onstop = () =&gt; { segs[idx] = { blob: new Blob(parts, { type: r.mimeType || m || 'audio/webm' }), start }; pending--; maybeDone(); };
+      r.start(); return r;
+    }
     mr.ondataavailable = e =&gt; { if (e.data &amp;&amp; e.data.size) chunks.push(e.data); };
     let wake = null; try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
     const pill = document.createElement('div'); pill.className = 'nbr-pill'; pill.setAttribute('role', 'status');
     pill.innerHTML = `&lt;span class="dot"&gt;&lt;/span&gt;&lt;span&gt;${kind === 'meeting' ? 'Recording meeting' : 'Listening — speak'}&lt;/span&gt;&lt;span class="t"&gt;0:00&lt;/span&gt;` + (kind === 'meeting' ? '&lt;button type="button" data-r="pause"&gt;Pause&lt;/button&gt;' : '') + `&lt;button type="button" data-r="cancel"&gt;Cancel&lt;/button&gt;&lt;button type="button" class="stop" data-r="stop"&gt;${kind === 'meeting' ? 'Stop' : 'Done'}&lt;/button&gt;`;
     document.body.appendChild(pill);
-    let ms = 0, last = Date.now(); const tick = setInterval(() =&gt; { if (mr.state === 'recording'){ ms += Date.now() - last; } last = Date.now(); const s = Math.floor(ms / 1000); pill.querySelector('.t').textContent = (s &gt;= 3600 ? Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') : Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0'); }, 500);
+    let ms = 0, last = Date.now(); const tick = setInterval(() =&gt; { if (mr.state === 'recording'){ ms += Date.now() - last; } last = Date.now();
+      if (kind === 'meeting' &amp;&amp; seg &amp;&amp; mr.state === 'recording' &amp;&amp; ms - segStart &gt;= SEG_MS){ const old = seg; segStart = ms; seg = newSeg(); setTimeout(() =&gt; { if (old.state !== 'inactive') old.stop(); }, 1000); } const s = Math.floor(ms / 1000); pill.querySelector('.t').textContent = (s &gt;= 3600 ? Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') : Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0'); }, 500);
     rec = { mr, stream, pill, kind };
-    const finish = keep =&gt; { clearInterval(tick); try { wake &amp;&amp; wake.release(); } catch (e) {} stream.getTracks().forEach(t =&gt; t.stop()); pill.remove(); rec = null; if (keep) onDone(new Blob(chunks, { type: mr.mimeType || m || 'audio/webm' }), Math.round(ms / 1000)); };
-    mr.onstop = () =&gt; finish(rec &amp;&amp; rec.keep);
+    function maybeDone(){
+      if (!mainStopped || pending) return;
+      clearInterval(tick); try { wake &amp;&amp; wake.release(); } catch (e) {} stream.getTracks().forEach(t =&gt; t.stop()); pill.remove(); rec = null;
+      if (keepIt) onDone(new Blob(chunks, { type: mr.mimeType || m || 'audio/webm' }), Math.round(ms / 1000), segs.length &gt; 1 ? segs.filter(Boolean) : []);
+    }
+    mr.onstop = () =&gt; { keepIt = !!(rec &amp;&amp; rec.keep); mainStopped = true; if (seg &amp;&amp; seg.state !== 'inactive') seg.stop(); maybeDone(); };
     pill.addEventListener('click', e =&gt; {
       const b = e.target.closest('[data-r]'); if (!b) return;
-      if (b.dataset.r === 'pause'){ if (mr.state === 'recording'){ mr.pause(); b.textContent = 'Resume'; pill.classList.add('paused'); } else { mr.resume(); b.textContent = 'Pause'; pill.classList.remove('paused'); } return; }
+      if (b.dataset.r === 'pause'){ if (mr.state === 'recording'){ mr.pause(); if (seg &amp;&amp; seg.state === 'recording') seg.pause(); b.textContent = 'Resume'; pill.classList.add('paused'); } else { mr.resume(); if (seg &amp;&amp; seg.state === 'paused') seg.resume(); b.textContent = 'Pause'; pill.classList.remove('paused'); } return; }
       rec.keep = b.dataset.r === 'stop'; if (!rec.keep &amp;&amp; kind === 'meeting' &amp;&amp; !confirm('Throw this recording away?')){ rec.keep = undefined; return; }
       mr.stop();
     });
-    mr.start(5000);
+    mr.start(5000); if (kind === 'meeting') seg = newSeg();
   }
 
   /* ================= Transcribe: you speak, the page gets the words ================= */
@@ -7756,15 +7771,16 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
   async function idb(mode, fn){ const d = await DB; if (!d) return null; return new Promise(res =&gt; { const t = d.transaction('rec', mode), q = fn(t.objectStore('rec')); t.oncomplete = () =&gt; res(q &amp;&amp; q.result); t.onerror = () =&gt; res(null); }); }
   const putBlob = (id, b) =&gt; idb('readwrite', s =&gt; s.put(b, id)), getBlob = id =&gt; idb('readonly', s =&gt; s.get(id));
   const fmtDur = s =&gt; (s &gt;= 3600 ? Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') : Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0');
-  function cardHTML(id, at, dur, drive){
+  function cardHTML(id, at, dur, drive, parts){
     const d = new Date(at), when = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    return `&lt;div class="nb-rec" contenteditable="false" data-rec="${esc(id)}" data-at="${at}" data-dur="${dur}" data-drive="${esc(drive || '')}"&gt;&lt;span class="ic"&gt;🎙&lt;/span&gt;&lt;b&gt;Meeting recording&lt;/b&gt;&lt;span class="m"&gt;${when} · ${fmtDur(dur)}&lt;/span&gt;` +
+    const pa = parts &amp;&amp; parts.length &gt; 1 ? ` data-segs="${parts.length}" data-seg-starts="${parts.map(x =&gt; x.start).join(',')}" data-seg-drive=""` : '';
+    return `&lt;div class="nb-rec" contenteditable="false" data-rec="${esc(id)}" data-at="${at}" data-dur="${dur}" data-drive="${esc(drive || '')}"${pa}&gt;&lt;span class="ic"&gt;🎙&lt;/span&gt;&lt;b&gt;Meeting recording&lt;/b&gt;&lt;span class="m"&gt;${when} · ${fmtDur(dur)}&lt;/span&gt;` +
       '&lt;button type="button" data-rec-act="transcribe"&gt;Transcribe&lt;/button&gt;&lt;button type="button" data-rec-act="download"&gt;Download&lt;/button&gt;&lt;audio controls preload="none"&gt;&lt;/audio&gt;&lt;span class="st"&gt;&lt;/span&gt;&lt;/div&gt;';
   }
-  async function uploadToDrive(id, blob, at){
+  async function uploadToDrive(id, blob, at, part){
     try {
       if (typeof driveFetch !== 'function' || typeof driveEnsureFolder !== 'function' || !(typeof driveLinked !== 'undefined' &amp;&amp; driveLinked)) return '';
-      const folder = await driveEnsureFolder(), name = 'Meeting ' + new Date(at).toISOString().slice(0, 16).replace('T', ' ').replace(':', 'h') + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm');
+      const folder = await driveEnsureFolder(), name = 'Meeting ' + new Date(at).toISOString().slice(0, 16).replace('T', ' ').replace(':', 'h') + (part ? ' · part ' + part : '') + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm');
       const fd = new FormData(); fd.append('metadata', new Blob([JSON.stringify({ name, parents: [folder], mimeType: (blob.type || 'audio/webm').split(';')[0] })], { type: 'application/json' })); fd.append('file', blob);
       const r = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&amp;fields=id', { method: 'POST', body: fd });
       const j = await r.json(); return j.id || '';
@@ -7774,14 +7790,18 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     if (rec){ if (rec.kind === 'meeting'){ rec.keep = true; rec.mr.stop(); } else say('Finish Transcribe first'); return; }
     try { rememberEditSelection(); } catch (e) {}
     const at = Date.now(), id = 'rec-' + at.toString(36) + Math.random().toString(36).slice(2, 6);
-    startRec('meeting', async (blob, dur) =&gt; {
+    startRec('meeting', async (blob, dur, parts) =&gt; {
       await putBlob(id, blob);
+      for (let i = 0; i &lt; parts.length; i++) await putBlob(id + '#' + i, parts[i].blob);
       try { restoreEditSelection(); } catch (e) { editor.focus(); }
       try { if (window.AWFree) AWFree.snap(); } catch (e) {}
-      document.execCommand('insertHTML', false, cardHTML(id, at, dur, '') + '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'); save(); hydrate();
-      say('Recording saved' + (typeof driveLinked !== 'undefined' &amp;&amp; driveLinked ? ' · uploading to Google Drive…' : ''));
+      document.execCommand('insertHTML', false, cardHTML(id, at, dur, '', parts) + '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'); save(); hydrate();
+      say('Recording saved' + (parts.length &gt; 1 ? ' in ' + parts.length + ' parts for Transcribe' : '') + (typeof driveLinked !== 'undefined' &amp;&amp; driveLinked ? ' · uploading to Google Drive…' : ''));
+      const card = () =&gt; editor.querySelector('.nb-rec[data-rec="' + id + '"]');
       const fid = await uploadToDrive(id, blob, at);
-      if (fid){ const c = editor.querySelector('.nb-rec[data-rec="' + id + '"]'); if (c){ c.dataset.drive = fid; save(); } say('Recording uploaded to Google Drive'); }
+      if (fid){ const c = card(); if (c){ c.dataset.drive = fid; save(); } }
+      if (fid &amp;&amp; parts.length &gt; 1){ const ids = []; for (let i = 0; i &lt; parts.length; i++) ids.push(await uploadToDrive(id, parts[i].blob, at, i + 1)); const c = card(); if (c){ c.dataset.segDrive = ids.join(','); save(); } }
+      if (fid) say('Recording uploaded to Google Drive');
     });
   }
   // the ribbon button (next to Transcribe), the iPad Insert row and the Tools menu
@@ -7820,10 +7840,28 @@ body.nhi #tb .aw-tcolor-sw{width:26px;height:26px}
     let blob; try { blob = await blobFor(c); } catch (er) {} if (!blob){ say('This recording is not on this device'); return; }
     if (b.dataset.recAct === 'download'){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Meeting ' + new Date(+c.dataset.at).toISOString().slice(0, 10) + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm'); document.body.appendChild(a); a.click(); a.remove(); return; }
     if (!getK('notehouse_groq_key') &amp;&amp; !getK('notehouse_gemini_key')){ askKeys(() =&gt; b.click()); return; }
+    const n = +c.dataset.segs || 0, paras = t =&gt; t.split(/\n{2,}/).map(p =&gt; '&lt;p&gt;' + esc(p).replace(/\n/g, '&lt;br&gt;') + '&lt;/p&gt;').join('');
+    if (n &gt; 1){   // a long meeting: part by part, with the time each part starts
+      const starts = (c.dataset.segStarts || '').split(',').map(Number), dids = (c.dataset.segDrive || '').split(','), out = [], bad = [];
+      for (let i = 0; i &lt; n; i++){
+        st.textContent = 'Transcribing part ' + (i + 1) + ' of ' + n + '…';
+        let pb = await getBlob(c.dataset.rec + '#' + i);
+        if (!pb &amp;&amp; dids[i] &amp;&amp; typeof driveFetch === 'function'){ try { const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + dids[i] + '?alt=media'); pb = await r.blob(); await putBlob(c.dataset.rec + '#' + i, pb); } catch (er) {} }
+        let txt = null, why = pb ? '' : 'not on this device';
+        for (let k = 0; pb &amp;&amp; k &lt; 3 &amp;&amp; txt === null; k++){ try { txt = await toText(pb); } catch (er) { why = er.message; if (k &lt; 2) await new Promise(r =&gt; setTimeout(r, 1500 * (k + 1))); } }
+        out.push('&lt;p&gt;&lt;b&gt;[' + fmtDur(starts[i] || 0) + ']&lt;/b&gt;&lt;/p&gt;' + (txt === null ? '&lt;p&gt;&lt;i&gt;(Part ' + (i + 1) + ' could not be transcribed: ' + esc(why) + ')&lt;/i&gt;&lt;/p&gt;' : txt ? paras(txt) : '&lt;p&gt;&lt;i&gt;(no words)&lt;/i&gt;&lt;/p&gt;'));
+        if (txt === null) bad.push(i + 1);
+      }
+      const box = document.createElement('div'); box.innerHTML = '&lt;h3&gt;Transcript&lt;/h3&gt;' + out.join('');
+      try { if (window.AWFree) AWFree.snap(); } catch (er) {}
+      c.after(...box.childNodes); save();
+      st.textContent = bad.length ? 'Transcript added below · part ' + bad.join(', ') + ' failed (press Transcribe again later)' : 'Transcript added below (' + n + ' parts)';
+      return;
+    }
     st.textContent = 'Transcribing… (a long meeting takes a minute)';
     try {
       const text = await toText(blob); if (!text){ st.textContent = 'No words were heard'; return; }
-      const box = document.createElement('div'); box.innerHTML = '&lt;h3&gt;Transcript&lt;/h3&gt;' + text.split(/\n{2,}/).map(p =&gt; '&lt;p&gt;' + esc(p).replace(/\n/g, '&lt;br&gt;') + '&lt;/p&gt;').join('');
+      const box = document.createElement('div'); box.innerHTML = '&lt;h3&gt;Transcript&lt;/h3&gt;' + paras(text);
       try { if (window.AWFree) AWFree.snap(); } catch (er) {}
       c.after(...box.childNodes); st.textContent = 'Transcript added below'; save();
     } catch (er) { st.textContent = 'Transcribe: ' + er.message; }
