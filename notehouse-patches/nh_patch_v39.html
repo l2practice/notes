@@ -149,9 +149,30 @@ body.nhi #tb .aw-rb-big svg{width:20px;height:20px}
 #tb .nbd-pop .aw-rb-b{width:100%;justify-content:flex-start;padding:0 12px}
 .nbd-hold{display:none}
 /* Insert + Draw in one tab: groups one after another, wrapping as a whole */
-body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged:not([hidden]){display:flex!important;flex-wrap:wrap;align-items:center;column-gap:22px;row-gap:8px;padding-top:2px}
-body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged > .ribbon-row{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px;min-height:0!important;border:0!important;padding:0!important;margin:0!important;flex:0 1 auto}
-body:not(.nhi):not(.nhp) #tb.nbd-mock,body:not(.nhi):not(.nhp) #tb .nbd-style{display:contents!important}
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged:not([hidden]){display:flex!important;flex-wrap:wrap;align-items:stretch;column-gap:0;row-gap:8px;padding-top:2px}
+.nbd-col{display:flex;flex-direction:column;justify-content:center;gap:6px;flex:none}
+.nbd-r{display:flex;align-items:center;gap:4px;min-height:44px}
+body:not(.nhi):not(.nhp) #tb > .nbd-col{border-left:1px solid var(--aw-border-2)}
+body:not(.nhi):not(.nhp) #tb > .nbd-col:first-child{padding-left:2px;border-left:0}
+body:not(.nhi):not(.nhp) #tb > .nbd-col.nbd-style{display:flex!important}
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged > .ribbon-row{display:none!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-rb-b{min-width:36px;height:36px;padding:0 7px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-rb-b svg{width:20px;height:20px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-ls{min-width:40px!important;padding:0 4px!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col [data-rot]{padding:0 5px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-tcolor-sw{width:24px;height:24px;margin:0 1px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .nbd-chip{width:34px;height:34px;border-radius:10px;margin-right:4px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .nbd-chip svg{width:18px;height:18px}
+body:not(.nhi):not(.nhp) #tb .nbd-col #flW{width:88px!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col #flSW,body:not(.nhi):not(.nhp) #tb .nbd-col #flSH{width:46px!important;height:32px!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-tl-f{gap:5px}
+body:not(.nhi):not(.nhp) #tb > .nbd-col{padding:0 11px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .ribbon-action{min-height:34px;padding:0 6px;gap:5px;font-size:12.5px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .ribbon-action svg{width:17px;height:17px}
+body:not(.nhi):not(.nhp) #tb .nbd-r{min-height:38px;gap:3px}
+body.nhi #tb .ribbon-action,body.nhp #tb .ribbon-action{flex:none!important}
+body.nhi #tb .nbd-col,body.nhi #tb .nbd-r,body.nhp #tb .nbd-col,body.nhp #tb .nbd-r{display:contents!important}
+body:not(.nhi):not(.nhp) #tb.nbd-mock{display:contents!important}
 .nbd-g{display:inline-flex;align-items:center;gap:4px;flex:none}
 [data-ribbon-panel="insert"].nbd-merged{position:relative}
 body.nhi #tb .nbd-g{display:contents!important}
@@ -1529,17 +1550,30 @@ window.AWFree = { panelHtml, wire, tool: () => S.tool, setTool, fit, serialize, 
     [rs, lv, q('#flRuler'), q('#flSmooth'), q('#flFinger')].forEach(b => { if (b) pop.append(b); });
     const hold = el('div', 'nbd-hold'); all('.aw-fpanel-btn').forEach(b => hold.append(b));
     ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s => { const b = q(s); if (b) b.remove(); });   // in the right-click menu (v40)
-    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(gTools, gEdit, gSize, gLine, style || '', gTurn, pop, hold);
     more.addEventListener('click', () => { pop.hidden = !pop.hidden; if (!pop.hidden){ const r = more.getBoundingClientRect(), pr = (pop.offsetParent || document.body).getBoundingClientRect(); pop.style.left = (r.left - pr.left) + 'px'; pop.style.top = (r.bottom - pr.top + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
     document.addEventListener('pointerdown', e => { if (!pop.hidden && !e.target.closest('.nbd-pop,.nbd-more')){ pop.hidden = true; more.classList.remove('on'); } }, true);
-    /* Insert and Draw are one tab: the insert buttons first (with Shapes and Symbols), then the drawing tools */
+    /* Insert and Draw are one tab, laid out like the teacher's mockup: columns of two rows each, a thin line between columns.
+         Shapes Symbols Table   | pen colours | thickness, line styles          | ↺15 ↻15 ↻90         | Picture Link Quote
+         tools                  | fills       | undo redo dup delete  W H more  | flip ↔ flip ↕ angle | To-do Marks Code
+       The buttons are the same ones (moved, not copied), so everything that finds them still does. */
     const ins = $q('[data-ribbon-panel="insert"]'), insRow = ins && (ins.querySelector('.ribbon-row') || ins);
-    const insRef = insRow && insRow.firstChild;
-    if (insRow) all('.aw-fpanel-btn').forEach(orig => {
+    const insBtn = k => insRow && insRow.querySelector('[data-insert="' + k + '"]');
+    const proxies = [...hold.querySelectorAll('.aw-fpanel-btn')].map(orig => {
       const b = el('button', 'ribbon-action nbd-ins', orig.innerHTML); b.type = 'button'; b.title = orig.title; b.setAttribute('aria-label', orig.getAttribute('aria-label') || orig.title);
-      b.addEventListener('click', () => orig.click()); insRow.insertBefore(b, insRef);
+      b.addEventListener('click', () => orig.click()); return b;
     });
-    if (ins){ ins.classList.add('nbd-merged'); ins.appendChild(tb); }
+    const code = insBtn('code'); if (code){ code.title = code.title || 'Code block'; [...code.childNodes].forEach(n => { if (n.nodeType === 3 && /code block/i.test(n.textContent)) n.textContent = n.textContent.replace(/code block/i, 'Code'); }); code.querySelectorAll('span').forEach(x => { if (/^\s*code block\s*$/i.test(x.textContent)) x.textContent = 'Code'; }); }
+    const row = (...els) => { const r = el('div', 'nbd-r'); els.filter(Boolean).forEach(x => r.append(x)); return r; };
+    const col = (cls, ...rows) => { const c = el('div', 'nbd-col' + (cls ? ' ' + cls : '')); rows.forEach(r => c.append(r)); return c; };
+    const kids = g => g ? [...g.children] : [];
+    const cIns = col('nbd-c-ins', row(...proxies, insBtn('table')), row(...kids(gTools)));
+    let cCol = null;
+    if (style){ const [pens, fills] = [...style.children]; style.innerHTML = ''; style.className = 'nbd-col nbd-style'; style.append(row(...kids(pens)), row(...kids(fills))); cCol = style; }
+    const cLine = col('nbd-c-line', row(...kids(gLine)), row(...kids(gEdit), ...kids(gSize)));
+    const rots = kids(gTurn), cTurn = col('nbd-c-turn', row(...rots.filter(b => b.dataset && b.dataset.rot)), row(...rots.filter(b => !(b.dataset && b.dataset.rot))));
+    const cMore = col('nbd-c-more', row(insBtn('image'), insBtn('link'), insBtn('quote')), row(insBtn('todo'), insBtn('symbol'), code));
+    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(cIns, cCol || '', cLine, cTurn, cMore, pop, hold);
+    if (ins){ ins.classList.add('nbd-merged'); ins.insertBefore(tb, ins.firstChild); }
   }
   // leaving the Draw tab goes back to typing, so the page never stays in pen mode by surprise
   const toolsPanel = ($q('#tb') && $q('#tb').closest('[data-ribbon-panel]')) || draw;

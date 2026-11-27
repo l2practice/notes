@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-27-insert-merge-v57" />
+    <meta name="app-build" content="2026-11-27-insert-columns-v58" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -5750,9 +5750,30 @@ body.nhi #tb .aw-rb-big svg{width:20px;height:20px}
 #tb .nbd-pop .aw-rb-b{width:100%;justify-content:flex-start;padding:0 12px}
 .nbd-hold{display:none}
 /* Insert + Draw in one tab: groups one after another, wrapping as a whole */
-body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged:not([hidden]){display:flex!important;flex-wrap:wrap;align-items:center;column-gap:22px;row-gap:8px;padding-top:2px}
-body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged &gt; .ribbon-row{display:flex!important;flex-wrap:wrap;align-items:center;gap:2px;min-height:0!important;border:0!important;padding:0!important;margin:0!important;flex:0 1 auto}
-body:not(.nhi):not(.nhp) #tb.nbd-mock,body:not(.nhi):not(.nhp) #tb .nbd-style{display:contents!important}
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged:not([hidden]){display:flex!important;flex-wrap:wrap;align-items:stretch;column-gap:0;row-gap:8px;padding-top:2px}
+.nbd-col{display:flex;flex-direction:column;justify-content:center;gap:6px;flex:none}
+.nbd-r{display:flex;align-items:center;gap:4px;min-height:44px}
+body:not(.nhi):not(.nhp) #tb &gt; .nbd-col{border-left:1px solid var(--aw-border-2)}
+body:not(.nhi):not(.nhp) #tb &gt; .nbd-col:first-child{padding-left:2px;border-left:0}
+body:not(.nhi):not(.nhp) #tb &gt; .nbd-col.nbd-style{display:flex!important}
+body:not(.nhi):not(.nhp) [data-ribbon-panel="insert"].nbd-merged &gt; .ribbon-row{display:none!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-rb-b{min-width:36px;height:36px;padding:0 7px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-rb-b svg{width:20px;height:20px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-ls{min-width:40px!important;padding:0 4px!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col [data-rot]{padding:0 5px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-tcolor-sw{width:24px;height:24px;margin:0 1px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .nbd-chip{width:34px;height:34px;border-radius:10px;margin-right:4px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .nbd-chip svg{width:18px;height:18px}
+body:not(.nhi):not(.nhp) #tb .nbd-col #flW{width:88px!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col #flSW,body:not(.nhi):not(.nhp) #tb .nbd-col #flSH{width:46px!important;height:32px!important}
+body:not(.nhi):not(.nhp) #tb .nbd-col .aw-tl-f{gap:5px}
+body:not(.nhi):not(.nhp) #tb &gt; .nbd-col{padding:0 11px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .ribbon-action{min-height:34px;padding:0 6px;gap:5px;font-size:12.5px}
+body:not(.nhi):not(.nhp) #tb .nbd-col .ribbon-action svg{width:17px;height:17px}
+body:not(.nhi):not(.nhp) #tb .nbd-r{min-height:38px;gap:3px}
+body.nhi #tb .ribbon-action,body.nhp #tb .ribbon-action{flex:none!important}
+body.nhi #tb .nbd-col,body.nhi #tb .nbd-r,body.nhp #tb .nbd-col,body.nhp #tb .nbd-r{display:contents!important}
+body:not(.nhi):not(.nhp) #tb.nbd-mock{display:contents!important}
 .nbd-g{display:inline-flex;align-items:center;gap:4px;flex:none}
 [data-ribbon-panel="insert"].nbd-merged{position:relative}
 body.nhi #tb .nbd-g{display:contents!important}
@@ -7130,17 +7151,30 @@ window.AWFree = { panelHtml, wire, tool: () =&gt; S.tool, setTool, fit, serializ
     [rs, lv, q('#flRuler'), q('#flSmooth'), q('#flFinger')].forEach(b =&gt; { if (b) pop.append(b); });
     const hold = el('div', 'nbd-hold'); all('.aw-fpanel-btn').forEach(b =&gt; hold.append(b));
     ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s =&gt; { const b = q(s); if (b) b.remove(); });   // in the right-click menu (v40)
-    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(gTools, gEdit, gSize, gLine, style || '', gTurn, pop, hold);
     more.addEventListener('click', () =&gt; { pop.hidden = !pop.hidden; if (!pop.hidden){ const r = more.getBoundingClientRect(), pr = (pop.offsetParent || document.body).getBoundingClientRect(); pop.style.left = (r.left - pr.left) + 'px'; pop.style.top = (r.bottom - pr.top + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
     document.addEventListener('pointerdown', e =&gt; { if (!pop.hidden &amp;&amp; !e.target.closest('.nbd-pop,.nbd-more')){ pop.hidden = true; more.classList.remove('on'); } }, true);
-    /* Insert and Draw are one tab: the insert buttons first (with Shapes and Symbols), then the drawing tools */
+    /* Insert and Draw are one tab, laid out like the teacher's mockup: columns of two rows each, a thin line between columns.
+         Shapes Symbols Table   | pen colours | thickness, line styles          | ↺15 ↻15 ↻90         | Picture Link Quote
+         tools                  | fills       | undo redo dup delete  W H more  | flip ↔ flip ↕ angle | To-do Marks Code
+       The buttons are the same ones (moved, not copied), so everything that finds them still does. */
     const ins = $q('[data-ribbon-panel="insert"]'), insRow = ins &amp;&amp; (ins.querySelector('.ribbon-row') || ins);
-    const insRef = insRow &amp;&amp; insRow.firstChild;
-    if (insRow) all('.aw-fpanel-btn').forEach(orig =&gt; {
+    const insBtn = k =&gt; insRow &amp;&amp; insRow.querySelector('[data-insert="' + k + '"]');
+    const proxies = [...hold.querySelectorAll('.aw-fpanel-btn')].map(orig =&gt; {
       const b = el('button', 'ribbon-action nbd-ins', orig.innerHTML); b.type = 'button'; b.title = orig.title; b.setAttribute('aria-label', orig.getAttribute('aria-label') || orig.title);
-      b.addEventListener('click', () =&gt; orig.click()); insRow.insertBefore(b, insRef);
+      b.addEventListener('click', () =&gt; orig.click()); return b;
     });
-    if (ins){ ins.classList.add('nbd-merged'); ins.appendChild(tb); }
+    const code = insBtn('code'); if (code){ code.title = code.title || 'Code block'; [...code.childNodes].forEach(n =&gt; { if (n.nodeType === 3 &amp;&amp; /code block/i.test(n.textContent)) n.textContent = n.textContent.replace(/code block/i, 'Code'); }); code.querySelectorAll('span').forEach(x =&gt; { if (/^\s*code block\s*$/i.test(x.textContent)) x.textContent = 'Code'; }); }
+    const row = (...els) =&gt; { const r = el('div', 'nbd-r'); els.filter(Boolean).forEach(x =&gt; r.append(x)); return r; };
+    const col = (cls, ...rows) =&gt; { const c = el('div', 'nbd-col' + (cls ? ' ' + cls : '')); rows.forEach(r =&gt; c.append(r)); return c; };
+    const kids = g =&gt; g ? [...g.children] : [];
+    const cIns = col('nbd-c-ins', row(...proxies, insBtn('table')), row(...kids(gTools)));
+    let cCol = null;
+    if (style){ const [pens, fills] = [...style.children]; style.innerHTML = ''; style.className = 'nbd-col nbd-style'; style.append(row(...kids(pens)), row(...kids(fills))); cCol = style; }
+    const cLine = col('nbd-c-line', row(...kids(gLine)), row(...kids(gEdit), ...kids(gSize)));
+    const rots = kids(gTurn), cTurn = col('nbd-c-turn', row(...rots.filter(b =&gt; b.dataset &amp;&amp; b.dataset.rot)), row(...rots.filter(b =&gt; !(b.dataset &amp;&amp; b.dataset.rot))));
+    const cMore = col('nbd-c-more', row(insBtn('image'), insBtn('link'), insBtn('quote')), row(insBtn('todo'), insBtn('symbol'), code));
+    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(cIns, cCol || '', cLine, cTurn, cMore, pop, hold);
+    if (ins){ ins.classList.add('nbd-merged'); ins.insertBefore(tb, ins.firstChild); }
   }
   // leaving the Draw tab goes back to typing, so the page never stays in pen mode by surprise
   const toolsPanel = ($q('#tb') &amp;&amp; $q('#tb').closest('[data-ribbon-panel]')) || draw;
