@@ -1454,7 +1454,8 @@ function selectTable(t){
   else if (S.sel.length === 1 && isTbl(S.sel[0])){ S.sel = []; paintSel(); }
 }
 function reset(){ S.sel = []; S.undo = []; S.redo = []; G = null; clearBadges(); paintSel(); }   /* Notebooks: another page was opened */
-window.AWFree = { panelHtml, wire, tool: () => S.tool, setTool, fit, serialize, hydrate, selectTable, selectEl, snap, undo, redo, reset };
+function selectObj(o){ S.sel = o ? [o] : []; paintSel(); }   /* Notebooks: right-click menu (v40) */
+window.AWFree = { panelHtml, wire, tool: () => S.tool, setTool, fit, serialize, hydrate, selectTable, selectEl, snap, undo, redo, reset, objAt, order, selectObj, dup, del };
 })();
 
 </script>

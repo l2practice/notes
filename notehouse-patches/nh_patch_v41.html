@@ -1,0 +1,322 @@
+<!-- ===== Notebooks v40: right-click Front/Back, Transcribe with Groq or Gemini, Record a meeting, Marks =====
+     - Right-click a shape, symbol, text box, drawing, or a picture or table moved out of the text: Bring to front,
+       Send to back, Duplicate, Delete. The table menu has Bring to front / Send to back too.
+     - Transcribe (you speak, the page gets the words): asks for the Groq and Gemini API keys the first time; records
+       until Done, then Groq Whisper (or Gemini if there is no Groq key, or Groq fails) writes the words at the caret.
+     - Record: records a meeting (pause, resume, stop; the screen stays on). The recording is kept on this device
+       (IndexedDB) and, when Google Drive is connected, uploaded to the Notehouse folder so other devices can play it.
+       A card in the page plays it, downloads it, and turns it into a transcript.
+     - Dictate and Send Page are gone from the ribbon (Share and Export PDF stay). "Symbol" (characters to type) is now
+       "Marks"; "Symbols" (syntax labels to draw) keeps its name.
+     Keys are stored in this browser only (localStorage: notehouse_groq_key, notehouse_gemini_key).
+     Paste before </body>, after patches v20–v39 (needs v38 with objAt/order/selectObj exported). -->
+<style>
+#toolbarDictate,#toolbarSendPage,#nhpSheet [data-s="dictate"]{display:none!important}
+.nbo-menu{position:fixed;z-index:98;min-width:210px;padding:6px;background:#fff;border-radius:16px;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);font:14px var(--aw-font);color:var(--aw-ink);display:none}
+.nbo-menu.show{display:block}
+.nbo-menu button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:0 12px;border:0;background:none;border-radius:10px;font:600 14px var(--aw-font);color:inherit;cursor:pointer;text-align:left}
+.nbo-menu button:hover{background:var(--aw-primary-lt);color:var(--aw-primary-dk)}
+.nbo-menu button.danger{color:var(--aw-danger)}.nbo-menu button.danger:hover{background:#fdecea}
+.nbo-menu svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nbo-menu hr{border:0;border-top:1px solid var(--aw-border-2);margin:4px 6px}
+/* keys */
+#nbKeys{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(30,33,66,.32);font-family:var(--aw-font)}
+#nbKeys.show{display:flex}
+#nbKeys .box{width:min(440px,100%);background:#fff;border-radius:var(--aw-r-lg);box-shadow:var(--aw-shadow-lg);padding:22px}
+#nbKeys h3{margin:0 0 6px;font-size:1.15rem}#nbKeys p{margin:0 0 12px;color:var(--aw-ink-3);font-size:.86rem;line-height:1.5}
+#nbKeys label{display:block;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--aw-ink-3);margin:12px 0 6px}
+#nbKeys input{width:100%;box-sizing:border-box;height:44px;border:1.5px solid var(--aw-border);border-radius:12px;padding:0 12px;font:15px var(--aw-font)}
+#nbKeys small{display:block;color:var(--aw-ink-3);font-size:.76rem;margin-top:4px}
+#nbKeys small a{color:var(--aw-primary)}
+#nbKeys .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+#nbKeys .acts button{height:42px;padding:0 18px;border-radius:999px;border:0;font:700 14px var(--aw-font);cursor:pointer;background:var(--aw-primary-lt);color:var(--aw-primary-dk)}
+#nbKeys .acts .pri{background:var(--aw-primary-dk);color:#fff}
+/* recording pill */
+.nbr-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom));z-index:96;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-radius:999px;background:var(--aw-primary-dk);color:#fff;font:600 14px var(--aw-font);box-shadow:var(--aw-shadow-lg)}
+.nbr-pill .dot{width:11px;height:11px;border-radius:50%;background:#ff5a5a;animation:nbrb 1.2s infinite}
+.nbr-pill.paused .dot{animation:none;background:#f0b84a}
+@keyframes nbrb{50%{opacity:.25}}
+.nbr-pill .t{font-variant-numeric:tabular-nums;min-width:52px}
+.nbr-pill button{height:36px;padding:0 14px;border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font:700 13px var(--aw-font);cursor:pointer}
+.nbr-pill button.stop{background:#fff;color:var(--aw-primary-dk)}
+/* the recording card in the page */
+#editorContent .nb-rec{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:10px 0;padding:12px 14px;border-radius:16px;background:var(--aw-surface-2);border:1px solid var(--aw-border-2);font:14px var(--aw-font);color:var(--aw-ink);max-width:640px;user-select:none}
+#editorContent .nb-rec .ic{font-size:20px}
+#editorContent .nb-rec b{font-weight:700}
+#editorContent .nb-rec .m{color:var(--aw-ink-3);font-size:.84rem;flex:1;min-width:120px}
+#editorContent .nb-rec audio{width:100%;height:40px}
+#editorContent .nb-rec button{height:34px;padding:0 12px;border:0;border-radius:999px;background:#fff;box-shadow:var(--aw-shadow-sm);font:600 13px var(--aw-font);color:var(--aw-ink);cursor:pointer}
+#editorContent .nb-rec button:hover{background:var(--aw-primary-lt)}
+#editorContent .nb-rec .st{font-size:.8rem;color:var(--aw-ink-3);width:100%}
+</style>
+<div class="nbo-menu" id="nboMenu" role="menu"></div>
+<div id="nbKeys" role="dialog" aria-modal="true" aria-labelledby="nbKeysT"><form class="box" autocomplete="off">
+  <h3 id="nbKeysT">AI keys for Transcribe</h3>
+  <p>Transcribe sends your voice to Groq (Whisper) for the words; Gemini is used when there is no Groq key or Groq does not answer. The keys stay in this browser.</p>
+  <label for="nbGroq">Groq API key</label><input type="password" id="nbGroq" placeholder="gsk_…"><small>Free at <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a></small>
+  <label for="nbGem">Gemini API key</label><input type="password" id="nbGem" placeholder="AIza…"><small>Free at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — also used by the Gemini assistant</small>
+  <div class="acts"><button type="button" data-x>Cancel</button><button type="submit" class="pri">Save</button></div>
+</form></div>
+<script>
+(function(){
+  if (typeof editor === 'undefined') return;
+  const $q = s => document.querySelector(s);
+  const say = m => { try { toast(m); } catch (e) {} };
+  const save = () => { try { storeCurrent(false); } catch (e) {} };
+  const svg = p => '<svg viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>';
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const getK = k => { try { return (localStorage.getItem(k) || '').trim(); } catch (e) { return ''; } };
+  const setK = (k, v) => { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} };
+
+  /* ================= 1. right-click: Bring to front / Send to back ================= */
+  const menu = $q('#nboMenu'); let target = null;
+  const I = { front: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/>', back: '<rect x="4" y="4" width="12" height="12" rx="2"/><path d="M20 8v10a2 2 0 0 1-2 2H8"/>', dup: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>', del: '<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>' };
+  const inLayer = o => !!(o && o.closest && o.closest('.aw-fl'));
+  function arrange(o, front){
+    try { AWFree.snap(); } catch (e) {}
+    if (inLayer(o)){ AWFree.selectObj(o); AWFree.order(front); return; }
+    o.style.zIndex = front ? '3' : '1';   // a table or picture out of the text: above or below the drawing layer
+    save();
+  }
+  function openObjMenu(o, x, y){
+    target = o; const free = inLayer(o) || o.classList.contains('aw-tfree');
+    menu.innerHTML = `<button type="button" data-o="front">${svg(I.front)}Bring to front</button><button type="button" data-o="back">${svg(I.back)}Send to back</button>` +
+      (inLayer(o) ? `<hr><button type="button" data-o="dup">${svg(I.dup)}Duplicate</button><button type="button" class="danger" data-o="del">${svg(I.del)}Delete</button>` : '');
+    if (!free) return;
+    menu.classList.add('show'); const w = menu.offsetWidth, h = menu.offsetHeight;
+    menu.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px'; menu.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+  }
+  const closeObj = () => { menu.classList.remove('show'); target = null; };
+  menu.addEventListener('mousedown', e => e.preventDefault());
+  menu.addEventListener('click', e => {
+    const b = e.target.closest('[data-o]'); if (!b || !target) return; const o = target, a = b.dataset.o; closeObj();
+    if (a === 'front' || a === 'back') arrange(o, a === 'front');
+    else { AWFree.selectObj(o); if (a === 'dup') AWFree.dup(); else AWFree.del(); }
+  });
+  document.addEventListener('pointerdown', e => { if (menu.classList.contains('show') && !e.target.closest('#nboMenu')) closeObj(); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && menu.classList.contains('show')) closeObj(); }, true);
+  /* the topmost thing under the pointer: its box is enough (an empty rectangle is hit inside, not only on its line);
+     the drawing layer does not take the pointer while you type, so the board's own hit test cannot see it */
+  function hitAt(x, y){
+    const l = editor.querySelector(':scope > .aw-fl'); if (!l) return null;
+    const list = [...l.querySelectorAll('.aw-fl-svg > .fo, :scope > .aw-fb')];
+    for (let i = list.length - 1; i >= 0; i--){ const r = list[i].getBoundingClientRect(), p = 5; if (x >= r.left - p && x <= r.right + p && y >= r.top - p && y <= r.bottom + p) return list[i]; }
+    return null;
+  }
+  // runs before the table menu and the page menu: a shape over a table wins
+  document.addEventListener('contextmenu', e => {
+    if (!window.AWFree || !editor.contains(e.target) && !(e.target.closest && e.target.closest('.aw-fl'))) return;
+    let o = hitAt(e.clientX, e.clientY);
+    if (!o){ const t = e.target.closest && e.target.closest('img.aw-tfree'); if (t && editor.contains(t)) o = t; }
+    if (!o) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (inLayer(o)) AWFree.selectObj(o);
+    openObjMenu(o, e.clientX + 2, e.clientY + 2);
+  }, true);
+  // the table menu (v39) gets Bring to front / Send to back
+  const tmenu = $q('#nbtMenu');
+  if (tmenu) new MutationObserver(() => {
+    if (!tmenu.classList.contains('show') || tmenu.querySelector('[data-nbo]')) return;
+    const s = getSelection(), n = s.anchorNode, el = n && (n.nodeType === 1 ? n : n.parentElement), t = el && el.closest && el.closest('table'); if (!t) return;
+    const h = document.createElement('div');
+    h.innerHTML = '<h4>Arrange</h4><div class="g2"><button type="button" class="it" data-nbo="front">⬆ Bring to front</button><button type="button" class="it" data-nbo="back">⬇ Send to back</button></div>' + (t.classList.contains('aw-tfree') ? '' : '<div class="hint">Drag the table\'s ✥ handle to move it out of the text first.</div>');
+    tmenu.insertBefore(h, tmenu.firstChild); h.firstChild.style.marginTop = '2px';
+    const r = tmenu.getBoundingClientRect(); if (r.bottom > innerHeight - 8) tmenu.style.top = Math.max(8, innerHeight - tmenu.offsetHeight - 8) + 'px';   // it got taller: keep it on screen
+    h.addEventListener('click', ev => { const b = ev.target.closest('[data-nbo]'); if (!b) return; arrange(t, b.dataset.nbo === 'front'); tmenu.classList.remove('show'); });
+  }).observe(tmenu, { attributes: true, attributeFilter: ['class'], childList: true });
+
+  /* ================= 2. keys ================= */
+  const keys = $q('#nbKeys'), kf = keys.querySelector('form'); let afterKeys = null;
+  function askKeys(then){
+    afterKeys = then || null; $q('#nbGroq').value = getK('notehouse_groq_key'); $q('#nbGem').value = getK('notehouse_gemini_key');
+    keys.classList.add('show'); setTimeout(() => $q('#nbGroq').focus(), 40);
+  }
+  const closeKeys = () => { keys.classList.remove('show'); afterKeys = null; };
+  keys.querySelector('[data-x]').onclick = closeKeys;
+  keys.addEventListener('pointerdown', e => { if (e.target === keys) closeKeys(); });
+  kf.addEventListener('submit', e => {
+    e.preventDefault(); setK('notehouse_groq_key', $q('#nbGroq').value.trim()); setK('notehouse_gemini_key', $q('#nbGem').value.trim());
+    const f = afterKeys; closeKeys(); say('Keys saved in this browser'); if (f && (getK('notehouse_groq_key') || getK('notehouse_gemini_key'))) f();
+  });
+  // Settings and Tools › AI Settings also show the Groq key
+  const gk = $q('#geminiKey');
+  if (gk && !$q('#groqKeySet')){
+    gk.insertAdjacentHTML('afterend', '<label for="groqKeySet">Groq API key · for Transcribe</label><input type="password" id="groqKeySet" placeholder="gsk_…">');
+    const sb = $q('#settingsBtn'); if (sb) sb.addEventListener('click', () => { const g = $q('#groqKeySet'); if (g) g.value = getK('notehouse_groq_key'); });
+    const ss = $q('#saveSettings'); if (ss) ss.addEventListener('click', () => { const g = $q('#groqKeySet'); if (g) setK('notehouse_groq_key', g.value.trim()); }, true);
+  }
+
+  /* ---- speech to text: Groq Whisper first, Gemini as the other way ---- */
+  async function toText(blob){
+    const groq = getK('notehouse_groq_key'), gem = getK('notehouse_gemini_key'); let err = '';
+    if (groq){
+      try {
+        if (blob.size > 25 * 1024 * 1024) throw new Error('over 25 MB');
+        const fd = new FormData(); fd.append('file', blob, 'audio.' + ((blob.type || '').includes('mp4') ? 'mp4' : (blob.type || '').includes('ogg') ? 'ogg' : 'webm'));
+        fd.append('model', 'whisper-large-v3-turbo'); fd.append('response_format', 'json');
+        const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + groq }, body: fd });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error((j.error && j.error.message) || ('Groq ' + r.status));
+        return (j.text || '').trim();
+      } catch (e) { err = 'Groq: ' + e.message; if (!gem) throw new Error(err); }
+    }
+    if (!gem) throw new Error('Add a Groq or Gemini key first');
+    if (blob.size > 18 * 1024 * 1024) throw new Error((err ? err + ' · ' : '') + 'Gemini takes recordings up to 18 MB');
+    const bytes = new Uint8Array(await blob.arrayBuffer()); let bin = ''; for (let i = 0; i < bytes.length; i += 32768) bin += String.fromCharCode(...bytes.subarray(i, i + 32768));
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(gem), { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'Transcribe the spoken words in this audio. Return only the transcript, in the language that is spoken, with punctuation and paragraphs.' }, { inlineData: { mimeType: (blob.type || 'audio/webm').split(';')[0], data: btoa(bin) } }] }] }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((err ? err + ' · ' : '') + 'Gemini: ' + ((j.error && j.error.message) || r.status));
+    return ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(p => p.text || '').join('').trim();
+  }
+
+  /* ---- a microphone recorder with a pill on screen ---- */
+  let rec = null;
+  function mime(){ const c = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm', 'audio/ogg;codecs=opus']; return (window.MediaRecorder && MediaRecorder.isTypeSupported) ? (c.find(t => MediaRecorder.isTypeSupported(t)) || '') : ''; }
+  async function startRec(kind, onDone){
+    if (rec){ say('A recording is already running'); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder){ say('This browser cannot record here'); return; }
+    let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); } catch (e) { say('Allow microphone access to record'); return; }
+    const m = mime(), mr = new MediaRecorder(stream, Object.assign({ audioBitsPerSecond: 32000 }, m ? { mimeType: m } : {})), chunks = [];
+    mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    let wake = null; try { if (navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+    const pill = document.createElement('div'); pill.className = 'nbr-pill'; pill.setAttribute('role', 'status');
+    pill.innerHTML = `<span class="dot"></span><span>${kind === 'meeting' ? 'Recording meeting' : 'Listening — speak'}</span><span class="t">0:00</span>` + (kind === 'meeting' ? '<button type="button" data-r="pause">Pause</button>' : '') + `<button type="button" data-r="cancel">Cancel</button><button type="button" class="stop" data-r="stop">${kind === 'meeting' ? 'Stop' : 'Done'}</button>`;
+    document.body.appendChild(pill);
+    let ms = 0, last = Date.now(); const tick = setInterval(() => { if (mr.state === 'recording'){ ms += Date.now() - last; } last = Date.now(); const s = Math.floor(ms / 1000); pill.querySelector('.t').textContent = (s >= 3600 ? Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') : Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0'); }, 500);
+    rec = { mr, stream, pill, kind };
+    const finish = keep => { clearInterval(tick); try { wake && wake.release(); } catch (e) {} stream.getTracks().forEach(t => t.stop()); pill.remove(); rec = null; if (keep) onDone(new Blob(chunks, { type: mr.mimeType || m || 'audio/webm' }), Math.round(ms / 1000)); };
+    mr.onstop = () => finish(rec && rec.keep);
+    pill.addEventListener('click', e => {
+      const b = e.target.closest('[data-r]'); if (!b) return;
+      if (b.dataset.r === 'pause'){ if (mr.state === 'recording'){ mr.pause(); b.textContent = 'Resume'; pill.classList.add('paused'); } else { mr.resume(); b.textContent = 'Pause'; pill.classList.remove('paused'); } return; }
+      rec.keep = b.dataset.r === 'stop'; if (!rec.keep && kind === 'meeting' && !confirm('Throw this recording away?')){ rec.keep = undefined; return; }
+      mr.stop();
+    });
+    mr.start(5000);
+  }
+
+  /* ================= Transcribe: you speak, the page gets the words ================= */
+  function transcribe(){
+    if (rec){ if (rec.kind === 'speech'){ rec.keep = true; rec.mr.stop(); } else say('Stop the meeting recording first'); return; }
+    if (!getK('notehouse_groq_key') && !getK('notehouse_gemini_key')){ askKeys(transcribe); return; }
+    try { rememberEditSelection(); } catch (e) {}
+    startRec('speech', async blob => {
+      say('Writing what you said…');
+      try {
+        const text = await toText(blob); if (!text){ say('No words were heard'); return; }
+        try { restoreEditSelection(); } catch (e) { editor.focus(); }
+        document.execCommand('insertText', false, text + ' '); save(); say('Done');
+      } catch (e) { say('Transcribe: ' + e.message); }
+    });
+  }
+  const tb = $q('#toolbarTranscribe');
+  if (tb){ tb.onclick = transcribe; tb.title = 'Transcribe — speak, and the words are typed for you'; }
+
+  /* ================= Record a meeting ================= */
+  const DB = new Promise(res => { try { const r = indexedDB.open('notehouse-audio', 1); r.onupgradeneeded = () => r.result.createObjectStore('rec'); r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch (e) { res(null); } });
+  async function idb(mode, fn){ const d = await DB; if (!d) return null; return new Promise(res => { const t = d.transaction('rec', mode), q = fn(t.objectStore('rec')); t.oncomplete = () => res(q && q.result); t.onerror = () => res(null); }); }
+  const putBlob = (id, b) => idb('readwrite', s => s.put(b, id)), getBlob = id => idb('readonly', s => s.get(id));
+  const fmtDur = s => (s >= 3600 ? Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') : Math.floor(s / 60)) + ':' + String(s % 60).padStart(2, '0');
+  function cardHTML(id, at, dur, drive){
+    const d = new Date(at), when = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return `<div class="nb-rec" contenteditable="false" data-rec="${esc(id)}" data-at="${at}" data-dur="${dur}" data-drive="${esc(drive || '')}"><span class="ic">🎙</span><b>Meeting recording</b><span class="m">${when} · ${fmtDur(dur)}</span>` +
+      '<button type="button" data-rec-act="transcribe">Transcribe</button><button type="button" data-rec-act="download">Download</button><audio controls preload="none"></audio><span class="st"></span></div>';
+  }
+  async function uploadToDrive(id, blob, at){
+    try {
+      if (typeof driveFetch !== 'function' || typeof driveEnsureFolder !== 'function' || !(typeof driveLinked !== 'undefined' && driveLinked)) return '';
+      const folder = await driveEnsureFolder(), name = 'Meeting ' + new Date(at).toISOString().slice(0, 16).replace('T', ' ').replace(':', 'h') + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm');
+      const fd = new FormData(); fd.append('metadata', new Blob([JSON.stringify({ name, parents: [folder], mimeType: (blob.type || 'audio/webm').split(';')[0] })], { type: 'application/json' })); fd.append('file', blob);
+      const r = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', body: fd });
+      const j = await r.json(); return j.id || '';
+    } catch (e) { console.warn('recording upload', e); return ''; }
+  }
+  function record(){
+    if (rec){ if (rec.kind === 'meeting'){ rec.keep = true; rec.mr.stop(); } else say('Finish Transcribe first'); return; }
+    try { rememberEditSelection(); } catch (e) {}
+    const at = Date.now(), id = 'rec-' + at.toString(36) + Math.random().toString(36).slice(2, 6);
+    startRec('meeting', async (blob, dur) => {
+      await putBlob(id, blob);
+      try { restoreEditSelection(); } catch (e) { editor.focus(); }
+      try { if (window.AWFree) AWFree.snap(); } catch (e) {}
+      document.execCommand('insertHTML', false, cardHTML(id, at, dur, '') + '<p><br></p>'); save(); hydrate();
+      say('Recording saved' + (typeof driveLinked !== 'undefined' && driveLinked ? ' · uploading to Google Drive…' : ''));
+      const fid = await uploadToDrive(id, blob, at);
+      if (fid){ const c = editor.querySelector('.nb-rec[data-rec="' + id + '"]'); if (c){ c.dataset.drive = fid; save(); } say('Recording uploaded to Google Drive'); }
+    });
+  }
+  // the ribbon button (next to Transcribe), the iPad Insert row and the Tools menu
+  if (tb && !$q('#toolbarRecord')){
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'ribbon-action'; b.id = 'toolbarRecord'; b.title = 'Record a meeting';
+    b.innerHTML = svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6" fill="currentColor"/>') + 'Record';
+    b.querySelector('svg').setAttribute('fill', 'none'); b.querySelector('svg').setAttribute('stroke', 'currentColor'); b.querySelector('svg').setAttribute('stroke-width', '1.9');
+    b.onclick = record; tb.after(b);
+  }
+  const insRow = $q('[data-ribbon-panel="insert"] .ribbon-row') || $q('[data-ribbon-panel="insert"]');
+  if (insRow){
+    [...insRow.querySelectorAll('button.nhi-only')].forEach(b => { if (/^(Dictate|Send this page by email)$/.test(b.title)) b.remove(); });
+    if (!insRow.querySelector('.nbr-ins')){ const tr = [...insRow.querySelectorAll('button.nhi-only')].find(b => /Transcribe/.test(b.title));
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'ribbon-action nhi-only nbr-ins'; b.title = 'Record a meeting'; b.innerHTML = '<span class="nhi-ic">' + svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.6" fill="currentColor"/>') + '</span><span>Record</span>';
+      b.onclick = record; if (tr) tr.after(b); else insRow.appendChild(b); }
+  }
+  // the card: play (from this device, or from Drive), download, transcribe
+  async function blobFor(c){
+    let b = await getBlob(c.dataset.rec); if (b) return b;
+    if (c.dataset.drive && typeof driveFetch === 'function'){ const r = await driveFetch('https://www.googleapis.com/drive/v3/files/' + c.dataset.drive + '?alt=media'); b = await r.blob(); await putBlob(c.dataset.rec, b); return b; }
+    return null;
+  }
+  const live = new WeakSet();   // players already given this session's sound (a saved blob: address is dead after a reload)
+  async function hydrate(){
+    for (const c of editor.querySelectorAll('.nb-rec')){
+      const a = c.querySelector('audio'), st = c.querySelector('.st'); if (!a || live.has(a)) continue; live.add(a); a.removeAttribute('src');
+      const b = await getBlob(c.dataset.rec);
+      if (b){ a.src = URL.createObjectURL(b); st.textContent = c.dataset.drive ? 'On this device and in Google Drive' : 'On this device'; }
+      else if (c.dataset.drive){ st.textContent = 'In Google Drive — press play to load it'; a.addEventListener('play', async function once(){ a.removeEventListener('play', once); try { st.textContent = 'Loading from Google Drive…'; const bb = await blobFor(c); if (bb){ a.src = URL.createObjectURL(bb); a.play(); st.textContent = 'Loaded from Google Drive'; } } catch (e) { st.textContent = 'Could not load it from Google Drive'; } }); }
+      else st.textContent = 'The recording is on another device (Google Drive was not connected)';
+    }
+  }
+  editor.addEventListener('click', async e => {
+    const b = e.target.closest('.nb-rec [data-rec-act]'); if (!b) return; e.preventDefault(); e.stopPropagation();
+    const c = b.closest('.nb-rec'), st = c.querySelector('.st');
+    let blob; try { blob = await blobFor(c); } catch (er) {} if (!blob){ say('This recording is not on this device'); return; }
+    if (b.dataset.recAct === 'download'){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Meeting ' + new Date(+c.dataset.at).toISOString().slice(0, 10) + ((blob.type || '').includes('mp4') ? '.m4a' : '.webm'); document.body.appendChild(a); a.click(); a.remove(); return; }
+    if (!getK('notehouse_groq_key') && !getK('notehouse_gemini_key')){ askKeys(() => b.click()); return; }
+    st.textContent = 'Transcribing… (a long meeting takes a minute)';
+    try {
+      const text = await toText(blob); if (!text){ st.textContent = 'No words were heard'; return; }
+      const box = document.createElement('div'); box.innerHTML = '<h3>Transcript</h3>' + text.split(/\n{2,}/).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+      try { if (window.AWFree) AWFree.snap(); } catch (er) {}
+      c.after(...box.childNodes); st.textContent = 'Transcript added below'; save();
+    } catch (er) { st.textContent = 'Transcribe: ' + er.message; }
+  }, true);
+  if (typeof render === 'function'){ const pr = render; render = function(){ const out = pr.apply(this, arguments); setTimeout(hydrate, 30); return out; }; }
+  // the page is saved without this session's sound address and status line
+  if (typeof storeCurrent === 'function'){ const ps = storeCurrent; storeCurrent = function(){ const out = ps.apply(this, arguments);
+    try { const p = data.sections[si] && data.sections[si].pages && data.sections[si].pages[pi]; if (p && p.content && p.content.indexOf('nb-rec') >= 0) p.content = p.content.replace(/(<audio\b[^>]*?)\ssrc="blob:[^"]*"/g, '$1').replace(/(<span class="st">)[^<]*(<\/span>)/g, '$1$2'); } catch (e) {}
+    return out; }; }
+  setTimeout(hydrate, 300);
+
+  /* ================= menus, Marks, phone sheet ================= */
+  if (typeof runMenuAction === 'function'){
+    const prev = runMenuAction;
+    runMenuAction = function(a){ if (a === 'transcribe') return transcribe(); if (a === 'nb-record') return record(); if (a === 'nb-keys') return askKeys(); return prev.apply(this, arguments); };
+  }
+  try {
+    if (typeof menuDefinitions !== 'undefined') Object.keys(menuDefinitions).forEach(k => {
+      menuDefinitions[k] = menuDefinitions[k].map(g => g.filter(it => it.action !== 'dictate').map(it => {
+        if (it.action === 'transcribe') it.label = 'Transcribe (speak → text)';
+        if (it.action === 'insert-symbol') it.label = 'Marks…';
+        return it;
+      })).filter(g => g.length);
+      (menuDefinitions[k] || []).forEach(g => { const t = g.findIndex(it => it.action === 'transcribe'); if (t >= 0 && !g.some(it => it.action === 'nb-record')) g.splice(t + 1, 0, Object.assign({}, g[t], { label: 'Record Meeting', action: 'nb-record', shortcut: '' })); });
+      (menuDefinitions[k] || []).forEach(g => { const t = g.findIndex(it => it.action === 'ai-settings'); if (t >= 0 && !g.some(it => it.action === 'nb-keys')) g.splice(t + 1, 0, Object.assign({}, g[t], { label: 'Groq & Gemini Keys…', action: 'nb-keys', shortcut: '' })); });
+    });
+  } catch (e) {}
+  const sym = $q('#symbolBtn'); if (sym){ sym.title = 'Marks — special characters to type'; sym.setAttribute('aria-label', 'Marks'); }
+  document.querySelectorAll('[data-insert="symbol"]').forEach(b => { [...b.childNodes].forEach(n => { if (n.nodeType === 3 && /Symbol/.test(n.textContent)) n.textContent = n.textContent.replace(/Symbol/, 'Marks'); }); const sp = [...b.querySelectorAll('span')].find(s => /^Symbol$/.test(s.textContent.trim())); if (sp) sp.textContent = 'Marks'; b.title = 'Marks — special characters to type'; });
+  const sp = $q('#symPop'); if (sp) sp.setAttribute('aria-label', 'Marks');
+  const sheet = $q('#nhpSheet');
+  if (sheet) new MutationObserver(() => { sheet.querySelectorAll('[data-s="symbol"] span').forEach(s => { if (s.textContent === 'Symbol') s.textContent = 'Marks'; }); }).observe(sheet, { childList: true });
+})();
+</script>
