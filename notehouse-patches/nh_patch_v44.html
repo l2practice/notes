@@ -1,0 +1,33 @@
+<!-- ===== Notebooks v43: the column-resize arrow no longer sticks to the whole page; a moved card or table does not block the text under it =====
+     Paste before </body>, after patches v20–v42. -->
+<style>
+/* a recording card that was moved out of the text: its buttons, player and grip work; the rest of it lets a click through to the text below */
+#editorContent .nb-rec.nb-free{pointer-events:none}
+#editorContent .nb-rec.nb-free > *{pointer-events:auto}
+</style>
+<script>
+(function(){
+  if (typeof editor === 'undefined') return;
+  /* The old table code put the ↔ column cursor on the whole page when the mouse touched a cell border, and took it off only
+     when the mouse came back over a cell. Leaving the table at its edge left the arrow everywhere, over empty paper too.
+     Now the arrow is there only while the mouse is on a border, and a column drag always ends when the button is let go. */
+  const near = e => {
+    const cell = e.target.closest && e.target.closest('th,td'); if (!cell || !editor.contains(cell)) return false;
+    const r = cell.getBoundingClientRect(); return Math.abs(e.clientX - r.left) < 7 || Math.abs(e.clientX - r.right) < 7;
+  };
+  const dragging = () => { try { return !!tableDrag; } catch (e) { return false; } };
+  editor.addEventListener('pointermove', e => { if (!dragging() && editor.style.cursor === 'col-resize' && !near(e)) editor.style.cursor = ''; });
+  editor.addEventListener('pointerleave', () => { if (!dragging() && editor.style.cursor === 'col-resize') editor.style.cursor = ''; });
+  const end = () => { try { if (tableDrag){ tableDrag = null; storeCurrent(false); } } catch (e) {} if (editor.style.cursor === 'col-resize') editor.style.cursor = ''; };
+  window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end); window.addEventListener('blur', end);
+
+  /* An empty note container is invisible, yet it sits over the page and takes the clicks meant for the text below it
+     (and shows the ↔ arrow at its right edge). Empty ones are cleared when a page opens or is saved. */
+  const clearEmpty = () => editor.querySelectorAll(':scope > .note-block').forEach(b => {
+    const body = b.querySelector('.note-block-body') || b;
+    if (!body.textContent.trim() && !body.querySelector('img,table,svg,video,audio,iframe,.nb-rec') && b !== document.activeElement && !b.contains(document.activeElement)) b.remove();
+  });
+  if (typeof render === 'function'){ const prev = render; render = function(){ const out = prev.apply(this, arguments); try { clearEmpty(); } catch (e) {} return out; }; }
+  if (typeof storeCurrent === 'function'){ const prev = storeCurrent; storeCurrent = function(){ try { clearEmpty(); } catch (e) {} return prev.apply(this, arguments); }; }
+})();
+</script>

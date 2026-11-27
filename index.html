@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-27-trends-rail-v59" />
+    <meta name="app-build" content="2026-11-27-cursor-fix-v60" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -8220,6 +8220,39 @@ body.nhi .ribbon{margin-top:2px!important;padding:4px 8px!important}
   const mo = new MutationObserver(sync);
   [nbPane, pgPane, sPane].forEach(el =&gt; { if (el) mo.observe(el, { attributes: true, attributeFilter: ['class'] }); });
   sync();
+})();
+&lt;/script&gt;
+&lt;!-- ===== Notebooks v43: the column-resize arrow no longer sticks to the whole page; a moved card or table does not block the text under it =====
+     Paste before &lt;/body&gt;, after patches v20–v42. --&gt;
+&lt;style&gt;
+/* a recording card that was moved out of the text: its buttons, player and grip work; the rest of it lets a click through to the text below */
+#editorContent .nb-rec.nb-free{pointer-events:none}
+#editorContent .nb-rec.nb-free &gt; *{pointer-events:auto}
+&lt;/style&gt;
+&lt;script&gt;
+(function(){
+  if (typeof editor === 'undefined') return;
+  /* The old table code put the ↔ column cursor on the whole page when the mouse touched a cell border, and took it off only
+     when the mouse came back over a cell. Leaving the table at its edge left the arrow everywhere, over empty paper too.
+     Now the arrow is there only while the mouse is on a border, and a column drag always ends when the button is let go. */
+  const near = e =&gt; {
+    const cell = e.target.closest &amp;&amp; e.target.closest('th,td'); if (!cell || !editor.contains(cell)) return false;
+    const r = cell.getBoundingClientRect(); return Math.abs(e.clientX - r.left) &lt; 7 || Math.abs(e.clientX - r.right) &lt; 7;
+  };
+  const dragging = () =&gt; { try { return !!tableDrag; } catch (e) { return false; } };
+  editor.addEventListener('pointermove', e =&gt; { if (!dragging() &amp;&amp; editor.style.cursor === 'col-resize' &amp;&amp; !near(e)) editor.style.cursor = ''; });
+  editor.addEventListener('pointerleave', () =&gt; { if (!dragging() &amp;&amp; editor.style.cursor === 'col-resize') editor.style.cursor = ''; });
+  const end = () =&gt; { try { if (tableDrag){ tableDrag = null; storeCurrent(false); } } catch (e) {} if (editor.style.cursor === 'col-resize') editor.style.cursor = ''; };
+  window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end); window.addEventListener('blur', end);
+
+  /* An empty note container is invisible, yet it sits over the page and takes the clicks meant for the text below it
+     (and shows the ↔ arrow at its right edge). Empty ones are cleared when a page opens or is saved. */
+  const clearEmpty = () =&gt; editor.querySelectorAll(':scope &gt; .note-block').forEach(b =&gt; {
+    const body = b.querySelector('.note-block-body') || b;
+    if (!body.textContent.trim() &amp;&amp; !body.querySelector('img,table,svg,video,audio,iframe,.nb-rec') &amp;&amp; b !== document.activeElement &amp;&amp; !b.contains(document.activeElement)) b.remove();
+  });
+  if (typeof render === 'function'){ const prev = render; render = function(){ const out = prev.apply(this, arguments); try { clearEmpty(); } catch (e) {} return out; }; }
+  if (typeof storeCurrent === 'function'){ const prev = storeCurrent; storeCurrent = function(){ try { clearEmpty(); } catch (e) {} return prev.apply(this, arguments); }; }
 })();
 &lt;/script&gt;
 &lt;/body&gt;&lt;/html&gt;
