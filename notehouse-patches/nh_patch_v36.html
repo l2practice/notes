@@ -61,7 +61,15 @@ body:not(.nhi):not(.nhp) .nbx-tabs{display:flex;align-items:center;gap:4px;heigh
 .nbx-tabs .tool{height:36px;padding:0 10px;border-radius:10px;font-size:14px;font-weight:600;color:var(--aw-ink);display:inline-flex;align-items:center;gap:6px}
 .nbx-tabs .tool:hover{background:var(--aw-surface-2)}
 .nbx-tabs .tool::after{display:none}
-.nbx-tabs .zoom{min-width:58px;justify-content:center;font-variant-numeric:tabular-nums}
+.nbx-tabs{position:relative}
+.nbx-tabs .zoom{min-width:78px;justify-content:center;font-variant-numeric:tabular-nums;gap:4px}
+.nbx-tabs .zoom svg{width:14px;height:14px;opacity:.6}
+.nbx-tabs .zsep{width:1px;height:22px;background:var(--aw-border-2);margin:0 4px}
+.nbx-zmenu{position:absolute;z-index:80;min-width:110px;padding:6px;background:#fff;border-radius:14px;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);display:flex;flex-direction:column}
+.nbx-zmenu[hidden]{display:none}
+.nbx-zmenu button{height:34px;border:0;background:none;border-radius:9px;font:600 14px var(--aw-font);color:var(--aw-ink);cursor:pointer;text-align:left;padding:0 12px}
+.nbx-zmenu button:hover,.nbx-zmenu button.cur{background:var(--aw-primary-lt);color:var(--aw-primary-dk)}
+.nbx-tabs .nbx-zmenu button{height:34px;padding:0 12px;border-radius:9px;font-size:14px}.nbx-tabs .nbx-zmenu button::after{display:none!important}
 .nbx-tabs svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* buttons on the ribbon */
 body:not(.nhp) .ribbon .ribbon-btn{color:var(--aw-ink)!important;background:transparent!important;border:0!important;border-radius:12px!important;box-shadow:none!important}
@@ -184,9 +192,11 @@ body.nhp .nhp-sheet{border-radius:var(--aw-r-lg) var(--aw-r-lg) 0 0!important;fo
   const panels = [...ribbon.querySelectorAll('[data-ribbon-panel]')];
   const tabs = document.createElement('div'); tabs.className = 'nbx-tabs'; tabs.setAttribute('role', 'tablist');
   tabs.innerHTML = [['home', 'Home'], ['insert', 'Insert'], ['draw', 'Draw'], ['view', 'View']].map(([k, l]) => `<button type="button" role="tab" data-t="${k}">${l}</button>`).join('') +
-    '<span class="sp"></span><button type="button" class="tool" data-z="full" title="Full screen">' + svg('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>') + 'Full screen</button>' +
-    '<button type="button" class="tool" data-z="out" aria-label="Zoom out">' + svg('<path d="M5 12h14"/>') + '</button><button type="button" class="tool zoom" data-z="reset" title="Reset zoom">100%</button>' +
-    '<button type="button" class="tool" data-z="in" aria-label="Zoom in">' + svg('<path d="M12 5v14M5 12h14"/>') + '</button>';
+    '<span class="sp"></span><button type="button" class="tool" data-z="full" title="Full screen" aria-label="Full screen">' + svg('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>') + '</button>' +
+    '<button type="button" class="tool zoom" data-z="menu" title="Zoom" aria-haspopup="menu"><span>100%</span>' + svg('<path d="m6 9 6 6 6-6"/>') + '</button>' +
+    '<span class="zsep"></span><button type="button" class="tool" data-z="out" aria-label="Zoom out">' + svg('<path d="M5 12h14"/>') + '</button>' +
+    '<button type="button" class="tool" data-z="in" aria-label="Zoom in">' + svg('<path d="M12 5v14M5 12h14"/>') + '</button>' +
+    '<div class="nbx-zmenu" hidden role="menu">' + [50, 75, 90, 100, 110, 125, 150, 175, 200].map(z => `<button type="button" data-zv="${z}" role="menuitem">${z}%</button>`).join('') + '</div>';
   ribbon.insertBefore(tabs, ribbon.firstChild);
   function showTab(t){
     if (body.classList.contains('nhi')) return;   // the iPad bar has its own tabs
@@ -197,10 +207,14 @@ body.nhp .nhp-sheet{border-radius:var(--aw-r-lg) var(--aw-r-lg) 0 0!important;fo
   tabs.addEventListener('mousedown', e => e.preventDefault());   // keep the selection in the page
   tabs.addEventListener('click', e => {
     const t = e.target.closest('[data-t]'); if (t){ showTab(t.dataset.t); return; }
+    const zv = e.target.closest('[data-zv]');
+    if (zv){ zm.hidden = true; const cur = parseInt(localStorage.getItem('notehouse_page_zoom') || '100', 10) || 100; try { setPageZoom(+zv.dataset.zv - cur); } catch (er) {} return; }
     const z = e.target.closest('[data-z]'); if (!z) return;
-    const id = { full: '#viewFullscreen', out: '#zoomOut', reset: '#zoomReadout', in: '#zoomIn' }[z.dataset.z]; const el = $q(id); if (el) el.click();
+    if (z.dataset.z === 'menu'){ zm.hidden = !zm.hidden; if (!zm.hidden){ zm.style.left = (z.offsetLeft) + 'px'; zm.style.top = (z.offsetTop + z.offsetHeight + 4) + 'px'; zm.querySelectorAll('[data-zv]').forEach(b => b.classList.toggle('cur', b.textContent === zr.textContent)); } return; }
+    const id = { full: '#viewFullscreen', out: '#zoomOut', in: '#zoomIn' }[z.dataset.z]; const el = $q(id); if (el) el.click();
   });
-  const ro = $q('#zoomReadout'), zr = tabs.querySelector('.zoom');
+  const ro = $q('#zoomReadout'), zr = tabs.querySelector('.zoom span'), zm = tabs.querySelector('.nbx-zmenu');
+  document.addEventListener('pointerdown', e => { if (!zm.hidden && !e.target.closest('.nbx-zmenu,[data-z="menu"]')) zm.hidden = true; }, true);
   if (ro){ const upd = () => { zr.textContent = ro.textContent.trim() || '100%'; }; new MutationObserver(upd).observe(ro, { childList: true, characterData: true, subtree: true }); upd(); }
   showTab('home');
   // when the iPad bar goes away (computer toolbar), the computer tabs take over again

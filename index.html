@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Nunito:wght@400;600;700;800;900&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Patrick+Hand&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;600;700&family=Quicksand:wght@400;600;700&family=Raleway:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Lora:ital,wght@0,400;0,600;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;600&family=Itim&family=Dancing+Script:wght@500;700&family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
-    <meta name="app-build" content="2026-11-27-free-layout-v52" />
+    <meta name="app-build" content="2026-11-27-draw-mockup-v53" />
     <script>
       (function () {
         var buildMeta = document.querySelector('meta[name="app-build"]');
@@ -4622,7 +4622,15 @@ body:not(.nhi):not(.nhp) .nbx-tabs{display:flex;align-items:center;gap:4px;heigh
 .nbx-tabs .tool{height:36px;padding:0 10px;border-radius:10px;font-size:14px;font-weight:600;color:var(--aw-ink);display:inline-flex;align-items:center;gap:6px}
 .nbx-tabs .tool:hover{background:var(--aw-surface-2)}
 .nbx-tabs .tool::after{display:none}
-.nbx-tabs .zoom{min-width:58px;justify-content:center;font-variant-numeric:tabular-nums}
+.nbx-tabs{position:relative}
+.nbx-tabs .zoom{min-width:78px;justify-content:center;font-variant-numeric:tabular-nums;gap:4px}
+.nbx-tabs .zoom svg{width:14px;height:14px;opacity:.6}
+.nbx-tabs .zsep{width:1px;height:22px;background:var(--aw-border-2);margin:0 4px}
+.nbx-zmenu{position:absolute;z-index:80;min-width:110px;padding:6px;background:#fff;border-radius:14px;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);display:flex;flex-direction:column}
+.nbx-zmenu[hidden]{display:none}
+.nbx-zmenu button{height:34px;border:0;background:none;border-radius:9px;font:600 14px var(--aw-font);color:var(--aw-ink);cursor:pointer;text-align:left;padding:0 12px}
+.nbx-zmenu button:hover,.nbx-zmenu button.cur{background:var(--aw-primary-lt);color:var(--aw-primary-dk)}
+.nbx-tabs .nbx-zmenu button{height:34px;padding:0 12px;border-radius:9px;font-size:14px}.nbx-tabs .nbx-zmenu button::after{display:none!important}
 .nbx-tabs svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* buttons on the ribbon */
 body:not(.nhp) .ribbon .ribbon-btn{color:var(--aw-ink)!important;background:transparent!important;border:0!important;border-radius:12px!important;box-shadow:none!important}
@@ -4745,9 +4753,11 @@ body.nhp .nhp-sheet{border-radius:var(--aw-r-lg) var(--aw-r-lg) 0 0!important;fo
   const panels = [...ribbon.querySelectorAll('[data-ribbon-panel]')];
   const tabs = document.createElement('div'); tabs.className = 'nbx-tabs'; tabs.setAttribute('role', 'tablist');
   tabs.innerHTML = [['home', 'Home'], ['insert', 'Insert'], ['draw', 'Draw'], ['view', 'View']].map(([k, l]) =&gt; `&lt;button type="button" role="tab" data-t="${k}"&gt;${l}&lt;/button&gt;`).join('') +
-    '&lt;span class="sp"&gt;&lt;/span&gt;&lt;button type="button" class="tool" data-z="full" title="Full screen"&gt;' + svg('&lt;path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/&gt;') + 'Full screen&lt;/button&gt;' +
-    '&lt;button type="button" class="tool" data-z="out" aria-label="Zoom out"&gt;' + svg('&lt;path d="M5 12h14"/&gt;') + '&lt;/button&gt;&lt;button type="button" class="tool zoom" data-z="reset" title="Reset zoom"&gt;100%&lt;/button&gt;' +
-    '&lt;button type="button" class="tool" data-z="in" aria-label="Zoom in"&gt;' + svg('&lt;path d="M12 5v14M5 12h14"/&gt;') + '&lt;/button&gt;';
+    '&lt;span class="sp"&gt;&lt;/span&gt;&lt;button type="button" class="tool" data-z="full" title="Full screen" aria-label="Full screen"&gt;' + svg('&lt;path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/&gt;') + '&lt;/button&gt;' +
+    '&lt;button type="button" class="tool zoom" data-z="menu" title="Zoom" aria-haspopup="menu"&gt;&lt;span&gt;100%&lt;/span&gt;' + svg('&lt;path d="m6 9 6 6 6-6"/&gt;') + '&lt;/button&gt;' +
+    '&lt;span class="zsep"&gt;&lt;/span&gt;&lt;button type="button" class="tool" data-z="out" aria-label="Zoom out"&gt;' + svg('&lt;path d="M5 12h14"/&gt;') + '&lt;/button&gt;' +
+    '&lt;button type="button" class="tool" data-z="in" aria-label="Zoom in"&gt;' + svg('&lt;path d="M12 5v14M5 12h14"/&gt;') + '&lt;/button&gt;' +
+    '&lt;div class="nbx-zmenu" hidden role="menu"&gt;' + [50, 75, 90, 100, 110, 125, 150, 175, 200].map(z =&gt; `&lt;button type="button" data-zv="${z}" role="menuitem"&gt;${z}%&lt;/button&gt;`).join('') + '&lt;/div&gt;';
   ribbon.insertBefore(tabs, ribbon.firstChild);
   function showTab(t){
     if (body.classList.contains('nhi')) return;   // the iPad bar has its own tabs
@@ -4758,10 +4768,14 @@ body.nhp .nhp-sheet{border-radius:var(--aw-r-lg) var(--aw-r-lg) 0 0!important;fo
   tabs.addEventListener('mousedown', e =&gt; e.preventDefault());   // keep the selection in the page
   tabs.addEventListener('click', e =&gt; {
     const t = e.target.closest('[data-t]'); if (t){ showTab(t.dataset.t); return; }
+    const zv = e.target.closest('[data-zv]');
+    if (zv){ zm.hidden = true; const cur = parseInt(localStorage.getItem('notehouse_page_zoom') || '100', 10) || 100; try { setPageZoom(+zv.dataset.zv - cur); } catch (er) {} return; }
     const z = e.target.closest('[data-z]'); if (!z) return;
-    const id = { full: '#viewFullscreen', out: '#zoomOut', reset: '#zoomReadout', in: '#zoomIn' }[z.dataset.z]; const el = $q(id); if (el) el.click();
+    if (z.dataset.z === 'menu'){ zm.hidden = !zm.hidden; if (!zm.hidden){ zm.style.left = (z.offsetLeft) + 'px'; zm.style.top = (z.offsetTop + z.offsetHeight + 4) + 'px'; zm.querySelectorAll('[data-zv]').forEach(b =&gt; b.classList.toggle('cur', b.textContent === zr.textContent)); } return; }
+    const id = { full: '#viewFullscreen', out: '#zoomOut', in: '#zoomIn' }[z.dataset.z]; const el = $q(id); if (el) el.click();
   });
-  const ro = $q('#zoomReadout'), zr = tabs.querySelector('.zoom');
+  const ro = $q('#zoomReadout'), zr = tabs.querySelector('.zoom span'), zm = tabs.querySelector('.nbx-zmenu');
+  document.addEventListener('pointerdown', e =&gt; { if (!zm.hidden &amp;&amp; !e.target.closest('.nbx-zmenu,[data-z="menu"]')) zm.hidden = true; }, true);
   if (ro){ const upd = () =&gt; { zr.textContent = ro.textContent.trim() || '100%'; }; new MutationObserver(upd).observe(ro, { childList: true, characterData: true, subtree: true }); upd(); }
   showTab('home');
   // when the iPad bar goes away (computer toolbar), the computer tabs take over again
@@ -5722,6 +5736,22 @@ body.nhi #tb .aw-tcolor-sw{flex:none}
 body.nhi #tb .aw-tl-f{flex:none;white-space:nowrap}
 body.nhi #tb .aw-rb-big{flex-direction:row;gap:6px;height:36px}
 body.nhi #tb .aw-rb-big svg{width:20px;height:20px}
+#tb.nbd-mock{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:relative}
+.nbd-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.nbd-sep{width:1px;height:28px;background:var(--aw-border-2);margin:0 10px;flex:none}
+.nbd-style{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbd-chip{width:42px;height:42px;border-radius:12px;background:var(--aw-surface-2);display:inline-grid;place-items:center;color:var(--aw-ink-2);flex:none}
+.nbd-chip svg{width:22px;height:22px}
+#tb.nbd-mock .aw-tl-f{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+#tb.nbd-mock .aw-ls{min-width:58px}
+#tb.nbd-mock [data-rot]{font-weight:700}
+.nbd-pop{position:absolute;z-index:70;min-width:230px;padding:6px;background:#fff;border-radius:16px;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);display:flex;flex-direction:column;gap:2px}
+.nbd-pop[hidden]{display:none}
+#tb .nbd-pop .aw-rb-b{width:100%;justify-content:flex-start;padding:0 12px}
+.nbd-hold{display:none}
+body.nhi #tb .nbd-row,body.nhi #tb .nbd-style{display:contents!important}
+body.nhi #tb .nbd-sep{height:22px;margin:0 6px}
+body.nhi .nbd-chip{width:34px;height:34px}
 &lt;/style&gt;
 &lt;script&gt;
 /* aw-free.js: the free layer of the Interactive Board (text boxes anywhere, pen, highlighter, eraser, shapes, symbols).
@@ -7037,8 +7067,63 @@ window.AWFree = { panelHtml, wire, tool: () =&gt; S.tool, setTool, fit, serializ
 
   /* ---------- the Draw tab is Interactive Board's Draw panel ---------- */
   const draw = $q('[data-ribbon-panel="draw"]');
-  if (draw){ draw.innerHTML = '&lt;div id="tb" class="aw-rb-panel nbd-panel"&gt;' + AWFree.panelHtml() + '&lt;/div&gt;'; }
+  if (draw){ draw.innerHTML = '&lt;div id="tb" class="aw-rb-panel nbd-panel"&gt;' + AWFree.panelHtml() + '&lt;/div&gt;'; mockLayout($q('#tb')); }
   AWFree.wire(editor);
+  /* The board's controls, laid out like the teacher's mockup: two rows of icons, no words.
+     The same buttons are kept (AWFree.wire finds them by id and data attribute); only their places change.
+     Row 1: tools · W H · more (ruler, smoothing, finger, level, reset turn) · thickness · line styles
+     Row 2: undo redo duplicate delete · pen colours · fills · turn · flip · angles
+     Shapes and Symbols are on the Insert tab. Bring to front / send to back are gone (asked by the teacher). */
+  function mockLayout(tb){
+    if (!tb) return;
+    const q = s =&gt; tb.querySelector(s), all = s =&gt; [...tb.querySelectorAll(s)];
+    const el = (tag, cls, html) =&gt; { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+    const sep = () =&gt; el('span', 'nbd-sep');
+    const ic = p =&gt; '&lt;svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"&gt;' + p + '&lt;/svg&gt;';
+    const row1 = el('div', 'nbd-row'), row2 = el('div', 'nbd-row');
+    all('[data-fl-tool]').forEach(b =&gt; row1.append(b)); row1.append(sep());
+    const lw = q('#flSW') &amp;&amp; q('#flSW').closest('label'), lh = q('#flSH') &amp;&amp; q('#flSH').closest('label');
+    if (lw) row1.append(lw); if (lh) row1.append(lh); row1.append(sep());
+    const more = el('button', 'aw-rb-b nbd-more', ic('&lt;path d="m12 3 9 5-9 5-9-5z"/&gt;&lt;path d="m3 12 9 5 9-5"/&gt;&lt;path d="m3 16 9 5 9-5"/&gt;'));
+    more.type = 'button'; more.title = 'More: ruler, smoothing, finger drawing, level, reset turn'; more.setAttribute('aria-label', more.title); more.setAttribute('aria-haspopup', 'menu');
+    row1.append(more, sep());
+    const th = q('#flW') &amp;&amp; q('#flW').closest('label');
+    if (th){ [...th.childNodes].forEach(n =&gt; { if (n.nodeType === 3) n.textContent = ' '; }); th.title = 'Thickness'; row1.append(th, sep()); }
+    all('[data-ls]').forEach(b =&gt; row1.append(b));
+    ['#flUndo', '#flRedo', '[data-fl-act="dup"]', '[data-fl-act="del"]'].forEach(s =&gt; { const b = q(s); if (b) row2.append(b); });
+    row2.append(sep());
+    const style = q('#flStyle'), fs = all('[data-fs]').filter(b =&gt; b.dataset.fs.toUpperCase() !== '#FFFFFF'), cust = q('.aw-cust'), ff = all('[data-ff]');
+    const white = q('[data-fs="#FFFFFF"]'); if (white) white.remove();
+    const chip = (path, t) =&gt; { const c = el('span', 'nbd-chip', ic(path)); c.title = t; c.setAttribute('role', 'img'); c.setAttribute('aria-label', t); return c; };
+    if (style){
+      style.innerHTML = ''; style.className = 'nbd-style';
+      style.append(chip('&lt;path d="M4.5 19.5 5.5 15 16 4.5l3.5 3.5L9 18.5z"/&gt;&lt;path d="m14 6.5 3.5 3.5"/&gt;', 'Pen and line colour'), ...fs);
+      if (cust) style.append(cust);
+      style.append(sep(), chip('&lt;path d="M12 3.5c3.2 4.2 5.5 7.2 5.5 10a5.5 5.5 0 0 1-11 0c0-2.8 2.3-5.8 5.5-10z"/&gt;', 'Fill colour'), ...ff);
+      row2.append(style, sep());
+    }
+    all('[data-rot]').filter(b =&gt; b.dataset.rot !== '0').forEach(b =&gt; row2.append(b)); row2.append(sep());
+    const fx = q('[data-flip="x"]'), fy = q('[data-flip="y"]'), an = q('#flAngles');
+    if (fx){ fx.innerHTML = ic('&lt;path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/&gt;'); row2.append(fx); }
+    if (fy){ fy.innerHTML = ic('&lt;path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/&gt;'); row2.append(fy); }
+    if (an){ an.innerHTML = ic('&lt;path d="M12 4 21 20H3z"/&gt;'); row2.append(an); }
+    const pop = el('div', 'nbd-pop'); pop.hidden = true; pop.setAttribute('role', 'menu');
+    const rs = q('[data-rot="0"]'); if (rs) rs.textContent = '↺ Reset turn';
+    const lv = q('[data-fl-act="align"]'); if (lv) lv.textContent = '≡ Level handwriting';
+    [rs, lv, q('#flRuler'), q('#flSmooth'), q('#flFinger')].forEach(b =&gt; { if (b) pop.append(b); });
+    const hold = el('div', 'nbd-hold'); all('.aw-fpanel-btn').forEach(b =&gt; hold.append(b));
+    ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s =&gt; { const b = q(s); if (b) b.remove(); });
+    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(row1, row2, pop, hold);
+    more.addEventListener('click', () =&gt; { pop.hidden = !pop.hidden; if (!pop.hidden){ pop.style.left = more.offsetLeft + 'px'; pop.style.top = (more.offsetTop + more.offsetHeight + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
+    document.addEventListener('pointerdown', e =&gt; { if (!pop.hidden &amp;&amp; !e.target.closest('.nbd-pop,.nbd-more')){ pop.hidden = true; more.classList.remove('on'); } }, true);
+    // Shapes and Symbols live on the Insert tab (they open the same panels)
+    const insRow = $q('[data-ribbon-panel="insert"] .ribbon-row') || $q('[data-ribbon-panel="insert"]');
+    const insRef = insRow &amp;&amp; insRow.firstChild;
+    if (insRow) all('.aw-fpanel-btn').forEach(orig =&gt; {
+      const b = el('button', 'ribbon-action nbd-ins', orig.innerHTML); b.type = 'button'; b.title = orig.title; b.setAttribute('aria-label', orig.getAttribute('aria-label') || orig.title);
+      b.addEventListener('click', () =&gt; orig.click()); insRow.insertBefore(b, insRef);
+    });
+  }
   // leaving the Draw tab goes back to typing, so the page never stays in pen mode by surprise
   if (draw) new MutationObserver(() =&gt; { if (draw.hidden &amp;&amp; AWFree.tool() !== 'type') AWFree.setTool('type'); }).observe(draw, { attributes: true, attributeFilter: ['hidden'] });
 

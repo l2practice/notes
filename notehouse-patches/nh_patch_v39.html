@@ -135,6 +135,22 @@ body.nhi #tb .aw-tcolor-sw{flex:none}
 body.nhi #tb .aw-tl-f{flex:none;white-space:nowrap}
 body.nhi #tb .aw-rb-big{flex-direction:row;gap:6px;height:36px}
 body.nhi #tb .aw-rb-big svg{width:20px;height:20px}
+#tb.nbd-mock{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:relative}
+.nbd-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.nbd-sep{width:1px;height:28px;background:var(--aw-border-2);margin:0 10px;flex:none}
+.nbd-style{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nbd-chip{width:42px;height:42px;border-radius:12px;background:var(--aw-surface-2);display:inline-grid;place-items:center;color:var(--aw-ink-2);flex:none}
+.nbd-chip svg{width:22px;height:22px}
+#tb.nbd-mock .aw-tl-f{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+#tb.nbd-mock .aw-ls{min-width:58px}
+#tb.nbd-mock [data-rot]{font-weight:700}
+.nbd-pop{position:absolute;z-index:70;min-width:230px;padding:6px;background:#fff;border-radius:16px;box-shadow:var(--aw-shadow-lg),0 0 0 1px var(--aw-border-2);display:flex;flex-direction:column;gap:2px}
+.nbd-pop[hidden]{display:none}
+#tb .nbd-pop .aw-rb-b{width:100%;justify-content:flex-start;padding:0 12px}
+.nbd-hold{display:none}
+body.nhi #tb .nbd-row,body.nhi #tb .nbd-style{display:contents!important}
+body.nhi #tb .nbd-sep{height:22px;margin:0 6px}
+body.nhi .nbd-chip{width:34px;height:34px}
 </style>
 <script>
 /* aw-free.js: the free layer of the Interactive Board (text boxes anywhere, pen, highlighter, eraser, shapes, symbols).
@@ -1450,8 +1466,63 @@ window.AWFree = { panelHtml, wire, tool: () => S.tool, setTool, fit, serialize, 
 
   /* ---------- the Draw tab is Interactive Board's Draw panel ---------- */
   const draw = $q('[data-ribbon-panel="draw"]');
-  if (draw){ draw.innerHTML = '<div id="tb" class="aw-rb-panel nbd-panel">' + AWFree.panelHtml() + '</div>'; }
+  if (draw){ draw.innerHTML = '<div id="tb" class="aw-rb-panel nbd-panel">' + AWFree.panelHtml() + '</div>'; mockLayout($q('#tb')); }
   AWFree.wire(editor);
+  /* The board's controls, laid out like the teacher's mockup: two rows of icons, no words.
+     The same buttons are kept (AWFree.wire finds them by id and data attribute); only their places change.
+     Row 1: tools · W H · more (ruler, smoothing, finger, level, reset turn) · thickness · line styles
+     Row 2: undo redo duplicate delete · pen colours · fills · turn · flip · angles
+     Shapes and Symbols are on the Insert tab. Bring to front / send to back are gone (asked by the teacher). */
+  function mockLayout(tb){
+    if (!tb) return;
+    const q = s => tb.querySelector(s), all = s => [...tb.querySelectorAll(s)];
+    const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+    const sep = () => el('span', 'nbd-sep');
+    const ic = p => '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>';
+    const row1 = el('div', 'nbd-row'), row2 = el('div', 'nbd-row');
+    all('[data-fl-tool]').forEach(b => row1.append(b)); row1.append(sep());
+    const lw = q('#flSW') && q('#flSW').closest('label'), lh = q('#flSH') && q('#flSH').closest('label');
+    if (lw) row1.append(lw); if (lh) row1.append(lh); row1.append(sep());
+    const more = el('button', 'aw-rb-b nbd-more', ic('<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/>'));
+    more.type = 'button'; more.title = 'More: ruler, smoothing, finger drawing, level, reset turn'; more.setAttribute('aria-label', more.title); more.setAttribute('aria-haspopup', 'menu');
+    row1.append(more, sep());
+    const th = q('#flW') && q('#flW').closest('label');
+    if (th){ [...th.childNodes].forEach(n => { if (n.nodeType === 3) n.textContent = ' '; }); th.title = 'Thickness'; row1.append(th, sep()); }
+    all('[data-ls]').forEach(b => row1.append(b));
+    ['#flUndo', '#flRedo', '[data-fl-act="dup"]', '[data-fl-act="del"]'].forEach(s => { const b = q(s); if (b) row2.append(b); });
+    row2.append(sep());
+    const style = q('#flStyle'), fs = all('[data-fs]').filter(b => b.dataset.fs.toUpperCase() !== '#FFFFFF'), cust = q('.aw-cust'), ff = all('[data-ff]');
+    const white = q('[data-fs="#FFFFFF"]'); if (white) white.remove();
+    const chip = (path, t) => { const c = el('span', 'nbd-chip', ic(path)); c.title = t; c.setAttribute('role', 'img'); c.setAttribute('aria-label', t); return c; };
+    if (style){
+      style.innerHTML = ''; style.className = 'nbd-style';
+      style.append(chip('<path d="M4.5 19.5 5.5 15 16 4.5l3.5 3.5L9 18.5z"/><path d="m14 6.5 3.5 3.5"/>', 'Pen and line colour'), ...fs);
+      if (cust) style.append(cust);
+      style.append(sep(), chip('<path d="M12 3.5c3.2 4.2 5.5 7.2 5.5 10a5.5 5.5 0 0 1-11 0c0-2.8 2.3-5.8 5.5-10z"/>', 'Fill colour'), ...ff);
+      row2.append(style, sep());
+    }
+    all('[data-rot]').filter(b => b.dataset.rot !== '0').forEach(b => row2.append(b)); row2.append(sep());
+    const fx = q('[data-flip="x"]'), fy = q('[data-flip="y"]'), an = q('#flAngles');
+    if (fx){ fx.innerHTML = ic('<path d="M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4"/>'); row2.append(fx); }
+    if (fy){ fy.innerHTML = ic('<path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/>'); row2.append(fy); }
+    if (an){ an.innerHTML = ic('<path d="M12 4 21 20H3z"/>'); row2.append(an); }
+    const pop = el('div', 'nbd-pop'); pop.hidden = true; pop.setAttribute('role', 'menu');
+    const rs = q('[data-rot="0"]'); if (rs) rs.textContent = '↺ Reset turn';
+    const lv = q('[data-fl-act="align"]'); if (lv) lv.textContent = '≡ Level handwriting';
+    [rs, lv, q('#flRuler'), q('#flSmooth'), q('#flFinger')].forEach(b => { if (b) pop.append(b); });
+    const hold = el('div', 'nbd-hold'); all('.aw-fpanel-btn').forEach(b => hold.append(b));
+    ['[data-fl-act="front"]', '[data-fl-act="back"]'].forEach(s => { const b = q(s); if (b) b.remove(); });
+    tb.innerHTML = ''; tb.classList.add('nbd-mock'); tb.append(row1, row2, pop, hold);
+    more.addEventListener('click', () => { pop.hidden = !pop.hidden; if (!pop.hidden){ pop.style.left = more.offsetLeft + 'px'; pop.style.top = (more.offsetTop + more.offsetHeight + 6) + 'px'; } more.classList.toggle('on', !pop.hidden); });
+    document.addEventListener('pointerdown', e => { if (!pop.hidden && !e.target.closest('.nbd-pop,.nbd-more')){ pop.hidden = true; more.classList.remove('on'); } }, true);
+    // Shapes and Symbols live on the Insert tab (they open the same panels)
+    const insRow = $q('[data-ribbon-panel="insert"] .ribbon-row') || $q('[data-ribbon-panel="insert"]');
+    const insRef = insRow && insRow.firstChild;
+    if (insRow) all('.aw-fpanel-btn').forEach(orig => {
+      const b = el('button', 'ribbon-action nbd-ins', orig.innerHTML); b.type = 'button'; b.title = orig.title; b.setAttribute('aria-label', orig.getAttribute('aria-label') || orig.title);
+      b.addEventListener('click', () => orig.click()); insRow.insertBefore(b, insRef);
+    });
+  }
   // leaving the Draw tab goes back to typing, so the page never stays in pen mode by surprise
   if (draw) new MutationObserver(() => { if (draw.hidden && AWFree.tool() !== 'type') AWFree.setTool('type'); }).observe(draw, { attributes: true, attributeFilter: ['hidden'] });
 
